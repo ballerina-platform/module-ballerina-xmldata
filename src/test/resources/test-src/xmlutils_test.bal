@@ -14,18 +14,32 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Type for XML options.
-#
-# + attributePrefix - attribute prefix of XML
-# + preserveNamespaces - preserve namespaces of XML
-public type XmlOptions record {
-    string attributePrefix = "@";
-    boolean preserveNamespaces = true;
+import ballerina/xmlutils;
+
+type Person record {
+    int id;
+    int age = -1;
+    decimal salary;
+    string name;
+    boolean married;
 };
 
-# Converts a XML object to a JSON representation.
-#
-# + x - The xml source
-# + options - xmlOptions struct for XML to JSON conversion properties
-# + return - JSON representation of the given XML
-public function toJSON(xml x, XmlOptions options = {}) returns json|error = external;
+function testFromJSON() returns xml|error {
+    json data = {
+        name: "John",
+        age: 30
+    };
+    xml|error x = xmlutils:fromJSON(data);
+    return x;
+}
+
+public function testFromTable() returns string {
+    table<Person> personTable = table{
+        { key id, age, salary, name, married },
+        [ { 1, 30,  300.5, "Mary", true },
+          { 2, 20,  300.5, "John", true }
+        ]
+    };
+
+    return xmlutils:fromTable(personTable).toString();
+}
