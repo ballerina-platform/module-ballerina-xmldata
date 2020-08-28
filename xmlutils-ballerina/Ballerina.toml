@@ -1,13 +1,13 @@
 [project]
 org-name = "ballerina"
-version = "1.0.0"
+version = "@toml.version@"
 
 [platform]
 target = "java8"
 
     [[platform.libraries]]
     artifactId = "xmlutils"
-    version = "1.0.0-SNAPSHOT"
-    path = "../xmlutils-native/build/libs/xmlutils-native-1.0.0-SNAPSHOT.jar"
+    version = "@project.version@"
+    path = "../xmlutils-native/build/libs/xmlutils-native-@project.version@.jar"
     groupId = "ballerina"
     modules = ["xmlutils"]
