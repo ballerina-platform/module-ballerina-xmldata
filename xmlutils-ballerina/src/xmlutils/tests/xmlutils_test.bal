@@ -98,7 +98,7 @@ public function testFromTable2() {
                         "<id>1</id><name>Mary</name><salary>300.5</salary><permanent>true</permanent>" +
                         "<dependents><element>Mike</element><element>Rachel</element></dependents>" +
                         "<contact>" +
-                            "<phone>445566 778877</phone>" +
+                            "<phone>[445566,778877]</phone>" +
                             "<address><number>34</number><street>Straford</street></address>" +
                             "<emergency>Stephen</emergency>" +
                         "</contact>" +
@@ -107,7 +107,7 @@ public function testFromTable2() {
                         "<id>2</id><name>John</name><salary>200.5</salary><permanent>false</permanent>" +
                         "<dependents><element>Kyle</element></dependents>" +
                         "<contact>" +
-                            "<phone>6060606 556644</phone>" +
+                            "<phone>[6060606,556644]</phone>" +
                             "<address><number>10</number><street>Oxford</street></address>" +
                             "<emergency>Elizabeth</emergency>" +
                         "</contact>" +
@@ -116,7 +116,7 @@ public function testFromTable2() {
                         "<id>3</id><name>Jim</name><salary>330.5</salary><permanent>true</permanent>" +
                         "<dependents/>" +
                         "<contact>" +
-                            "<phone>960960 889889</phone>" +
+                            "<phone>[960960,889889]</phone>" +
                             "<address><number>46</number><street>Queens</street></address>" +
                             "<emergency>Veronica</emergency>" +
                         "</contact>" +
