@@ -18,26 +18,25 @@
 
 package org.ballerinalang.stdlib.xmlutils;
 
-import org.ballerinalang.jvm.BallerinaErrors;
-import org.ballerinalang.jvm.StringUtils;
 import org.ballerinalang.jvm.TypeChecker;
 import org.ballerinalang.jvm.XMLFactory;
 import org.ballerinalang.jvm.XMLValidator;
+import org.ballerinalang.jvm.api.BErrorCreator;
+import org.ballerinalang.jvm.api.BStringUtils;
+import org.ballerinalang.jvm.api.values.BMap;
+import org.ballerinalang.jvm.api.values.BString;
+import org.ballerinalang.jvm.api.values.BXML;
 import org.ballerinalang.jvm.types.BMapType;
 import org.ballerinalang.jvm.types.BType;
 import org.ballerinalang.jvm.types.TypeTags;
 import org.ballerinalang.jvm.values.ArrayValue;
-import org.ballerinalang.jvm.values.MapValueImpl;
 import org.ballerinalang.jvm.values.RefValue;
 import org.ballerinalang.jvm.values.XMLItem;
 import org.ballerinalang.jvm.values.XMLQName;
 import org.ballerinalang.jvm.values.XMLSequence;
 import org.ballerinalang.jvm.values.XMLValue;
-import org.ballerinalang.jvm.values.api.BString;
-import org.ballerinalang.jvm.values.api.BXML;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -116,8 +115,8 @@ public class JSONToXMLConverter {
             // Extract attributes and set to the immediate parent.
             if (nodeName.startsWith(attributePrefix)) {
                 if (json instanceof RefValue) {
-                    throw BallerinaErrors.createError(
-                            StringUtils.fromString("attribute cannot be an object or array"));
+                    throw BErrorCreator.createError(
+                            BStringUtils.fromString("attribute cannot be an object or array"));
                 }
                 if (parentElement != null) {
                     String attributeKey = nodeName.substring(1);
@@ -136,17 +135,17 @@ public class JSONToXMLConverter {
         if (json == null) {
             currentRoot.setAttribute(NIL, XSI_NAMESPACE, XSI_PREFIX, "true");
         } else {
-            LinkedHashMap<BString, Object> map;
+            BMap<BString, Object> map;
 
             BType type = TypeChecker.getType(json);
             switch (type.getTag()) {
 
                 case TypeTags.MAP_TAG:
                     if (((BMapType) type).getConstrainedType().getTag() != TypeTags.JSON_TAG) {
-                        throw BallerinaErrors.createError(
-                                StringUtils.fromString("error in converting map<non-json> to xml"));
+                        throw BErrorCreator.createError(
+                                BStringUtils.fromString("error in converting map<non-json> to xml"));
                     }
-                    map = (MapValueImpl<BString, Object>) json;
+                    map = (BMap<BString, Object>) json;
                     for (Entry<BString, Object> entry : map.entrySet()) {
                         currentRoot = traverseJsonNode(entry.getValue(), entry.getKey().getValue(),
                                 currentRoot, xmlElemList, attributePrefix, arrayEntryTag);
@@ -157,7 +156,7 @@ public class JSONToXMLConverter {
                     }
                     break;
                 case TypeTags.JSON_TAG:
-                    map = (MapValueImpl) json;
+                    map = (BMap) json;
                     for (Entry<BString, Object> entry : map.entrySet()) {
                         currentRoot = traverseJsonNode(entry.getValue(), entry.getKey().getValue(), currentRoot,
                                 xmlElemList, attributePrefix, arrayEntryTag);
@@ -184,14 +183,14 @@ public class JSONToXMLConverter {
                 case TypeTags.STRING_TAG:
                 case TypeTags.BOOLEAN_TAG:
                     if (currentRoot == null) {
-                        throw BallerinaErrors.createError(StringUtils.fromString("error in converting json to xml"));
+                        throw BErrorCreator.createError(BStringUtils.fromString("error in converting json to xml"));
                     }
 
                     XMLValue text = XMLFactory.createXMLText(json.toString());
                     addChildElem(currentRoot, text);
                     break;
                 default:
-                    throw BallerinaErrors.createError(StringUtils.fromString("error in converting json to xml"));
+                    throw BErrorCreator.createError(BStringUtils.fromString("error in converting json to xml"));
             }
         }
 
