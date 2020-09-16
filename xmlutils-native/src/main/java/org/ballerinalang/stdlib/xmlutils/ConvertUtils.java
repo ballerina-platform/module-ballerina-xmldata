@@ -18,13 +18,13 @@
 
 package org.ballerinalang.stdlib.xmlutils;
 
-import org.ballerinalang.jvm.BallerinaErrors;
-import org.ballerinalang.jvm.StringUtils;
 import org.ballerinalang.jvm.XMLFactory;
-import org.ballerinalang.jvm.values.MapValue;
+import org.ballerinalang.jvm.api.BErrorCreator;
+import org.ballerinalang.jvm.api.BStringUtils;
+import org.ballerinalang.jvm.api.values.BMap;
+import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.values.TableValueImpl;
 import org.ballerinalang.jvm.values.XMLValue;
-import org.ballerinalang.jvm.values.api.BString;
 
 /**
  * This class work as a bridge with ballerina and a Java implementation of ballerina/xmlutils modules.
@@ -46,13 +46,13 @@ public class ConvertUtils {
      * @param options option details
      * @return XML object that construct from JSON
      */
-    public static Object fromJSON(Object json, MapValue<BString, BString> options) {
+    public static Object fromJSON(Object json, BMap<BString, BString> options) {
         try {
-            String attributePrefix = (options.get(StringUtils.fromString(OPTIONS_ATTRIBUTE_PREFIX))).getValue();
-            String arrayEntryTag = (options.get(StringUtils.fromString(OPTIONS_ARRAY_ENTRY_TAG))).getValue();
+            String attributePrefix = (options.get(BStringUtils.fromString(OPTIONS_ATTRIBUTE_PREFIX))).getValue();
+            String arrayEntryTag = (options.get(BStringUtils.fromString(OPTIONS_ARRAY_ENTRY_TAG))).getValue();
             return JSONToXMLConverter.convertToXML(json, attributePrefix, arrayEntryTag);
         } catch (Exception e) {
-            return BallerinaErrors.createError(StringUtils.fromString(e.getMessage()));
+            return BErrorCreator.createError(BStringUtils.fromString(e.getMessage()));
         }
     }
 
