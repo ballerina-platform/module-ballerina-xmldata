@@ -39,7 +39,7 @@ public type JsonOptions record {
 # + options - The `xmlutils:JsonOptions` record for JSON to XML conversion properties
 # + return - XML representation of the given JSON if the JSON is
 #            successfully converted or else an `error`
-public function fromJSON(json? jsonValue, JsonOptions options = {}) returns xml|error = @java:Method {
+public isolated function fromJSON(json? jsonValue, JsonOptions options = {}) returns xml|error = @java:Method {
     name: "fromJSON",
     'class: "org.ballerinalang.stdlib.xmlutils.ConvertUtils"
 } external;
@@ -61,11 +61,11 @@ public function fromJSON(json? jsonValue, JsonOptions options = {}) returns xml|
 #
 # + tableValue - The `table` value to be converted to an XML
 # + return - The XML representation of the provided table
-public function fromTable(table<record{}> tableValue) returns xml {
+public isolated function fromTable(table<record{}> tableValue) returns xml {
     return externFromTable(tableValue);
 }
 
-function externFromTable(table<record{}> tableValue) returns xml = @java:Method {
+isolated function externFromTable(table<record{}> tableValue) returns xml = @java:Method {
     name: "fromTable",
     'class: "org.ballerinalang.stdlib.xmlutils.ConvertUtils"
 } external;
