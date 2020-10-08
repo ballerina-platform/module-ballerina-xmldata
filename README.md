@@ -17,10 +17,10 @@ For more information go to [The XmlUtils Module](https://ballerina.io/swan-lake/
 
 ### Setting Up the Prerequisites
 
-1. Download and install Java SE Development Kit (JDK) version 8 (from one of the following locations).
-   * [Oracle](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html)
+1. Download and install Java SE Development Kit (JDK) version 11 (from one of the following locations).
+   * [Oracle](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
    
-   * [OpenJDK](http://openjdk.java.net/install/index.html)
+   * [OpenJDK](https://openjdk.java.net/projects/jdk/11/)
    
         > **Note:** Set the JAVA_HOME environment variable to the path name of the directory into which you installed JDK.
      
