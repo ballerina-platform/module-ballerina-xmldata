@@ -17,6 +17,6 @@
  */
 
 module io.ballerina.stdlib.xmlutils {
-    requires io.ballerina.jvm;
+    requires io.ballerina.runtime;
     exports org.ballerinalang.stdlib.xmlutils;
 }

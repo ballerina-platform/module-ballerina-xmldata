@@ -18,13 +18,13 @@
 
 package org.ballerinalang.stdlib.xmlutils;
 
-import org.ballerinalang.jvm.XMLFactory;
-import org.ballerinalang.jvm.api.BErrorCreator;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.values.TableValueImpl;
-import org.ballerinalang.jvm.values.XMLValue;
+import io.ballerina.runtime.XMLFactory;
+import io.ballerina.runtime.api.ErrorCreator;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BXML;
+import io.ballerina.runtime.values.TableValueImpl;
 
 /**
  * This class work as a bridge with ballerina and a Java implementation of ballerina/xmlutils modules.
@@ -48,11 +48,11 @@ public class ConvertUtils {
      */
     public static Object fromJSON(Object json, BMap<BString, BString> options) {
         try {
-            String attributePrefix = (options.get(BStringUtils.fromString(OPTIONS_ATTRIBUTE_PREFIX))).getValue();
-            String arrayEntryTag = (options.get(BStringUtils.fromString(OPTIONS_ARRAY_ENTRY_TAG))).getValue();
+            String attributePrefix = (options.get(StringUtils.fromString(OPTIONS_ATTRIBUTE_PREFIX))).getValue();
+            String arrayEntryTag = (options.get(StringUtils.fromString(OPTIONS_ARRAY_ENTRY_TAG))).getValue();
             return JSONToXMLConverter.convertToXML(json, attributePrefix, arrayEntryTag);
         } catch (Exception e) {
-            return BErrorCreator.createError(BStringUtils.fromString(e.getMessage()));
+            return ErrorCreator.createError(StringUtils.fromString(e.getMessage()));
         }
     }
 
@@ -62,7 +62,7 @@ public class ConvertUtils {
      * @param tableValue Table record pointer
      * @return XML record that construct from the table
      */
-    public static XMLValue fromTable(TableValueImpl tableValue) {
+    public static BXML fromTable(TableValueImpl tableValue) {
         return XMLFactory.tableToXML(tableValue);
     }
 }

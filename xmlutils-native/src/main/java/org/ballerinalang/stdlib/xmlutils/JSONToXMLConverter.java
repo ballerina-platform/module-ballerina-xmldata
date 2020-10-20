@@ -18,27 +18,27 @@
 
 package org.ballerinalang.stdlib.xmlutils;
 
-import org.ballerinalang.jvm.TypeChecker;
-import org.ballerinalang.jvm.XMLFactory;
-import org.ballerinalang.jvm.XMLValidator;
-import org.ballerinalang.jvm.api.BErrorCreator;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.api.values.BXML;
-import org.ballerinalang.jvm.types.BMapType;
-import org.ballerinalang.jvm.types.BType;
-import org.ballerinalang.jvm.types.TypeTags;
-import org.ballerinalang.jvm.values.ArrayValue;
-import org.ballerinalang.jvm.values.RefValue;
-import org.ballerinalang.jvm.values.XMLItem;
-import org.ballerinalang.jvm.values.XMLQName;
-import org.ballerinalang.jvm.values.XMLSequence;
-import org.ballerinalang.jvm.values.XMLValue;
+import io.ballerina.runtime.TypeChecker;
+import io.ballerina.runtime.XMLFactory;
+import io.ballerina.runtime.XMLValidator;
+import io.ballerina.runtime.api.ErrorCreator;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BXML;
+import io.ballerina.runtime.types.BMapType;
+import io.ballerina.runtime.values.ArrayValue;
+import io.ballerina.runtime.values.RefValue;
+import io.ballerina.runtime.values.XMLItem;
+import io.ballerina.runtime.values.XMLQName;
+import io.ballerina.runtime.values.XMLSequence;
+import io.ballerina.runtime.values.XMLValue;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 
 /**
  * Common utility methods used for JSON manipulation.
@@ -87,8 +87,8 @@ public class JSONToXMLConverter {
     private static List<XMLValue> traverseTree(Object json, String attributePrefix, String arrayEntryTag) {
         List<XMLValue> xmlArray = new ArrayList<>();
         if (!(json instanceof RefValue)) {
-            XMLValue xml = XMLFactory.parse(json.toString());
-            xmlArray.add(xml);
+            BXML xml = XMLFactory.parse(json.toString());
+            xmlArray.add((XMLValue) xml);
         } else {
             traverseJsonNode(json, null, null, xmlArray, attributePrefix, arrayEntryTag);
         }
@@ -108,15 +108,15 @@ public class JSONToXMLConverter {
      */
     @SuppressWarnings("rawtypes")
     private static XMLItem traverseJsonNode(Object json, String nodeName, XMLItem parentElement,
-                                              List<XMLValue> xmlElemList, String attributePrefix,
-                                              String arrayEntryTag) {
+                                            List<XMLValue> xmlElemList, String attributePrefix,
+                                            String arrayEntryTag) {
         XMLItem currentRoot = null;
         if (nodeName != null) {
             // Extract attributes and set to the immediate parent.
             if (nodeName.startsWith(attributePrefix)) {
                 if (json instanceof RefValue) {
-                    throw BErrorCreator.createError(
-                            BStringUtils.fromString("attribute cannot be an object or array"));
+                    throw ErrorCreator.createError(
+                            StringUtils.fromString("attribute cannot be an object or array"));
                 }
                 if (parentElement != null) {
                     String attributeKey = nodeName.substring(1);
@@ -137,16 +137,16 @@ public class JSONToXMLConverter {
         } else {
             BMap<BString, Object> map;
 
-            BType type = TypeChecker.getType(json);
+            Type type = TypeChecker.getType(json);
             switch (type.getTag()) {
 
                 case TypeTags.MAP_TAG:
                     if (((BMapType) type).getConstrainedType().getTag() != TypeTags.JSON_TAG) {
-                        throw BErrorCreator.createError(
-                                BStringUtils.fromString("error in converting map<non-json> to xml"));
+                        throw ErrorCreator.createError(
+                                StringUtils.fromString("error in converting map<non-json> to xml"));
                     }
                     map = (BMap<BString, Object>) json;
-                    for (Entry<BString, Object> entry : map.entrySet()) {
+                    for (Map.Entry<BString, Object> entry : map.entrySet()) {
                         currentRoot = traverseJsonNode(entry.getValue(), entry.getKey().getValue(),
                                 currentRoot, xmlElemList, attributePrefix, arrayEntryTag);
                         if (nodeName == null) { // Outermost object
@@ -157,7 +157,7 @@ public class JSONToXMLConverter {
                     break;
                 case TypeTags.JSON_TAG:
                     map = (BMap) json;
-                    for (Entry<BString, Object> entry : map.entrySet()) {
+                    for (Map.Entry<BString, Object> entry : map.entrySet()) {
                         currentRoot = traverseJsonNode(entry.getValue(), entry.getKey().getValue(), currentRoot,
                                 xmlElemList, attributePrefix, arrayEntryTag);
                         if (nodeName == null) { // Outermost object
@@ -183,14 +183,14 @@ public class JSONToXMLConverter {
                 case TypeTags.STRING_TAG:
                 case TypeTags.BOOLEAN_TAG:
                     if (currentRoot == null) {
-                        throw BErrorCreator.createError(BStringUtils.fromString("error in converting json to xml"));
+                        throw ErrorCreator.createError(StringUtils.fromString("error in converting json to xml"));
                     }
 
                     XMLValue text = XMLFactory.createXMLText(json.toString());
                     addChildElem(currentRoot, text);
                     break;
                 default:
-                    throw BErrorCreator.createError(BStringUtils.fromString("error in converting json to xml"));
+                    throw ErrorCreator.createError(StringUtils.fromString("error in converting json to xml"));
             }
         }
 
