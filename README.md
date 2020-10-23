@@ -1,7 +1,7 @@
 Ballerina XmlUtils Library
 ===================
 
-  [![Build](https://github.com/ballerina-platform/module-ballerina-xmlutils/workflows/Build%20master%20branch/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmlutils/actions?query=workflow%3ABuild)
+  [![Build](https://github.com/ballerina-platform/module-ballerina-xmlutils/workflows/Build/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmlutils/actions?query=workflow%3ABuild)
   [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-xmlutils.svg)](https://github.com/ballerina-platform/module-ballerina-xmlutils/commits/master)
   [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/xmlutils.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fxmlutils)
   [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
