@@ -23,8 +23,8 @@ import io.ballerina.runtime.api.ErrorCreator;
 import io.ballerina.runtime.api.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.api.values.BXML;
 import io.ballerina.runtime.values.TableValueImpl;
+import io.ballerina.runtime.values.XMLValue;
 
 /**
  * This class work as a bridge with ballerina and a Java implementation of ballerina/xmlutils modules.
@@ -62,7 +62,7 @@ public class ConvertUtils {
      * @param tableValue Table record pointer
      * @return XML record that construct from the table
      */
-    public static BXML fromTable(TableValueImpl tableValue) {
-        return XMLFactory.tableToXML(tableValue);
+    public static XMLValue fromTable(TableValueImpl tableValue) {
+        return (XMLValue) XMLFactory.tableToXML(tableValue);
     }
 }

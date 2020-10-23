@@ -38,7 +38,7 @@ import io.ballerina.runtime.values.XMLValue;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Common utility methods used for JSON manipulation.
@@ -87,8 +87,8 @@ public class JSONToXMLConverter {
     private static List<XMLValue> traverseTree(Object json, String attributePrefix, String arrayEntryTag) {
         List<XMLValue> xmlArray = new ArrayList<>();
         if (!(json instanceof RefValue)) {
-            BXML xml = XMLFactory.parse(json.toString());
-            xmlArray.add((XMLValue) xml);
+            XMLValue xml = (XMLValue) XMLFactory.parse(json.toString());
+            xmlArray.add(xml);
         } else {
             traverseJsonNode(json, null, null, xmlArray, attributePrefix, arrayEntryTag);
         }
@@ -108,8 +108,8 @@ public class JSONToXMLConverter {
      */
     @SuppressWarnings("rawtypes")
     private static XMLItem traverseJsonNode(Object json, String nodeName, XMLItem parentElement,
-                                            List<XMLValue> xmlElemList, String attributePrefix,
-                                            String arrayEntryTag) {
+                                              List<XMLValue> xmlElemList, String attributePrefix,
+                                              String arrayEntryTag) {
         XMLItem currentRoot = null;
         if (nodeName != null) {
             // Extract attributes and set to the immediate parent.
@@ -146,7 +146,7 @@ public class JSONToXMLConverter {
                                 StringUtils.fromString("error in converting map<non-json> to xml"));
                     }
                     map = (BMap<BString, Object>) json;
-                    for (Map.Entry<BString, Object> entry : map.entrySet()) {
+                    for (Entry<BString, Object> entry : map.entrySet()) {
                         currentRoot = traverseJsonNode(entry.getValue(), entry.getKey().getValue(),
                                 currentRoot, xmlElemList, attributePrefix, arrayEntryTag);
                         if (nodeName == null) { // Outermost object
@@ -157,7 +157,7 @@ public class JSONToXMLConverter {
                     break;
                 case TypeTags.JSON_TAG:
                     map = (BMap) json;
-                    for (Map.Entry<BString, Object> entry : map.entrySet()) {
+                    for (Entry<BString, Object> entry : map.entrySet()) {
                         currentRoot = traverseJsonNode(entry.getValue(), entry.getKey().getValue(), currentRoot,
                                 xmlElemList, attributePrefix, arrayEntryTag);
                         if (nodeName == null) { // Outermost object
