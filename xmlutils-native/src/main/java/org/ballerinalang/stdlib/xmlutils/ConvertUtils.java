@@ -18,13 +18,13 @@
 
 package org.ballerinalang.stdlib.xmlutils;
 
-import io.ballerina.runtime.XMLFactory;
-import io.ballerina.runtime.api.ErrorCreator;
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.XmlUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.values.TableValueImpl;
-import io.ballerina.runtime.values.XMLValue;
+import io.ballerina.runtime.api.values.BTable;
+import io.ballerina.runtime.api.values.BXml;
 
 /**
  * This class work as a bridge with ballerina and a Java implementation of ballerina/xmlutils modules.
@@ -62,7 +62,7 @@ public class ConvertUtils {
      * @param tableValue Table record pointer
      * @return XML record that construct from the table
      */
-    public static XMLValue fromTable(TableValueImpl tableValue) {
-        return (XMLValue) XMLFactory.tableToXML(tableValue);
+    public static BXml fromTable(BTable tableValue) {
+        return XmlUtils.parse(tableValue);
     }
 }
