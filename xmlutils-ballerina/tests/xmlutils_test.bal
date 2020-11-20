@@ -45,7 +45,7 @@ type Address record {
 };
 
 @test:Config {}
-function testFromJSON() {
+isolated function testFromJSON() {
     json data = {
         name: "John",
         age: 30
@@ -59,7 +59,7 @@ function testFromJSON() {
 }
 
 @test:Config {}
-public function testFromTable() {
+public isolated function testFromTable() {
     table<Person> personTable = table[ { id: 1, age: 30,  salary: 300.5, name: "Mary", married: true },
           { id: 2, age: 20,  salary: 300.5, name: "John", married: true }
         ];
@@ -75,7 +75,7 @@ public function testFromTable() {
 }
 
 @test:Config {}
-public function testFromTable2() {
+public isolated function testFromTable2() {
     table<Employee> employeeTable = table [
                 {id: 1, name: "Mary", salary: 300.5, permanent: true, dependents: ["Mike", "Rachel"],
                     contact: {
