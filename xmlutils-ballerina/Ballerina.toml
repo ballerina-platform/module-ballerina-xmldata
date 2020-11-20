@@ -1,13 +1,10 @@
-[project]
-org-name = "ballerina"
+[package]
+org = "ballerina"
+name = "xmlutils"
 version = "@toml.version@"
 
-[platform]
-target = "java11"
-
-    [[platform.libraries]]
-    artifactId = "xmlutils"
-    version = "@project.version@"
-    path = "../xmlutils-native/build/libs/xmlutils-native-@project.version@.jar"
-    groupId = "ballerina"
-    modules = ["xmlutils"]
+[[platform.java11.dependency]]
+path = "../xmlutils-native/build/libs/xmlutils-native-@project.version@.jar"
+groupId = "ballerina"
+artifactId = "xmlutils"
+version = "@project.version@"
