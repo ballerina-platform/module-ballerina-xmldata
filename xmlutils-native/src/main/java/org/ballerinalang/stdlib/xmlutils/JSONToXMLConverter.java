@@ -18,23 +18,21 @@
 
 package org.ballerinalang.stdlib.xmlutils;
 
-import io.ballerina.runtime.TypeChecker;
-import io.ballerina.runtime.XMLFactory;
-import io.ballerina.runtime.XMLValidator;
-import io.ballerina.runtime.api.ErrorCreator;
-import io.ballerina.runtime.api.StringUtils;
 import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.utils.XmlUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BRefValue;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.api.values.BXML;
-import io.ballerina.runtime.types.BMapType;
-import io.ballerina.runtime.values.ArrayValue;
-import io.ballerina.runtime.values.RefValue;
-import io.ballerina.runtime.values.XMLItem;
-import io.ballerina.runtime.values.XMLQName;
-import io.ballerina.runtime.values.XMLSequence;
-import io.ballerina.runtime.values.XMLValue;
+import io.ballerina.runtime.api.values.BXml;
+import io.ballerina.runtime.api.values.BXmlItem;
+import io.ballerina.runtime.api.values.BXmlQName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,19 +56,19 @@ public class JSONToXMLConverter {
      * @param json            JSON object to get the corresponding XML
      * @param attributePrefix String prefix used for attributes
      * @param arrayEntryTag   String used as the tag in the arrays
-     * @return XMLValue XML representation of the given JSON object
+     * @return BXml XML representation of the given JSON object
      */
-    public static XMLValue convertToXML(Object json, String attributePrefix, String arrayEntryTag) {
+    public static BXml convertToXML(Object json, String attributePrefix, String arrayEntryTag) {
         if (json == null) {
-            return new XMLSequence();
+            return ValueCreator.createXmlSequence();
         }
 
-        List<XMLValue> xmlElemList = traverseTree(json, attributePrefix, arrayEntryTag);
+        List<BXml> xmlElemList = traverseTree(json, attributePrefix, arrayEntryTag);
         if (xmlElemList.size() == 1) {
             return xmlElemList.get(0);
         } else {
-            ArrayList<BXML> seq = new ArrayList<>(xmlElemList);
-            return new XMLSequence(seq);
+            ArrayList<BXml> seq = new ArrayList<>(xmlElemList);
+            return ValueCreator.createXmlSequence(seq);
         }
     }
 
@@ -84,10 +82,10 @@ public class JSONToXMLConverter {
      * @param arrayEntryTag   String used as the tag in the arrays
      * @return List of XML items generated during the traversal.
      */
-    private static List<XMLValue> traverseTree(Object json, String attributePrefix, String arrayEntryTag) {
-        List<XMLValue> xmlArray = new ArrayList<>();
-        if (!(json instanceof RefValue)) {
-            XMLValue xml = (XMLValue) XMLFactory.parse(json.toString());
+    private static List<BXml> traverseTree(Object json, String attributePrefix, String arrayEntryTag) {
+        List<BXml> xmlArray = new ArrayList<>();
+        if (!(json instanceof BRefValue)) {
+            BXml xml = (BXml) XmlUtils.parse(json.toString());
             xmlArray.add(xml);
         } else {
             traverseJsonNode(json, null, null, xmlArray, attributePrefix, arrayEntryTag);
@@ -107,14 +105,14 @@ public class JSONToXMLConverter {
      * @return List of XML items generated during the traversal.
      */
     @SuppressWarnings("rawtypes")
-    private static XMLItem traverseJsonNode(Object json, String nodeName, XMLItem parentElement,
-                                              List<XMLValue> xmlElemList, String attributePrefix,
-                                              String arrayEntryTag) {
-        XMLItem currentRoot = null;
+    private static BXmlItem traverseJsonNode(Object json, String nodeName, BXmlItem parentElement,
+                                             List<BXml> xmlElemList, String attributePrefix,
+                                             String arrayEntryTag) {
+        BXmlItem currentRoot = null;
         if (nodeName != null) {
             // Extract attributes and set to the immediate parent.
             if (nodeName.startsWith(attributePrefix)) {
-                if (json instanceof RefValue) {
+                if (json instanceof BRefValue) {
                     throw ErrorCreator.createError(
                             StringUtils.fromString("attribute cannot be an object or array"));
                 }
@@ -126,10 +124,10 @@ public class JSONToXMLConverter {
             }
 
             // Validate whether the tag name is an XML supported qualified name, according to the XML recommendation.
-            XMLValidator.validateXMLName(nodeName);
+            XmlUtils.validateXmlName(nodeName);
 
-            XMLQName tagName = new XMLQName(nodeName);
-            currentRoot = (XMLItem) XMLFactory.createXMLElement(tagName, (BString) null);
+            BXmlQName tagName = ValueCreator.createXmlQName(StringUtils.fromString(nodeName));
+            currentRoot = (BXmlItem) ValueCreator.createXmlValue(tagName, (BString) null);
         }
 
         if (json == null) {
@@ -137,11 +135,11 @@ public class JSONToXMLConverter {
         } else {
             BMap<BString, Object> map;
 
-            Type type = TypeChecker.getType(json);
+            Type type = TypeUtils.getType(json);
             switch (type.getTag()) {
 
                 case TypeTags.MAP_TAG:
-                    if (((BMapType) type).getConstrainedType().getTag() != TypeTags.JSON_TAG) {
+                    if (((MapType) type).getConstrainedType().getTag() != TypeTags.JSON_TAG) {
                         throw ErrorCreator.createError(
                                 StringUtils.fromString("error in converting map<non-json> to xml"));
                     }
@@ -167,7 +165,7 @@ public class JSONToXMLConverter {
                     }
                     break;
                 case TypeTags.ARRAY_TAG:
-                    ArrayValue array = (ArrayValue) json;
+                    BArray array = (BArray) json;
                     for (int i = 0; i < array.size(); i++) {
                         currentRoot = traverseJsonNode(array.getRefValue(i), arrayEntryTag, currentRoot,
                                 xmlElemList, attributePrefix, arrayEntryTag);
@@ -186,7 +184,7 @@ public class JSONToXMLConverter {
                         throw ErrorCreator.createError(StringUtils.fromString("error in converting json to xml"));
                     }
 
-                    XMLValue text = XMLFactory.createXMLText(json.toString());
+                    BXml text = ValueCreator.createXmlText(json.toString());
                     addChildElem(currentRoot, text);
                     break;
                 default:
@@ -202,7 +200,7 @@ public class JSONToXMLConverter {
         return currentRoot;
     }
 
-    private static void addChildElem(XMLItem currentRoot, XMLValue child) {
+    private static void addChildElem(BXmlItem currentRoot, BXml child) {
         currentRoot.getChildrenSeq().getChildrenList().add(child);
     }
 }
