@@ -106,8 +106,8 @@ public class JSONToXMLConverter {
      */
     @SuppressWarnings("rawtypes")
     private static BXmlItem traverseJsonNode(Object json, String nodeName, BXmlItem parentElement,
-                                             List<BXml> xmlElemList, String attributePrefix,
-                                             String arrayEntryTag) {
+                                              List<BXml> xmlElemList, String attributePrefix,
+                                              String arrayEntryTag) {
         BXmlItem currentRoot = null;
         if (nodeName != null) {
             // Extract attributes and set to the immediate parent.
