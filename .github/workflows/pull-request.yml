@@ -17,7 +17,7 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew build --no-daemon
+        run: ./gradlew build --scan
       - name: Archive Error Log
         uses: actions/upload-artifact@v2
         if: failure()
@@ -46,4 +46,4 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew.bat build --no-daemon
+        run: ./gradlew.bat build --scan
