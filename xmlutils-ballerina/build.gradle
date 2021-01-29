@@ -216,6 +216,8 @@ publishing {
 }
 
 ballerinaBuild.dependsOn ":xmlutils-native:build"
+ballerinaTest.dependsOn unpackJballerinaTools
 ballerinaBuild.dependsOn unpackJballerinaTools
+test.dependsOn ballerinaTest
 ballerinaBuild.dependsOn test
 build.dependsOn ballerinaBuild
