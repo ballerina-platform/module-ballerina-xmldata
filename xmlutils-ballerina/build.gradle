@@ -116,7 +116,7 @@ task ballerinaBuild {
 
     def testParams = "--skip-tests"
     gradle.taskGraph.whenReady { graph ->
-        if (graph.hasTask(':xmlutils-ballerina:build')) {
+        if (graph.hasTask(':xmlutils-ballerina:build') || graph.hasTask(':xmlutils-ballerina:publish')) {
             ballerinaTest.enabled = false
         }
         if (graph.hasTask(':xmlutils-ballerina:test')) {
