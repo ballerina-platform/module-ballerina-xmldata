@@ -11,7 +11,7 @@ The XmlUtils library is one of the standard library modules of the<a target="_bl
 This module provides utility functions to manipulate the built-in `xml` data type. 
 It provides APIs to convert a `json` to an `xml` or convert a `table` to an `xml`.
 
-For more information go to [The XmlUtils Module](https://ballerina.io/swan-lake/learn/api-docs/ballerina/xmlutils/).
+For more information go to [The XmlUtils Module](https://ballerina.io/learn/api-docs/ballerina/xmlutils/).
 
 ## Issues and Projects 
 
