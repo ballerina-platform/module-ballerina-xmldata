@@ -216,13 +216,7 @@ publishing {
     }
 }
 
-ballerinaBuild.dependsOn unpackJballerinaTools
-ballerinaBuild.dependsOn test
-build.dependsOn ballerinaBuild
-
-test.dependsOn ballerinaTest
-ballerinaBuild.dependsOn test
-
+updateTomlVerions.dependsOn unpackJballerinaTools
 
 ballerinaTest.dependsOn updateTomlVerions
 ballerinaTest.dependsOn initializeVariables
