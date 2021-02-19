@@ -60,7 +60,7 @@ task unpackJballerinaTools(type: Copy) {
     }
 }
 
-task updateTomlVerions {
+task updateTomlVersions {
     doLast {
         def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
@@ -86,8 +86,11 @@ task initializeVariables {
         balJavaDebugParam = "BAL_JAVA_DEBUG=${project.findProperty("balJavaDebug")}"
     }
     gradle.taskGraph.whenReady { graph ->
-        if (graph.hasTask(":${packageName}-ballerina:build") || graph.hasTask(":${packageName}-ballerina:publish"))  {
+        if (graph.hasTask(":${packageName}-ballerina:build") || graph.hasTask(":${packageName}-ballerina:publish") ||
+                graph.hasTask(":${packageName}-ballerina:publishToMavenLocal"))  {
             ballerinaTest.enabled = false
+        } else {
+            ballerinaTest.enabled = true
         }
 
         if (graph.hasTask(":${packageName}-ballerina:test")) {
@@ -171,6 +174,9 @@ task ballerinaBuild {
 
 task ballerinaPublish {
     doLast {
+        if (project.version.endsWith('-SNAPSHOT')) {
+            return
+        }
         if (ballerinaCentralAccessToken != null) {
             println("Publishing to the ballerina central..")
             exec {
@@ -183,6 +189,8 @@ task ballerinaPublish {
                 }
             }
 
+        } else {
+            throw new InvalidUserDataException("Central Access Token is not present")
         }
     }
 }
@@ -216,20 +224,24 @@ publishing {
     }
 }
 
-updateTomlVerions.dependsOn unpackJballerinaTools
+updateTomlVersions.dependsOn unpackJballerinaTools
 
-ballerinaTest.dependsOn updateTomlVerions
+ballerinaTest.dependsOn updateTomlVersions
 ballerinaTest.dependsOn initializeVariables
 ballerinaTest.dependsOn ":${packageName}-native:build"
 ballerinaTest.finalizedBy revertTomlFile
 test.dependsOn ballerinaTest
 
 ballerinaBuild.dependsOn test
-ballerinaBuild.dependsOn updateTomlVerions
+ballerinaBuild.dependsOn updateTomlVersions
 ballerinaBuild.dependsOn initializeVariables
 ballerinaBuild.dependsOn ":${packageName}-native:build"
 ballerinaBuild.finalizedBy revertTomlFile
 build.dependsOn ballerinaBuild
 
+ballerinaPublish.finalizedBy revertTomlFile
+ballerinaPublish.dependsOn initializeVariables
+ballerinaPublish.dependsOn updateTomlVersions
+ballerinaPublish.dependsOn ":${packageName}-native:build"
 ballerinaPublish.dependsOn ballerinaBuild
 publish.dependsOn ballerinaPublish
