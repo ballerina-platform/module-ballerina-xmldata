@@ -17,9 +17,9 @@
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
-description = 'Ballerina - Xmlutils Ballerina Generator'
+description = 'Ballerina - Xmldata Ballerina Generator'
 
-def packageName = "xmlutils"
+def packageName = "xmldata"
 def packageOrg = "ballerina"
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def artifactBallerinaDocs = file("$project.projectDir/build/docs_parent/")
@@ -229,6 +229,7 @@ updateTomlVersions.dependsOn unpackJballerinaTools
 ballerinaTest.dependsOn updateTomlVersions
 ballerinaTest.dependsOn initializeVariables
 ballerinaTest.dependsOn ":${packageName}-native:build"
+ballerinaTest.dependsOn ":${packageName}-test-utils:build"
 ballerinaTest.finalizedBy revertTomlFile
 test.dependsOn ballerinaTest
 
@@ -236,6 +237,7 @@ ballerinaBuild.dependsOn test
 ballerinaBuild.dependsOn updateTomlVersions
 ballerinaBuild.dependsOn initializeVariables
 ballerinaBuild.dependsOn ":${packageName}-native:build"
+ballerinaBuild.dependsOn ":${packageName}-test-utils:build"
 ballerinaBuild.finalizedBy revertTomlFile
 build.dependsOn ballerinaBuild
 
@@ -243,5 +245,6 @@ ballerinaPublish.finalizedBy revertTomlFile
 ballerinaPublish.dependsOn initializeVariables
 ballerinaPublish.dependsOn updateTomlVersions
 ballerinaPublish.dependsOn ":${packageName}-native:build"
+ballerinaPublish.dependsOn ":${packageName}-test-utils:build"
 ballerinaPublish.dependsOn ballerinaBuild
 publish.dependsOn ballerinaPublish

@@ -32,40 +32,35 @@ public type JsonOptions record {
 #     name: "John",
 #     age: 30
 # };
-# xml|error xmlValue = xmlutils:fromJSON(data);
+# xml|error xmlValue = xmldata:fromJson(data);
 # ```
 #
 # + jsonValue - The JSON source
-# + options - The `xmlutils:JsonOptions` record for JSON to XML conversion properties
+# + options - The `xmldata:JsonOptions` record for JSON to XML conversion properties
 # + return - XML representation of the given JSON if the JSON is
 #            successfully converted or else an `error`
-public isolated function fromJSON(json? jsonValue, JsonOptions options = {}) returns xml|error = @java:Method {
-    name: "fromJSON",
-    'class: "org.ballerinalang.stdlib.xmlutils.ConvertUtils"
+public isolated function fromJson(json? jsonValue, JsonOptions options = {}) returns xml|Error = @java:Method {
+    'class: "org.ballerinalang.stdlib.xmldata.JsonToXml"
 } external;
 
+# Provides configurations for converting XML to JSON.
+#
+# + attributePrefix - Attribute prefix used in the XML
+# + preserveNamespaces - Instructs whether to preserve the namespaces of the XML when converting
+public type XmlOptions record {
+    string attributePrefix = "@";
+    boolean preserveNamespaces = true;
+};
 
-# Converts a table to its XML representation.
+# Converts an XML object to its JSON representation.
 # ```ballerina
-# type Employee record {
-#      int id;
-#      string name;
-#      float salary;
-#      boolean permanent;
-#  };
-# table<Employee> tableValue = table[ { id: 1, name: "Mary",  salary: 300.5, permanent: true },
-#         { id: 2, name: "John",  salary: 300.5, permanent: true }
-#     ];
-# xml xmlValue = xmlutils:fromTable(tableValue);
+# xml xmlValue = xml `<!-- outer comment -->` + xml `<name>supun</name>`;
+# json|error jsonValue = toJson(xmlValue);
 # ```
 #
-# + tableValue - The `table` value to be converted to an XML
-# + return - The XML representation of the provided table
-public isolated function fromTable(table<record{}> tableValue) returns xml {
-    return externFromTable(tableValue);
-}
-
-isolated function externFromTable(table<record{}> tableValue) returns xml = @java:Method {
-    name: "fromTable",
-    'class: "org.ballerinalang.stdlib.xmlutils.ConvertUtils"
+# + xmlValue - The XML source to be converted to JSON
+# + options - The `XmlOptions` record consisting of the configurations for the conversion
+# + return - The JSON representation of the given XML on success, else returns an `error`
+public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns json|Error = @java:Method {
+    'class: "org.ballerinalang.stdlib.xmldata.XmlToJson"
 } external;

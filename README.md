@@ -1,17 +1,16 @@
-Ballerina XmlUtils Library
+Ballerina XmlData Library
 ===================
 
-  [![Build](https://github.com/ballerina-platform/module-ballerina-xmlutils/workflows/Build/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmlutils/actions?query=workflow%3ABuild)
-  [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-xmlutils.svg)](https://github.com/ballerina-platform/module-ballerina-xmlutils/commits/master)
-  [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/xmlutils.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fxmlutils)
+  [![Build](https://github.com/ballerina-platform/module-ballerina-xmldata/workflows/Build/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/actions?query=workflow%3ABuild)
+  [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-xmldata.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/commits/master)
+  [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/xmldata.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fxmlutils)
   [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-The XmlUtils library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
+The XmlData library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
 
-This package provides utility functions to manipulate the built-in `xml` data type. 
-It provides APIs to convert a `json` to an `xml` or convert a `table` to an `xml`.
+This package provides functions to perform the conversion between `xml` and `json`. It provides APIs to get an `xml` from a `json` and convert an `xml` to a `json`.
 
-For more information go to [The XmlUtils PACKAGE](https://ballerina.io/learn/api-docs/ballerina/xmlutils/).
+For more information go to [The XmlData PACKAGE](https://ballerina.io/learn/api-docs/ballerina/xmldata/).
 
 ## Issues and Projects 
 
@@ -35,20 +34,28 @@ This repository only contains the source code for the package.
 Execute the commands below to build from source.
 
 1. To build the library:
-
+        
         ./gradlew clean build
-
-2. To run the integration tests:
+        
+2. To run the tests:
 
         ./gradlew clean test
-
-3. To build the package without the tests:
+        
+3. To build the package without tests:
 
         ./gradlew clean build -x test
 
-4. To debug the tests:
+4. To run a group of tests:
+
+        ./gradlew clean test -Pgroups=<test_group_names>
+
+5. To debug package implementation:
 
         ./gradlew clean build -Pdebug=<port>
+        
+6. To debug the package with Ballerina language:
+
+        ./gradlew clean build -PbalJavaDebug=<port>
 
 ## Contributing to Ballerina
 

@@ -16,10 +16,9 @@
  *  under the License.
  */
 
-package org.ballerinalang.stdlib.xmlutils;
+package org.ballerinalang.stdlib.xmldata;
 
 import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.Type;
@@ -33,6 +32,8 @@ import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.runtime.api.values.BXmlItem;
 import io.ballerina.runtime.api.values.BXmlQName;
+import org.ballerinalang.stdlib.xmldata.utils.Constants;
+import org.ballerinalang.stdlib.xmldata.utils.XmlDataUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,11 +45,30 @@ import java.util.Map.Entry;
  * @since 1.0
  */
 @SuppressWarnings("unchecked")
-public class JSONToXMLConverter {
+public class JsonToXml {
 
     private static final String XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance";
     private static final String XSI_PREFIX = "xsi";
     private static final String NIL = "nil";
+
+    /**
+     * Converts a JSON to the corresponding XML representation.
+     *
+     * @param json    JSON record object
+     * @param options option details
+     * @return XML object that construct from JSON
+     */
+    public static Object fromJson(Object json, BMap<BString, BString> options) {
+        try {
+            String attributePrefix = (options.get(StringUtils.fromString(Constants.OPTIONS_ATTRIBUTE_PREFIX))).
+                    getValue();
+            String arrayEntryTag = (options.get(StringUtils.fromString(Constants.OPTIONS_ARRAY_ENTRY_TAG))).
+                    getValue();
+            return convertToXML(json, attributePrefix, arrayEntryTag);
+        } catch (Exception e) {
+            return XmlDataUtils.getTimeError(e.getMessage());
+        }
+    }
 
     /**
      * Converts given JSON object to the corresponding XML.
@@ -106,15 +126,14 @@ public class JSONToXMLConverter {
      */
     @SuppressWarnings("rawtypes")
     private static BXmlItem traverseJsonNode(Object json, String nodeName, BXmlItem parentElement,
-                                              List<BXml> xmlElemList, String attributePrefix,
-                                              String arrayEntryTag) {
+                                             List<BXml> xmlElemList, String attributePrefix,
+                                             String arrayEntryTag) {
         BXmlItem currentRoot = null;
         if (nodeName != null) {
             // Extract attributes and set to the immediate parent.
             if (nodeName.startsWith(attributePrefix)) {
                 if (json instanceof BRefValue) {
-                    throw ErrorCreator.createError(
-                            StringUtils.fromString("attribute cannot be an object or array"));
+                    throw XmlDataUtils.getTimeError("attribute cannot be an object or array");
                 }
                 if (parentElement != null) {
                     String attributeKey = nodeName.substring(1);
@@ -140,8 +159,7 @@ public class JSONToXMLConverter {
 
                 case TypeTags.MAP_TAG:
                     if (((MapType) type).getConstrainedType().getTag() != TypeTags.JSON_TAG) {
-                        throw ErrorCreator.createError(
-                                StringUtils.fromString("error in converting map<non-json> to xml"));
+                        throw XmlDataUtils.getTimeError("error in converting map<non-json> to xml");
                     }
                     map = (BMap<BString, Object>) json;
                     for (Entry<BString, Object> entry : map.entrySet()) {
@@ -181,14 +199,14 @@ public class JSONToXMLConverter {
                 case TypeTags.STRING_TAG:
                 case TypeTags.BOOLEAN_TAG:
                     if (currentRoot == null) {
-                        throw ErrorCreator.createError(StringUtils.fromString("error in converting json to xml"));
+                        throw XmlDataUtils.getTimeError("error in converting json to xml");
                     }
 
                     BXml text = ValueCreator.createXmlText(json.toString());
                     addChildElem(currentRoot, text);
                     break;
                 default:
-                    throw ErrorCreator.createError(StringUtils.fromString("error in converting json to xml"));
+                    throw XmlDataUtils.getTimeError("error in converting json to xml");
             }
         }
 

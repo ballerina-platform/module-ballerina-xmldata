@@ -16,7 +16,8 @@
  * under the License.
  */
 
-module io.ballerina.stdlib.xmlutils {
+module io.ballerina.stdlib.xmldata {
     requires io.ballerina.runtime;
-    exports org.ballerinalang.stdlib.xmlutils;
+    requires java.xml;
+    exports org.ballerinalang.stdlib.xmldata;
 }
