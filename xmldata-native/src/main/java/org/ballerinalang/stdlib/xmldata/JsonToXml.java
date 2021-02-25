@@ -66,7 +66,7 @@ public class JsonToXml {
                     getValue();
             return convertToXML(json, attributePrefix, arrayEntryTag);
         } catch (Exception e) {
-            return XmlDataUtils.getTimeError(e.getMessage());
+            return XmlDataUtils.getError(e.getMessage());
         }
     }
 
@@ -133,7 +133,7 @@ public class JsonToXml {
             // Extract attributes and set to the immediate parent.
             if (nodeName.startsWith(attributePrefix)) {
                 if (json instanceof BRefValue) {
-                    throw XmlDataUtils.getTimeError("attribute cannot be an object or array");
+                    throw XmlDataUtils.getError("attribute cannot be an object or array");
                 }
                 if (parentElement != null) {
                     String attributeKey = nodeName.substring(1);
@@ -159,7 +159,7 @@ public class JsonToXml {
 
                 case TypeTags.MAP_TAG:
                     if (((MapType) type).getConstrainedType().getTag() != TypeTags.JSON_TAG) {
-                        throw XmlDataUtils.getTimeError("error in converting map<non-json> to xml");
+                        throw XmlDataUtils.getError("error in converting map<non-json> to xml");
                     }
                     map = (BMap<BString, Object>) json;
                     for (Entry<BString, Object> entry : map.entrySet()) {
@@ -199,14 +199,14 @@ public class JsonToXml {
                 case TypeTags.STRING_TAG:
                 case TypeTags.BOOLEAN_TAG:
                     if (currentRoot == null) {
-                        throw XmlDataUtils.getTimeError("error in converting json to xml");
+                        throw XmlDataUtils.getError("error in converting json to xml");
                     }
 
                     BXml text = ValueCreator.createXmlText(json.toString());
                     addChildElem(currentRoot, text);
                     break;
                 default:
-                    throw XmlDataUtils.getTimeError("error in converting json to xml");
+                    throw XmlDataUtils.getError("error in converting json to xml");
             }
         }
 

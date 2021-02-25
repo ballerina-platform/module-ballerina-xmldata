@@ -1,4 +1,4 @@
-// Copyright (c) 2020 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -52,10 +52,10 @@ isolated function testFromJSON() {
         name: "John",
         age: 30
     };
-    xml|error x = fromJson(data);
+    xml|Error x = fromJson(data);
     if (x is xml) {
         test:assertEquals(x.toString(), "<name>John</name><age>30</age>", msg = "testFromJSON result incorrect");
     } else {
-        test:assertFail("testFromJSON result is not xml");
+        test:assertFail("testFromJson result is not xml");
     }
 }

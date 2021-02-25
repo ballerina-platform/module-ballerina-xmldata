@@ -1,3 +1,3 @@
 ## Package overview
 
-This package provides functions to perform the conversion between `xml` and `json`. It provides APIs to get an `xml` from a `json` and convert an `xml` to a `json`.
+This package provides functions to perform the conversion between `xml` and `json`. It provides APIs to convert a natural representation of data in XML into a natural representation of data in JSON and vice-versa.

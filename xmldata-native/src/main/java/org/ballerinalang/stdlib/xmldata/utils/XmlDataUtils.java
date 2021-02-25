@@ -25,13 +25,13 @@ import io.ballerina.runtime.api.values.BError;
 /**
  * A util class for the XmlData package's native implementation.
  *
- * @since 2.0.0
+ * @since 1.1.0
  */
 public class XmlDataUtils {
 
-    private static final String ERROR = "XmlDataError";
+    private static final String ERROR = "Error";
 
-    public static BError getTimeError(String message) {
+    public static BError getError(String message) {
         return ErrorCreator.createDistinctError(ERROR, ModuleUtils.getModule(),
                 StringUtils.fromString(message));
     }

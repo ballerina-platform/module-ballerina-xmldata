@@ -25,7 +25,7 @@ import org.ballerinalang.stdlib.xmldata.XmlToJson;
 /**
  * Class to test functionality of xmldata.
  *
- * @since 1.0
+ * @since 1.1.0
  */
 public class XmlDataTestUtils {
 

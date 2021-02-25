@@ -14,8 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Specifies the time error, which occurs in the module.
-public type XmlDataError distinct error;
-
-# Represents the Time module related error.
-public type Error XmlDataError;
+# Represents the error type of the ballerina/xmldata module. This error type represents any error that can occur
+# during the execution of xmldata APIs.
+public type Error distinct error;

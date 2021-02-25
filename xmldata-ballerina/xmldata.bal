@@ -32,7 +32,7 @@ public type JsonOptions record {
 #     name: "John",
 #     age: 30
 # };
-# xml|error xmlValue = xmldata:fromJson(data);
+# xml|Error xmlValue = xmldata:fromJson(data);
 # ```
 #
 # + jsonValue - The JSON source
@@ -55,7 +55,7 @@ public type XmlOptions record {
 # Converts an XML object to its JSON representation.
 # ```ballerina
 # xml xmlValue = xml `<!-- outer comment -->` + xml `<name>supun</name>`;
-# json|error jsonValue = toJson(xmlValue);
+# json|Error jsonValue = toJson(xmlValue);
 # ```
 #
 # + xmlValue - The XML source to be converted to JSON

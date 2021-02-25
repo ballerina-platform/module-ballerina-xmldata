@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -61,7 +61,7 @@ public class XmlToJson {
     public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_URL_PREFIX.length();
 
     /**
-     * Converts a XML to the corresponding JSON representation.
+     * Converts an XML to the corresponding JSON representation.
      *
      * @param xml    XML record object
      * @param options option details
@@ -74,7 +74,7 @@ public class XmlToJson {
             boolean preserveNamespaces = ((Boolean) options.get(StringUtils.fromString(Constants.OPTIONS_PRESERVE_NS)));
             return convertToJSON(xml, attributePrefix, preserveNamespaces);
         } catch (Exception e) {
-            return XmlDataUtils.getTimeError(e.getMessage());
+            return XmlDataUtils.getError(e.getMessage());
         }
     }
 

@@ -24,7 +24,7 @@ isolated function testFromXML() {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>supun</name>`;
     xml x3 = x1 + x2;
-    json|error j = toJson(x3);
+    json|Error j = toJson(x3);
     if (j is json) {
         test:assertEquals(j.toJsonString(), "{\"name\":\"supun\"}", msg = "testFromXML result incorrect");
     } else {
@@ -36,7 +36,7 @@ isolated function testFromXML() {
     groups: ["toJson"]
 }
 isolated function testFromXML2() {
-    json|error j = toJson(xml `foo`);
+    json|Error j = toJson(xml `foo`);
     if (j is json) {
         test:assertEquals(j.toJsonString(), "foo", msg = "testFromXML result incorrect");
     } else {
@@ -61,7 +61,7 @@ xml e = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:a
 @test:Config {
     groups: ["toJson"]
 }
-function testComplexXMLElementToJson() returns error? {
+function testComplexXMLElementToJson() returns Error? {
     json j = check toJson(e);
     test:assertEquals(j.toJsonString(), "{\"Invoice\":[\"\\n        \", " +
                         "{\"PurchesedItems\":" +
@@ -86,7 +86,7 @@ function testComplexXMLElementToJson() returns error? {
 @test:Config {
     groups: ["toJson"]
 }
-function testComplexXMLElementToJsonNoPreserveNS() returns error? {
+function testComplexXMLElementToJsonNoPreserveNS() returns Error? {
     json j = check toJson(e, { preserveNamespaces: false });
     test:assertEquals(j.toJsonString(), "{\"Invoice\":[\"\\n        \", " +
                         "{\"PurchesedItems\":[\"\\n            \", " +
@@ -104,9 +104,9 @@ function testComplexXMLElementToJsonNoPreserveNS() returns error? {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testUsingConvertedJsonValue() returns error? {
+isolated function testUsingConvertedJsonValue() returns Error|error? {
     json j = check toJson(xml `<Element><A>BCD</A><A>ZZZ</A></Element>`);
-    json[] ar = <json[]>(checkpanic j.Element.A);
+    json[] ar = <json[]>(check j.Element.A);
     test:assertEquals((<string> ar[0]) + ":" + (<string> ar[1]), "BCD:ZZZ", msg = "testFromXML result incorrect");
 }
 
@@ -119,11 +119,11 @@ type PInfo record {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXmlToJsonToPInfo() returns error? {
+isolated function testXmlToJsonToPInfo() returns Error|error? {
     json j = check toJson(
         xml `<PInfo><name>Jane</name><age>33</age><gender>not-specified</gender></PInfo>`);
-    json k = checkpanic j.PInfo;
-    PInfo p = checkpanic k.cloneWithType(PInfo);
+    json k =  check j.PInfo;
+    PInfo p = check k.cloneWithType(PInfo);
     test:assertEquals(p.toString(), "{\"name\":\"Jane\",\"age\":\"33\",\"gender\":\"not-specified\"}",
     msg = "testXmlToJsonToPInfo result incorrect");
 }
@@ -131,7 +131,7 @@ isolated function testXmlToJsonToPInfo() returns error? {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXMLWithEmptyChildren() returns error? {
+isolated function testXMLWithEmptyChildren() returns Error? {
     xml x = xml `<foo><bar>2</bar><car></car></foo>`;
     json j = check toJson(x);
     test:assertEquals(j.toJsonString(), "{\"foo\":{\"bar\":\"2\", \"car\":\"\"}}",
@@ -141,7 +141,7 @@ isolated function testXMLWithEmptyChildren() returns error? {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXMLToJosnArray() returns error? {
+isolated function testXMLToJosnArray() returns Error? {
     xml x = xml `<Root><A/><B/><C/></Root>`;
     json j = check toJson(x);
     json expected = {"Root": {"A":"", "B":"", "C":""}};
@@ -151,7 +151,7 @@ isolated function testXMLToJosnArray() returns error? {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXMLSameKeyToJosnArray() returns error? {
+isolated function testXMLSameKeyToJosnArray() returns Error? {
     xml x = xml `<Root><A>A</A><A>B</A><A>C</A></Root>`;
     json j = check toJson(x);
     json expected = {"Root": {"A":["A", "B", "C"]}};
@@ -161,7 +161,7 @@ isolated function testXMLSameKeyToJosnArray() returns error? {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXMLSameKeyWithAttrToJsonArray() returns error? {
+isolated function testXMLSameKeyWithAttrToJsonArray() returns Error? {
     xml x = xml `<Root><A attr="hello">A</A><A attr="name">B</A><A>C</A></Root>`;
     json j = check toJson(x);
     json expected = {"Root": [{"A":"A", "@attr":"hello"}, {"A":"B", "@attr":"name"}, {"A": "C"}]};
@@ -171,7 +171,7 @@ isolated function testXMLSameKeyWithAttrToJsonArray() returns error? {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXMLElementWithMultipleAttributesAndNamespaces() returns error? {
+isolated function testXMLElementWithMultipleAttributesAndNamespaces() returns Error? {
     xml x = xml `<Root xmlns:ns="ns.com" ns:x="y" x="z"/>`;
     json j = check toJson(x);
     json expected = {"Root": {"@xmlns:ns":"ns.com", "@ns:x":"y", "@x":"z"}};

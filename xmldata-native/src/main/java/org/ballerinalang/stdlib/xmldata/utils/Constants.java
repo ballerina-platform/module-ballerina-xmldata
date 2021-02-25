@@ -21,7 +21,7 @@ package org.ballerinalang.stdlib.xmldata.utils;
 /**
  * Constants used in Ballerina XmlData library.
  *
- * @since 2.0.0
+ * @since 1.1.0
  */
 public class Constants {
 
