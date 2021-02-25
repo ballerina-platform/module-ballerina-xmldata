@@ -11,9 +11,9 @@ plugins {
     id "com.gradle.enterprise" version "3.2"
 }
 
-rootProject.name = 'xmlutils'
+rootProject.name = 'xmldata'
 include(':build-config:checkstyle')
-include ':xmlutils-native', ':xmlutils-ballerina'
+include ':xmldata-native', ':xmldata-test-utils', ':xmldata-ballerina'
 
 gradleEnterprise {
     buildScan {
