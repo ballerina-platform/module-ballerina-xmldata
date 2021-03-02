@@ -57,6 +57,7 @@ public class XmlToJson {
     private static final Type JSON_MAP_TYPE =
             TypeCreator.createMapType(TypeConstants.MAP_TNAME, PredefinedTypes.TYPE_JSON, new Module(null, null, null));
     private static final String XMLNS = "xmlns";
+    private static final String DOUBLE_QUOTES = "\"";
     private static final ArrayType JSON_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
     public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_URL_PREFIX.length();
 
@@ -101,7 +102,8 @@ public class XmlToJson {
             }
             return seq;
         } else if (xml.getNodeType().equals(XmlNodeType.TEXT)) {
-            return JsonUtils.parse("\"" + xml.stringValue(null) + "\"");
+            return JsonUtils.parse(DOUBLE_QUOTES + xml.stringValue(null).replace(DOUBLE_QUOTES,
+                    "\\\"") + DOUBLE_QUOTES);
         } else {
             return newJsonMap();
         }

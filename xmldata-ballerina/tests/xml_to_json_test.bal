@@ -35,6 +35,21 @@ isolated function testFromXML() {
 @test:Config {
     groups: ["toJson"]
 }
+isolated function testtoJson() {
+    var x1 = xml `<!-- outer comment -->`;
+    var x2 = xml `<name>"supun"</name>`;
+    xml x3 = x1 + x2;
+    json|Error j = toJson(x3);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{\"name\":\"\\\"supun\\\"\"}", msg = "testFromXML result incorrect");
+    } else {
+        test:assertFail("testFromXML result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
 isolated function testFromXML2() {
     json|Error j = toJson(xml `foo`);
     if (j is json) {
