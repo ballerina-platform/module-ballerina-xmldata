@@ -6,7 +6,7 @@ version = "@toml.version@"
 [[platform.java11.dependency]]
 path = "../xmldata-native/build/libs/xmldata-native-@project.version@.jar"
 groupId = "ballerina"
-artifactId = "xmlutils"
+artifactId = "xmldata"
 version = "@project.version@"
 
 [[platform.java11.dependency]]

@@ -21,7 +21,7 @@ plugins {
     id 'com.github.spotbugs'
 }
 
-description = 'Ballerina - Xmlutils Java Utils'
+description = 'Ballerina - Xmldata Java Utils'
 
 dependencies {
     checkstyle project(':build-config:checkstyle')
