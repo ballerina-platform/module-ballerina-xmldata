@@ -59,15 +59,11 @@ public class JsonToXml {
      * @return XML object that construct from JSON
      */
     public static Object fromJson(Object json, BMap<BString, BString> options) {
-        try {
-            String attributePrefix = (options.get(StringUtils.fromString(Constants.OPTIONS_ATTRIBUTE_PREFIX))).
-                    getValue();
-            String arrayEntryTag = (options.get(StringUtils.fromString(Constants.OPTIONS_ARRAY_ENTRY_TAG))).
-                    getValue();
-            return convertToXML(json, attributePrefix, arrayEntryTag);
-        } catch (Exception e) {
-            return XmlDataUtils.getError(e.getMessage());
-        }
+        String attributePrefix = (options.get(StringUtils.fromString(Constants.OPTIONS_ATTRIBUTE_PREFIX))).
+                getValue();
+        String arrayEntryTag = (options.get(StringUtils.fromString(Constants.OPTIONS_ARRAY_ENTRY_TAG))).
+                getValue();
+        return convertToXML(json, attributePrefix, arrayEntryTag);
     }
 
     /**

@@ -34,7 +34,6 @@ import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.runtime.api.values.BXmlItem;
 import io.ballerina.runtime.api.values.BXmlSequence;
 import org.ballerinalang.stdlib.xmldata.utils.Constants;
-import org.ballerinalang.stdlib.xmldata.utils.XmlDataUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,14 +67,10 @@ public class XmlToJson {
      * @return JSON object that construct from XML
      */
     public static Object toJson(BXml xml, BMap<?, ?> options) {
-        try {
-            String attributePrefix = ((BString) options.get(StringUtils.fromString(Constants.OPTIONS_ATTRIBUTE_PREFIX)))
-                    .getValue();
-            boolean preserveNamespaces = ((Boolean) options.get(StringUtils.fromString(Constants.OPTIONS_PRESERVE_NS)));
-            return convertToJSON(xml, attributePrefix, preserveNamespaces);
-        } catch (Exception e) {
-            return XmlDataUtils.getError(e.getMessage());
-        }
+        String attributePrefix = ((BString) options.get(StringUtils.fromString(Constants.OPTIONS_ATTRIBUTE_PREFIX)))
+                .getValue();
+        boolean preserveNamespaces = ((Boolean) options.get(StringUtils.fromString(Constants.OPTIONS_PRESERVE_NS)));
+        return convertToJSON(xml, attributePrefix, preserveNamespaces);
     }
 
     /**

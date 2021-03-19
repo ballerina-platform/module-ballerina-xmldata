@@ -59,3 +59,76 @@ isolated function testFromJSON() {
         test:assertFail("testFromJson result is not xml");
     }
 }
+
+@test:Config {
+    groups: ["fromJson", "size"]
+}
+isolated function testJsonDataSizeOne() {
+    json data = {id: 30};
+    xml|Error x = fromJson(data);
+    if (x is xml) {
+        test:assertEquals(x.toString(), "<id>30</id>", msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("testFromJson result is not xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson", "size"]
+}
+isolated function testEmptyJson() {
+    json data = {};
+    xml|Error x = fromJson(data);
+    if (x is xml) {
+        test:assertEquals(x.toString(), "", msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("testFromJson result is not xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson", "size"]
+}
+isolated function testJsonArray() {
+    json data = {   fname: "John",
+                    lname: "Stallone",
+                    family: [
+                        {fname: "Peter", lname: "Stallone"},
+                        {fname: "Emma", lname: "Stallone"},
+                        {fname: "Jena", lname: "Stallone"},
+                        {fname: "Paul", lname: "Stallone"}
+                    ]
+                };
+    xml|Error x = fromJson(data, {attributePrefix:"age"});
+    if (x is xml) {
+        test:assertEquals(x.toString(),
+        "<fname>John</fname><lname>Stallone</lname><family><root><fname>Peter</fname>" +
+        "<lname>Stallone</lname></root><root><fname>Emma</fname>" +
+        "<lname>Stallone</lname></root><root><fname>Jena</fname>" +
+        "<lname>Stallone</lname></root><root><fname>Paul</fname>" +
+        "<lname>Stallone</lname></root></family>",
+        msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("testFromJson result is not xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson", "negative"]
+}
+isolated function testAttributeValidation() {
+    json data =  {
+                    writer: {
+                         fname: "Christopher",
+                         lname: "Nolan",
+                         age: 30
+                    }
+                 };
+    xml|error x = trap fromJson(data, {attributePrefix:"writer"});
+    if (x is error) {
+        test:assertEquals(x.toString(), "error(\"attribute cannot be an object or array\")",
+                    msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("Result is not mismatch");
+    }
+}
