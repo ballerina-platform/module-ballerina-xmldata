@@ -52,9 +52,9 @@ isolated function testFromJSON() {
         name: "John",
         age: 30
     };
-    xml|Error x = fromJson(data);
-    if (x is xml) {
-        test:assertEquals(x.toString(), "<name>John</name><age>30</age>", msg = "testFromJSON result incorrect");
+    xml|Error result = fromJson(data);
+    if (result is xml) {
+        test:assertEquals(result.toString(), "<name>John</name><age>30</age>", msg = "testFromJSON result incorrect");
     } else {
         test:assertFail("testFromJson result is not xml");
     }
@@ -65,9 +65,9 @@ isolated function testFromJSON() {
 }
 isolated function testJsonDataSize() {
     json data = {id: 30};
-    xml|Error x = fromJson(data);
-    if (x is xml) {
-        test:assertEquals(x.toString(), "<id>30</id>", msg = "testFromJSON result incorrect");
+    xml|Error result = fromJson(data);
+    if (result is xml) {
+        test:assertEquals(result.toString(), "<id>30</id>", msg = "testFromJSON result incorrect");
     } else {
         test:assertFail("testFromJson result is not xml");
     }
@@ -78,9 +78,9 @@ isolated function testJsonDataSize() {
 }
 isolated function testEmptyJson() {
     json data = {};
-    xml|Error x = fromJson(data);
-    if (x is xml) {
-        test:assertEquals(x.toString(), "", msg = "testFromJSON result incorrect");
+    xml|Error result = fromJson(data);
+    if (result is xml) {
+        test:assertEquals(result.toString(), "", msg = "testFromJSON result incorrect");
     } else {
         test:assertFail("testFromJson result is not xml");
     }
@@ -99,9 +99,9 @@ isolated function testJsonArray() {
                         {fname: "Paul", lname: "Stallone"}
                     ]
                 };
-    xml|Error x = fromJson(data, {attributePrefix:"age"});
-    if (x is xml) {
-        test:assertEquals(x.toString(),
+    xml|Error result = fromJson(data, {attributePrefix:"age"});
+    if (result is xml) {
+        test:assertEquals(result.toString(),
                     "<fname>John</fname><lname>Stallone</lname><family><root><fname>Peter</fname>" +
                     "<lname>Stallone</lname></root><root><fname>Emma</fname>" +
                     "<lname>Stallone</lname></root><root><fname>Jena</fname>" +
@@ -124,9 +124,9 @@ isolated function testAttributeValidation() {
                          age: 30
                     }
                  };
-    xml|error x = trap fromJson(data, {attributePrefix:"writer"});
-    if (x is error) {
-        test:assertEquals(x.toString(), "error(\"attribute cannot be an object or array\")",
+    xml|Error result = fromJson(data, {attributePrefix:"writer"});
+    if (result is Error) {
+        test:assertEquals(result.toString(), "error(\"attribute cannot be an object or array\")",
                     msg = "testFromJSON result incorrect");
     } else {
         test:assertFail("Result is not mismatch");
