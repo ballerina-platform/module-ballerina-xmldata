@@ -48,7 +48,7 @@ import javax.xml.namespace.QName;
 import static io.ballerina.runtime.api.utils.StringUtils.fromString;
 
 /**
- * This class work as a bridge with ballerina and a Java implementation of ballerina/xmlutils modules.
+ * This class work as a bridge with ballerina and a Java implementation of ballerina/xmldata modules.
  *
  * @since 1.1.0
  */
