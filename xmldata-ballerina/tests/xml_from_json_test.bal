@@ -63,7 +63,7 @@ isolated function testFromJSON() {
 @test:Config {
     groups: ["fromJson", "size"]
 }
-isolated function testJsonDataSizeOne() {
+isolated function testJsonDataSize() {
     json data = {id: 30};
     xml|Error x = fromJson(data);
     if (x is xml) {
@@ -102,12 +102,12 @@ isolated function testJsonArray() {
     xml|Error x = fromJson(data, {attributePrefix:"age"});
     if (x is xml) {
         test:assertEquals(x.toString(),
-        "<fname>John</fname><lname>Stallone</lname><family><root><fname>Peter</fname>" +
-        "<lname>Stallone</lname></root><root><fname>Emma</fname>" +
-        "<lname>Stallone</lname></root><root><fname>Jena</fname>" +
-        "<lname>Stallone</lname></root><root><fname>Paul</fname>" +
-        "<lname>Stallone</lname></root></family>",
-        msg = "testFromJSON result incorrect");
+                    "<fname>John</fname><lname>Stallone</lname><family><root><fname>Peter</fname>" +
+                    "<lname>Stallone</lname></root><root><fname>Emma</fname>" +
+                    "<lname>Stallone</lname></root><root><fname>Jena</fname>" +
+                    "<lname>Stallone</lname></root><root><fname>Paul</fname>" +
+                    "<lname>Stallone</lname></root></family>",
+                    msg = "testFromJSON result incorrect");
     } else {
         test:assertFail("testFromJson result is not xml");
     }
