@@ -132,3 +132,28 @@ isolated function testAttributeValidation() {
         test:assertFail("Result is not mismatch");
     }
 }
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testNodeNameNull() {
+    json data =  [
+                    {
+                        writer: {
+                             fname: "Christopher",
+                             lname: "Nolan",
+                             age: 30,
+                             address: ["Uduvil"]
+                        }
+                    },
+                    1
+                ];
+    xml|Error result = fromJson(data);
+    if (result is xml) {
+        test:assertEquals(result.toString(), "<root><writer><fname>Christopher</fname><lname>Nolan</lname><age>30" +
+                    "</age><address><root>Uduvil</root></address></writer></root><root>1</root>",
+                    msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("testFromJson result is not xml");
+    }
+}
