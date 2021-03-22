@@ -99,7 +99,7 @@ isolated function testJsonArray() {
                         {fname: "Paul", lname: "Stallone"}
                     ]
                 };
-    xml|Error result = fromJson(data, {attributePrefix:"age"});
+    xml|Error result = fromJson(data);
     if (result is xml) {
         test:assertEquals(result.toString(),
                     "<fname>John</fname><lname>Stallone</lname><family><root><fname>Peter</fname>" +
@@ -118,13 +118,13 @@ isolated function testJsonArray() {
 }
 isolated function testAttributeValidation() {
     json data =  {
-                    writer: {
+                    "@writer": {
                          fname: "Christopher",
                          lname: "Nolan",
                          age: 30
                     }
                  };
-    xml|Error result = fromJson(data, {attributePrefix:"writer"});
+    xml|Error result = fromJson(data);
     if (result is Error) {
         test:assertEquals(result.toString(), "error(\"attribute cannot be an object or array\")",
                     msg = "testFromJSON result incorrect");
@@ -139,21 +139,19 @@ isolated function testAttributeValidation() {
 isolated function testNodeNameNull() {
     json data =  [
                     {
-                        writer: {
-                             fname: "Christopher",
-                             lname: "Nolan",
-                             age: 30,
-                             address: ["Uduvil"]
-                        }
+                        "@writer": "Christopher",
+                         lname: "Nolan",
+                         age: 30,
+                         address: ["Uduvil"]
                     },
                     1
                 ];
     xml|Error result = fromJson(data);
     if (result is xml) {
-        test:assertEquals(result.toString(), "<root><writer><fname>Christopher</fname><lname>Nolan</lname><age>30" +
-                    "</age><address><root>Uduvil</root></address></writer></root><root>1</root>",
+        test:assertEquals(result.toString(), "<root writer=\"Christopher\"><lname>Nolan</lname><age>30</age>" +
+                    "<address><root>Uduvil</root></address></root><root>1</root>",
                     msg = "testFromJSON result incorrect");
     } else {
-        test:assertFail("testFromJson result is not xml");
+        test:assertFail(result.toString());
     }
 }
