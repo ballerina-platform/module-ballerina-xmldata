@@ -3,8 +3,9 @@ Ballerina XmlData Library
 
   [![Build](https://github.com/ballerina-platform/module-ballerina-xmldata/workflows/Build/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/actions?query=workflow%3ABuild)
   [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-xmldata.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/commits/master)
-  [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/xmldata.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fxmlutils)
+  [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/xmldata.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fxmldata)
   [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+  [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata)
 
 The XmlData library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
 
