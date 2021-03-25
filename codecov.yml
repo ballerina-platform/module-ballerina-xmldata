@@ -1,7 +1,3 @@
-fixes:
-  - "ballerina/xmldata/*/::xmldata-ballerina/"
-
 ignore:
-  - "**/tests"
   - "xmldata-test-utils"
 
