@@ -172,7 +172,7 @@ isolated function testNodeNameNull() {
 @test:Config {
  groups: ["fromJson"]
 }
-isolated function testJsonAsInt1() {
+isolated function testJsonAsNull() {
  json data = null;
  xml?|Error result = fromJson(data);
  if (!(result is Error)) {
