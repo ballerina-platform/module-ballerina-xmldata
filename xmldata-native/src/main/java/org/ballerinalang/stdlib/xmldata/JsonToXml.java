@@ -80,7 +80,7 @@ public class JsonToXml {
      */
     public static BXml convertToXML(Object json, String attributePrefix, String arrayEntryTag) {
         if (json == null) {
-            return ValueCreator.createXmlSequence();
+            return null;
         }
 
         List<BXml> xmlElemList = traverseTree(json, attributePrefix, arrayEntryTag);

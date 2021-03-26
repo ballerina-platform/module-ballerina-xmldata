@@ -52,7 +52,7 @@ isolated function testFromJSON() {
         name: "John",
         age: 30
     };
-    xml|Error result = fromJson(data);
+    xml|Error? result = fromJson(data);
     if (result is xml) {
         test:assertEquals(result.toString(), "<name>John</name><age>30</age>", msg = "testFromJSON result incorrect");
     } else {
@@ -65,7 +65,7 @@ isolated function testFromJSON() {
 }
 isolated function testJsonDataSize() {
     json data = {id: 30};
-    xml|Error result = fromJson(data);
+    xml|Error? result = fromJson(data);
     if (result is xml) {
         test:assertEquals(result.toString(), "<id>30</id>", msg = "testFromJSON result incorrect");
     } else {
@@ -78,7 +78,7 @@ isolated function testJsonDataSize() {
 }
 isolated function testEmptyJson() {
     json data = {};
-    xml|Error result = fromJson(data);
+    xml|Error? result = fromJson(data);
     if (result is xml) {
         test:assertEquals(result.toString(), "", msg = "testFromJSON result incorrect");
     } else {
@@ -99,7 +99,7 @@ isolated function testJsonArray() {
                         {fname: "Paul", lname: "Stallone"}
                     ]
                 };
-    xml|Error result = fromJson(data);
+    xml|Error? result = fromJson(data);
     if (result is xml) {
         test:assertEquals(result.toString(),
                     "<fname>John</fname><lname>Stallone</lname><family><root><fname>Peter</fname>" +
@@ -124,9 +124,9 @@ isolated function testAttributeValidation() {
                          age: 30
                     }
                  };
-    xml|Error result = fromJson(data);
+    xml|Error? result = fromJson(data);
     if (result is Error) {
-        test:assertEquals(result.toString(), "error(\"attribute cannot be an object or array\")",
+        test:assertTrue(result.toString().includes("attribute cannot be an object or array"),
                     msg = "testFromJSON result incorrect");
     } else {
         test:assertFail("Result is not mismatch");
@@ -146,12 +146,37 @@ isolated function testNodeNameNull() {
                     },
                     1
                 ];
-    xml|Error result = fromJson(data);
+    xml|Error? result = fromJson(data);
     if (result is xml) {
         test:assertEquals(result.toString(), "<root writer=\"Christopher\"><lname>Nolan</lname><age>30</age>" +
                     "<address><root>Uduvil</root></address></root><root>1</root>",
                     msg = "testFromJSON result incorrect");
     } else {
-        test:assertFail(result.toString());
+        test:assertFail("Result is not mismatch");
     }
+}
+
+@test:Config {
+     groups: ["fromJson"]
+ }
+ isolated function testJsonAsInt() {
+     json data = 5;
+     xml|Error? result = fromJson(data);
+     if (result is Error) {
+         test:assertTrue(result.toString().includes("failed to parse xml"), msg = "testFromJSON result incorrect");
+     } else {
+         test:assertFail("Result is not mismatch");
+     }
+ }
+
+@test:Config {
+ groups: ["fromJson"]
+}
+isolated function testJsonAsInt1() {
+ json data = null;
+ xml?|Error result = fromJson(data);
+ if (!(result is Error)) {
+     test:assertEquals(result.toString(), "");
+     test:assertTrue(result is ());
+ }
 }

@@ -300,6 +300,58 @@ function testComplexXMLtoJson() {
     msg = "testComplexXMLtoJson result incorrect");
 }
 
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testFromXMLWithEmptyXML() {
+    xml x1 = xml `</>`;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "");
+    } else {
+        test:assertFail("testFromXML result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testFromXMLWithNull() {
+    xml x1 = xml ``;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "");
+    } else {
+        test:assertFail("testFromXML result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testFromXMLWithComment() {
+    xml x1 = xml `<?xml version="1.0" encoding="UTF-8"?>`;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{}");
+    } else {
+        test:assertFail("testFromXML result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testFromXMLWithXmlSequence() {
+    xml x1 = xml `<family><root><fname>Peter</fname></root><root></root><?pi test?><!-- my comment --></family>`;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{\"family\":{\"root\":[{\"fname\":\"Peter\"}, []]}}");
+    } else {
+        test:assertFail("testFromXML result is not json");
+    }
+}
+
 public function convertToJson(string xmlStr) returns string = @java:Method {
     'class: "org/ballerinalang/stdlib/xmldata/testutils/XmlDataTestUtils"
 } external;
