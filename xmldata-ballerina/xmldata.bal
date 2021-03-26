@@ -39,7 +39,7 @@ public type JsonOptions record {
 # + options - The `xmldata:JsonOptions` record for JSON to XML conversion properties
 # + return - XML representation of the given JSON if the JSON is
 #            successfully converted or else an `error`
-public isolated function fromJson(json? jsonValue, JsonOptions options = {}) returns xml|Error = @java:Method {
+public isolated function fromJson(json? jsonValue, JsonOptions options = {}) returns xml?|Error = @java:Method {
     'class: "org.ballerinalang.stdlib.xmldata.JsonToXml"
 } external;
 
