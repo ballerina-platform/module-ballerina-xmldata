@@ -26,7 +26,13 @@ def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def artifactBallerinaDocs = file("$project.projectDir/build/docs_parent/")
 def artifactCacheParent = file("$project.projectDir/build/cache_parent/")
 def artifactLibParent = file("$project.projectDir/build/lib_parent/")
-def tomlVersion = project.version.replace("-SNAPSHOT", "")
+def snapshotVersion = "-SNAPSHOT"
+def tomlVersion
+if (project.version.matches('.*-\\d{8}-\\d{6}-\\w{7}\$')) {
+    tomlVersion = project.version.substring(0, project.version.length()-24)
+} else {
+    tomlVersion = project.version.replace("${snapshotVersion}", "")
+}
 def ballerinaCentralAccessToken = System.getenv('BALLERINA_CENTRAL_ACCESS_TOKEN')
 def originalConfig = ballerinaConfigFile.text
 def distributionBinPath = project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
