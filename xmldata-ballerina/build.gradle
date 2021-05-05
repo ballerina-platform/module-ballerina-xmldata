@@ -30,6 +30,7 @@ def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
 def ballerinaCentralAccessToken = System.getenv('BALLERINA_CENTRAL_ACCESS_TOKEN')
 def originalConfig = ballerinaConfigFile.text
 def distributionBinPath = project.projectDir.absolutePath + "/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}/bin"
+def testCoverageParam = "--code-coverage --jacoco-xml --includes=org.ballerinalang.stdlib.xmldata.*:ballerina.xmldata.*"
 
 def stripBallerinaExtensionVersion(String extVersion) {
     if (extVersion.matches(project.ext.timestampedVersionRegex)) {
@@ -131,7 +132,7 @@ task initializeVariables {
         }
 
         if (graph.hasTask(":${packageName}-ballerina:test")) {
-            testParams = "--code-coverage --includes=*"
+            testParams = testCoverageParam
         } else {
             testParams = "--skip-tests"
         }
@@ -147,9 +148,9 @@ task ballerinaBuild {
                 workingDir project.projectDir
                 environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test --code-coverage --includes=* ${groupParams} ${disableGroups} ${debugParams} && exit %%ERRORLEVEL%%"
+                    commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test ${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams} && exit %%ERRORLEVEL%%"
                 } else {
-                    commandLine 'sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test --code-coverage --includes=* ${groupParams} ${disableGroups} ${debugParams}"
+                    commandLine 'sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test ${testCoverageParam} ${groupParams} ${disableGroups} ${debugParams}"
                 }
             }
         }
