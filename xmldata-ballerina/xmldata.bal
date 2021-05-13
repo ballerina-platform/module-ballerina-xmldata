@@ -32,13 +32,13 @@ public type JsonOptions record {
 #     name: "John",
 #     age: 30
 # };
-# xml|Error xmlValue = xmldata:fromJson(data);
+# xml|xmldata:Error xmlValue = xmldata:fromJson(data);
 # ```
 #
 # + jsonValue - The JSON source
-# + options - The `xmldata:JsonOptions` record for JSON to XML conversion properties
+# + options - The `xmldata:xmldata:JsonOptions` record for JSON to XML conversion properties
 # + return - XML representation of the given JSON if the JSON is
-#            successfully converted or else an `error`
+#            successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json? jsonValue, JsonOptions options = {}) returns xml?|Error = @java:Method {
     'class: "org.ballerinalang.stdlib.xmldata.JsonToXml"
 } external;
@@ -55,12 +55,12 @@ public type XmlOptions record {
 # Converts an XML object to its JSON representation.
 # ```ballerina
 # xml xmlValue = xml `<!-- outer comment -->` + xml `<name>supun</name>`;
-# json|Error jsonValue = toJson(xmlValue);
+# json|xmldata:Error jsonValue = toJson(xmlValue);
 # ```
 #
 # + xmlValue - The XML source to be converted to JSON
-# + options - The `XmlOptions` record consisting of the configurations for the conversion
-# + return - The JSON representation of the given XML on success, else returns an `error`
+# + options - The `xmldata:XmlOptions` record consisting of the configurations for the conversion
+# + return - The JSON representation of the given XML on success, else returns an `xmldata:Error`
 public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns json|Error = @java:Method {
     'class: "org.ballerinalang.stdlib.xmldata.XmlToJson"
 } external;
