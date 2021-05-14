@@ -35,11 +35,11 @@ public type JsonOptions record {
 # xml|xmldata:Error xmlValue = xmldata:fromJson(data);
 # ```
 #
-# + jsonValue - The JSON source
+# + jsonValue - The JSON source to be converted to XML
 # + options - The `xmldata:xmldata:JsonOptions` record for JSON to XML conversion properties
 # + return - XML representation of the given JSON if the JSON is
 #            successfully converted or else an `xmldata:Error`
-public isolated function fromJson(json? jsonValue, JsonOptions options = {}) returns xml?|Error = @java:Method {
+public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error = @java:Method {
     'class: "org.ballerinalang.stdlib.xmldata.JsonToXml"
 } external;
 
