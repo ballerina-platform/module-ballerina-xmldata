@@ -190,7 +190,7 @@ public class JsonToXml {
                     addChildElem(currentRoot, text);
                     break;
                 default:
-                    throw XmlDataUtils.getError("error in converting json to xml");
+                    throw XmlDataUtils.getError("error in converting JSON to XML");
             }
         }
 
