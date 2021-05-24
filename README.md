@@ -11,9 +11,9 @@ The `xmlData` library is one of the standard library packages of the<a target="_
 
 This package provides functions to perform the conversion between `XML` and `JSON`. It provides APIs to convert a natural representation of data in XML into a natural representation of data in JSON and vice-versa.
 
-For more information on all the operations supported by this package, go to the [`task` package](https://docs.central.ballerina.io/ballerina/task/latest).
+For more information on all the operations supported by this package, go to the [`XmlData` package](https://docs.central.ballerina.io/ballerina/xmldata/latest).
 
-For a quick sample on demonstrating the usage, see [Ballerina By Example](https://ballerina.io/learn/by-example/).
+For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example).
 
 ## Issues and Projects 
 
