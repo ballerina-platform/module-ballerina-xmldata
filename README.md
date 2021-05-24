@@ -7,13 +7,13 @@ Ballerina XmlData Library
   [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
   [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata)
 
-The XmlData library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
+The `xmlData` library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
 
-This package provides functions to perform the conversion between `xml` and `json`. It provides APIs to convert a natural representation of data in XML into a natural representation of data in JSON and vice-versa.
+This package provides functions to perform the conversion between `XML` and `JSON`. It provides APIs to convert a natural representation of data in XML into a natural representation of data in JSON and vice-versa.
 
 For more information on all the operations supported by this package, go to the [`XmlData` package](https://docs.central.ballerina.io/ballerina/xmldata/latest).
 
-For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example/).
+For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example).
 
 ## Issues and Projects 
 
