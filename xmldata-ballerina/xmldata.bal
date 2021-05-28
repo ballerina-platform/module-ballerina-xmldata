@@ -35,9 +35,9 @@ public type JsonOptions record {
 # xml? xmlValue = check xmldata:fromJson(data);
 # ```
 #
-# + jsonValue - The `JSON` source to be converted to `XML`
+# + jsonValue - The JSON source to be converted to `XML`
 # + options - The `xmldata:xmldata:JsonOptions` record for `JSON` to `XML` conversion properties
-# + return - `XML` representation of the given `JSON` if the `JSON` is
+# + return - XML representation of the given `JSON` if the `JSON` is
 #            successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error = @java:Method {
     'class: "org.ballerinalang.stdlib.xmldata.JsonToXml"
@@ -45,7 +45,7 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
 
 # Provides configurations for converting `XML` to `JSON`.
 #
-# + attributePrefix - Attribute prefix used in the `XML`
+# + attributePrefix - Attribute prefix used in the XML
 # + preserveNamespaces - Instructs whether to preserve the namespaces of the XML when converting
 public type XmlOptions record {
     string attributePrefix = "@";
@@ -58,9 +58,9 @@ public type XmlOptions record {
 # json jsonValue = check toJson(xmlValue);
 # ```
 #
-# + xmlValue - The `XML` source to be converted to `JSON`
+# + xmlValue - The XML source to be converted to `JSON`
 # + options - The `xmldata:XmlOptions` record consisting of the configurations for the conversion
-# + return - The `JSON` representation of the given `XML` on success, else returns an `xmldata:Error`
+# + return - The JSON representation of the given `XML` on success, else returns an `xmldata:Error`
 public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns json|Error = @java:Method {
     'class: "org.ballerinalang.stdlib.xmldata.XmlToJson"
 } external;
