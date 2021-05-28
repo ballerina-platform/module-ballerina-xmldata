@@ -16,17 +16,17 @@
 
 import ballerina/jballerina.java;
 
-# Represents a record type to provide configurations for the JSON to XML
+# Represents a record type to provide configurations for the `JSON` to `XML`
 # conversion.
 #
-# + attributePrefix - The attribute prefix to use in the XML representation
-# + arrayEntryTag - The XML tag to add an element from a JSON array
+# + attributePrefix - The attribute prefix to use in the `XML` representation
+# + arrayEntryTag - The `XML` tag to add an element from a `JSON` array
 public type JsonOptions record {
     string attributePrefix = "@";
     string arrayEntryTag = "root";
 };
 
-# Converts a JSON object to an XML representation.
+# Converts a `JSON` object to an `XML` representation.
 # ```ballerina
 # json data = {
 #     name: "John",
@@ -35,15 +35,15 @@ public type JsonOptions record {
 # xml? xmlValue = check xmldata:fromJson(data);
 # ```
 #
-# + jsonValue - The JSON source to be converted to XML
-# + options - The `xmldata:xmldata:JsonOptions` record for JSON to XML conversion properties
-# + return - XML representation of the given JSON if the JSON is
+# + jsonValue - The JSON source to be converted to `XML`
+# + options - The `xmldata:xmldata:JsonOptions` record for `JSON` to `XML` conversion properties
+# + return - XML representation of the given `JSON` if the `JSON` is
 #            successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error = @java:Method {
     'class: "org.ballerinalang.stdlib.xmldata.JsonToXml"
 } external;
 
-# Provides configurations for converting XML to JSON.
+# Provides configurations for converting `XML` to `JSON`.
 #
 # + attributePrefix - Attribute prefix used in the XML
 # + preserveNamespaces - Instructs whether to preserve the namespaces of the XML when converting
@@ -52,15 +52,15 @@ public type XmlOptions record {
     boolean preserveNamespaces = true;
 };
 
-# Converts an XML object to its JSON representation.
+# Converts an `XML` object to its `JSON` representation.
 # ```ballerina
 # xml xmlValue = xml `<!-- outer comment -->` + xml `<name>supun</name>`;
 # json jsonValue = check toJson(xmlValue);
 # ```
 #
-# + xmlValue - The XML source to be converted to JSON
+# + xmlValue - The XML source to be converted to `JSON`
 # + options - The `xmldata:XmlOptions` record consisting of the configurations for the conversion
-# + return - The JSON representation of the given XML on success, else returns an `xmldata:Error`
+# + return - The JSON representation of the given `XML` on success, else returns an `xmldata:Error`
 public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns json|Error = @java:Method {
     'class: "org.ballerinalang.stdlib.xmldata.XmlToJson"
 } external;
