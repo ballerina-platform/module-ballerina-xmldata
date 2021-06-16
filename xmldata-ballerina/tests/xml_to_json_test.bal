@@ -53,7 +53,7 @@ isolated function testtoJson() {
 isolated function testFromXML2() {
     json|Error j = toJson(xml `foo`);
     if (j is json) {
-        test:assertEquals(j.toJsonString(), "foo", msg = "testFromXML result incorrect");
+        test:assertEquals(j.toJsonString(), "\"foo\"", msg = "testFromXML result incorrect");
     } else {
         test:assertFail("testFromXML2 result is not json");
     }
@@ -307,7 +307,7 @@ isolated function testFromXMLWithEmptyXML() {
     xml x1 = xml `</>`;
     json|Error j = toJson(x1);
     if (j is json) {
-        test:assertEquals(j.toJsonString(), "");
+        test:assertEquals(j.toJsonString(), "\"\"");
     } else {
         test:assertFail("testFromXML result is not json");
     }
@@ -320,7 +320,7 @@ isolated function testFromXMLWithNull() {
     xml x1 = xml ``;
     json|Error j = toJson(x1);
     if (j is json) {
-        test:assertEquals(j.toJsonString(), "");
+        test:assertEquals(j.toJsonString(), "\"\"");
     } else {
         test:assertFail("testFromXML result is not json");
     }
