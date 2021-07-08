@@ -12,8 +12,15 @@ plugins {
 }
 
 rootProject.name = 'xmldata'
-include(':build-config:checkstyle')
-include ':xmldata-native', ':xmldata-test-utils', ':xmldata-ballerina'
+include(':checkstyle')
+include ':xmldata-native'
+include ':xmldata-test-utils'
+include ':xmldata-ballerina'
+
+project(':checkstyle').projectDir = file("build-config${File.separator}checkstyle")
+project(':xmldata-native').projectDir = file('native')
+project(':xmldata-test-utils').projectDir = file('test-utils')
+project(':xmldata-ballerina').projectDir = file('ballerina')
 
 gradleEnterprise {
     buildScan {

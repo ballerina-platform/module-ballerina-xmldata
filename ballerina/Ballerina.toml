@@ -1,0 +1,17 @@
+[package]
+org = "ballerina"
+name = "xmldata"
+version = "@toml.version@"
+
+[[platform.java11.dependency]]
+path = "../native/build/libs/xmldata-native-@project.version@.jar"
+groupId = "io.ballerina.stdlib.xmldata"
+artifactId = "xmlutils"
+version = "@project.version@"
+
+[[platform.java11.dependency]]
+path = "../test-utils/build/libs/xmldata-test-utils-@project.version@.jar"
+groupId = "io.ballerina.stdlib.xmldata"
+artifactId = "xmldata"
+version = "@project.version@"
+scope = "testOnly"
