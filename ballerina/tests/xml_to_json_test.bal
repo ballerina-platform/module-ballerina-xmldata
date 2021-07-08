@@ -353,9 +353,9 @@ isolated function testFromXMLWithXmlSequence() {
 }
 
 public function convertToJson(string xmlStr) returns string = @java:Method {
-    'class: "io/ballerina/stdlib/xmldata/testutils/XmlDataTestUtils"
+    'class: "io.ballerina.stdlib.xmldata.testutils.XmlDataTestUtils"
 } external;
 
 public function convertChildrenToJson(string xmlStr) returns string = @java:Method {
-    'class: "io/ballerina/stdlib/xmldata/testutils/XmlDataTestUtils"
+    'class: "io.ballerina.stdlib.xmldata.testutils.XmlDataTestUtils"
 } external;
