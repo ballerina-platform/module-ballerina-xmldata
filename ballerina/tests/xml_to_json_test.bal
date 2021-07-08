@@ -35,10 +35,25 @@ isolated function testFromXML() {
 @test:Config {
     groups: ["toJson"]
 }
+isolated function testtoJson() {
+    var x1 = xml `<!-- outer comment -->`;
+    var x2 = xml `<name>"supun"</name>`;
+    xml x3 = x1 + x2;
+    json|Error j = toJson(x3);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{\"name\":\"\\\"supun\\\"\"}", msg = "testFromXML result incorrect");
+    } else {
+        test:assertFail("testFromXML result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
 isolated function testFromXML2() {
     json|Error j = toJson(xml `foo`);
     if (j is json) {
-        test:assertEquals(j.toJsonString(), "foo", msg = "testFromXML result incorrect");
+        test:assertEquals(j.toJsonString(), "\"foo\"", msg = "testFromXML result incorrect");
     } else {
         test:assertFail("testFromXML2 result is not json");
     }
@@ -283,6 +298,58 @@ function testComplexXMLtoJson() {
                             "\"@xmlns\":\"example.com\", \"@attr\":\"attr-val\", \"@ns:attr\":\"ns-attr-val\", " +
                             "\"@xmlns:ns\":\"ns.com\"}}",
     msg = "testComplexXMLtoJson result incorrect");
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testFromXMLWithEmptyXML() {
+    xml x1 = xml `</>`;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "\"\"");
+    } else {
+        test:assertFail("testFromXML result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testFromXMLWithNull() {
+    xml x1 = xml ``;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "\"\"");
+    } else {
+        test:assertFail("testFromXML result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testFromXMLWithComment() {
+    xml x1 = xml `<?xml version="1.0" encoding="UTF-8"?>`;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{}");
+    } else {
+        test:assertFail("testFromXML result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testFromXMLWithXmlSequence() {
+    xml x1 = xml `<family><root><fname>Peter</fname></root><root></root><?pi test?><!-- my comment --></family>`;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{\"family\":{\"root\":[{\"fname\":\"Peter\"}, []]}}");
+    } else {
+        test:assertFail("testFromXML result is not json");
+    }
 }
 
 public function convertToJson(string xmlStr) returns string = @java:Method {

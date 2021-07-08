@@ -52,10 +52,131 @@ isolated function testFromJSON() {
         name: "John",
         age: 30
     };
-    xml|Error x = fromJson(data);
-    if (x is xml) {
-        test:assertEquals(x.toString(), "<name>John</name><age>30</age>", msg = "testFromJSON result incorrect");
+    xml|Error? result = fromJson(data);
+    if (result is xml) {
+        test:assertEquals(result.toString(), "<name>John</name><age>30</age>", msg = "testFromJSON result incorrect");
     } else {
         test:assertFail("testFromJson result is not xml");
     }
+}
+
+@test:Config {
+    groups: ["fromJson", "size"]
+}
+isolated function testJsonDataSize() {
+    json data = {id: 30};
+    xml|Error? result = fromJson(data);
+    if (result is xml) {
+        test:assertEquals(result.toString(), "<id>30</id>", msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("testFromJson result is not xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson", "size"]
+}
+isolated function testEmptyJson() {
+    json data = {};
+    xml|Error? result = fromJson(data);
+    if (result is xml) {
+        test:assertEquals(result.toString(), "", msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("testFromJson result is not xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson", "size"]
+}
+isolated function testJsonArray() {
+    json data = {   fname: "John",
+                    lname: "Stallone",
+                    family: [
+                        {fname: "Peter", lname: "Stallone"},
+                        {fname: "Emma", lname: "Stallone"},
+                        {fname: "Jena", lname: "Stallone"},
+                        {fname: "Paul", lname: "Stallone"}
+                    ]
+                };
+    xml|Error? result = fromJson(data);
+    if (result is xml) {
+        test:assertEquals(result.toString(),
+                    "<fname>John</fname><lname>Stallone</lname><family><root><fname>Peter</fname>" +
+                    "<lname>Stallone</lname></root><root><fname>Emma</fname>" +
+                    "<lname>Stallone</lname></root><root><fname>Jena</fname>" +
+                    "<lname>Stallone</lname></root><root><fname>Paul</fname>" +
+                    "<lname>Stallone</lname></root></family>",
+                    msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("testFromJson result is not xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson", "negative"]
+}
+isolated function testAttributeValidation() {
+    json data =  {
+                    "@writer": {
+                         fname: "Christopher",
+                         lname: "Nolan",
+                         age: 30
+                    }
+                 };
+    xml|Error? result = fromJson(data);
+    if (result is Error) {
+        test:assertTrue(result.toString().includes("attribute cannot be an object or array"),
+                    msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("Result is not mismatch");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testNodeNameNull() {
+    json data =  [
+                    {
+                        "@writer": "Christopher",
+                         lname: "Nolan",
+                         age: 30,
+                         address: ["Uduvil"]
+                    },
+                    1
+                ];
+    xml|Error? result = fromJson(data);
+    if (result is xml) {
+        test:assertEquals(result.toString(), "<root writer=\"Christopher\"><lname>Nolan</lname><age>30</age>" +
+                    "<address><root>Uduvil</root></address></root><root>1</root>",
+                    msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("Result is not mismatch");
+    }
+}
+
+@test:Config {
+     groups: ["fromJson"]
+ }
+ isolated function testJsonAsInt() {
+     json data = 5;
+     xml|Error? result = fromJson(data);
+     if (result is Error) {
+         test:assertTrue(result.toString().includes("failed to parse xml"), msg = "testFromJSON result incorrect");
+     } else {
+         test:assertFail("Result is not mismatch");
+     }
+ }
+
+@test:Config {
+ groups: ["fromJson"]
+}
+isolated function testJsonAsNull() {
+ json data = null;
+ xml?|Error result = fromJson(data);
+ if (!(result is Error)) {
+     test:assertEquals(result.toString(), "");
+     test:assertTrue(result is ());
+ }
 }

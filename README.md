@@ -1,16 +1,19 @@
 Ballerina XmlData Library
 ===================
 
-  [![Build](https://github.com/ballerina-platform/module-ballerina-xmldata/workflows/Build/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/actions?query=workflow%3ABuild)
+  [![Build](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/build-timestamped-master.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/build-timestamped-master.yml)
   [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-xmldata.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/commits/master)
-  [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/xmldata.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fxmlutils)
+  [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/xmldata.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fxmldata)
   [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+  [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata)
 
-The XmlData library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
+The `xmlData` library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
 
-This package provides functions to perform the conversion between `xml` and `json`. It provides APIs to convert a natural representation of data in XML into a natural representation of data in JSON and vice-versa.
+This package provides functions to perform the conversion between XML and JSON. It provides APIs to convert a natural representation of data in XML into a natural representation of data in JSON and vice-versa.
 
-For more information go to [The XmlData PACKAGE](https://ballerina.io/learn/api-docs/ballerina/xmldata/).
+For more information on all the operations supported by this package, go to the [`XmlData` package](https://docs.central.ballerina.io/ballerina/xmldata/latest).
+
+For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example).
 
 ## Issues and Projects 
 
@@ -56,6 +59,17 @@ Execute the commands below to build from source.
 6. To debug the package with Ballerina language:
 
         ./gradlew clean build -PbalJavaDebug=<port>
+        
+7. Publish ZIP artifact to the local `.m2` repository:
+
+        ./gradlew clean build publishToMavenLocal
+
+8. Publish the generated artifacts to the local Ballerina central repository:
+   
+        ./gradlew clean build -PpublishToLocalCentral=true
+9. Publish the generated artifacts to the Ballerina central repository:
+
+        ./gradlew clean build -PpublishToCentral=true
 
 ## Contributing to Ballerina
 

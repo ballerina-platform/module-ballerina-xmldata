@@ -80,7 +80,7 @@ public class JsonToXml {
      */
     public static BXml convertToXML(Object json, String attributePrefix, String arrayEntryTag) {
         if (json == null) {
-            return ValueCreator.createXmlSequence();
+            return null;
         }
 
         List<BXml> xmlElemList = traverseTree(json, attributePrefix, arrayEntryTag);
@@ -161,26 +161,10 @@ public class JsonToXml {
                     if (((MapType) type).getConstrainedType().getTag() != TypeTags.JSON_TAG) {
                         throw XmlDataUtils.getError("error in converting map<non-json> to xml");
                     }
-                    map = (BMap<BString, Object>) json;
-                    for (Entry<BString, Object> entry : map.entrySet()) {
-                        currentRoot = traverseJsonNode(entry.getValue(), entry.getKey().getValue(),
-                                currentRoot, xmlElemList, attributePrefix, arrayEntryTag);
-                        if (nodeName == null) { // Outermost object
-                            xmlElemList.add(currentRoot);
-                            currentRoot = null;
-                        }
-                    }
+                    setCurrentRoot(json, nodeName, xmlElemList, attributePrefix, arrayEntryTag, currentRoot);
                     break;
                 case TypeTags.JSON_TAG:
-                    map = (BMap) json;
-                    for (Entry<BString, Object> entry : map.entrySet()) {
-                        currentRoot = traverseJsonNode(entry.getValue(), entry.getKey().getValue(), currentRoot,
-                                xmlElemList, attributePrefix, arrayEntryTag);
-                        if (nodeName == null) { // Outermost object
-                            xmlElemList.add(currentRoot);
-                            currentRoot = null;
-                        }
-                    }
+                    setCurrentRoot(json, nodeName, xmlElemList, attributePrefix, arrayEntryTag, currentRoot);
                     break;
                 case TypeTags.ARRAY_TAG:
                     BArray array = (BArray) json;
@@ -206,7 +190,7 @@ public class JsonToXml {
                     addChildElem(currentRoot, text);
                     break;
                 default:
-                    throw XmlDataUtils.getError("error in converting json to xml");
+                    throw XmlDataUtils.getError("error in converting JSON to XML");
             }
         }
 
@@ -216,6 +200,19 @@ public class JsonToXml {
             currentRoot = parentElement;
         }
         return currentRoot;
+    }
+
+    private static void setCurrentRoot(Object json, String nodeName, List<BXml> xmlElemList, String attributePrefix,
+                                       String arrayEntryTag, BXmlItem currentRoot) {
+        BMap<BString, Object> map = (BMap) json;
+        for (Entry<BString, Object> entry : map.entrySet()) {
+            currentRoot = traverseJsonNode(entry.getValue(), entry.getKey().getValue(),
+                    currentRoot, xmlElemList, attributePrefix, arrayEntryTag);
+            if (nodeName == null) { // Outermost object
+                xmlElemList.add(currentRoot);
+                currentRoot = null;
+            }
+        }
     }
 
     private static void addChildElem(BXmlItem currentRoot, BXml child) {
