@@ -59,7 +59,7 @@ public class XmlToJson {
     private static final String XMLNS = "xmlns";
     private static final String DOUBLE_QUOTES = "\"";
     private static final ArrayType JSON_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
-    public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_URL_PREFIX.length();
+    public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_NS_URI_PREFIX.length();
 
     /**
      * Converts an XML to the corresponding JSON representation.
@@ -400,7 +400,7 @@ public class XmlToJson {
     }
 
     private static boolean isNamespacePrefixEntry(Map.Entry<BString, BString> entry) {
-        return entry.getKey().getValue().startsWith(BXmlItem.XMLNS_URL_PREFIX);
+        return entry.getKey().getValue().startsWith(BXmlItem.XMLNS_NS_URI_PREFIX);
     }
 
     /**
