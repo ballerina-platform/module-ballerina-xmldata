@@ -303,19 +303,6 @@ function testComplexXMLtoJson() {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testFromXMLWithEmptyXML() {
-    xml x1 = xml `</>`;
-    json|Error j = toJson(x1);
-    if (j is json) {
-        test:assertEquals(j.toJsonString(), "\"\"");
-    } else {
-        test:assertFail("testFromXML result is not json");
-    }
-}
-
-@test:Config {
-    groups: ["toJson"]
-}
 isolated function testFromXMLWithNull() {
     xml x1 = xml ``;
     json|Error j = toJson(x1);
