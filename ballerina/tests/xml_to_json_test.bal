@@ -78,24 +78,12 @@ xml e = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:a
 }
 function testComplexXMLElementToJson() returns Error? {
     json j = check toJson(e);
-    test:assertEquals(j.toJsonString(), "{\"Invoice\":[\"\\n        \", " +
-                        "{\"PurchesedItems\":" +
-                        "[\"\\n            \", " +
-                        "{\"PLine\":[{\"ItemCode\":\"223345\", \"@xmlns\":\"example.com\"}, " +
-                        "{\"Count\":\"10\", \"@xmlns\":\"example.com\"}], \"@xmlns\":\"example.com\"}, " +
-                        "\"\\n            \", " +
-                        "{\"PLine\":[{\"ItemCode\":\"223300\", \"@xmlns\":\"example.com\"}, " +
-                        "{\"Count\":\"7\", \"@xmlns\":\"example.com\"}], \"@xmlns\":\"example.com\"}, " +
-                        "\"\\n            \", {\"PLine\":[{\"ItemCode\":\"200777\", \"@xmlns\":\"example.com\", " +
-                        "\"@discount\":\"22%\"}, " +
-                        "{\"Count\":\"7\", \"@xmlns\":\"example.com\"}], \"@xmlns\":\"example.com\"}, " +
-                        "\"\\n        \"], \"@xmlns\":\"example.com\"}, \"\\n        \", " +
-                        "{\"Address\":[\"\\n            \", " +
-                        "{\"StreetAddress\":\"20, Palm grove, Colombo 3\"}, \"\\n            \", " +
-                        "{\"City\":\"Colombo\"}, \"\\n            \", {\"Zip\":\"00300\"}, \"\\n            \", " +
-                        "{\"Country\":\"LK\"}, \"\\n        \"], \"@xmlns\":\"\"}, \"\\n    \"], " +
-                        "\"@xmlns\":\"example.com\", \"@xmlns:ns\":\"ns.com\", \"@attr\":\"attr-val\", " +
-                        "\"@ns:attr\":\"ns-attr-val\"}", msg = "testComplexXMLElementToJson result incorrect");
+    test:assertEquals(j.toJsonString(), "{\"Invoice\":{\"PurchesedItems\":{\"PLine\":[{\"ItemCode\":\"223345\", " +
+    "\"Count\":\"10\"}, {\"ItemCode\":\"223300\", \"Count\":\"7\"}, {\"ItemCode\":{\"@discount\":\"22%\", " +
+    "\"#content\":\"200777\"}, \"Count\":\"7\"}]}, \"Address\":{\"StreetAddress\":\"20, Palm grove, Colombo 3\", " +
+    "\"City\":\"Colombo\", \"Zip\":\"00300\", \"Country\":\"LK\", \"@xmlns\":\"\"}, \"@xmlns\":\"example.com\", " +
+    "\"@xmlns:ns\":\"ns.com\", \"@attr\":\"attr-val\", \"@ns:attr\":\"ns-attr-val\"}}",
+    msg = "testComplexXMLElementToJson result incorrect");
 }
 
 @test:Config {
@@ -103,16 +91,10 @@ function testComplexXMLElementToJson() returns Error? {
 }
 function testComplexXMLElementToJsonNoPreserveNS() returns Error? {
     json j = check toJson(e, { preserveNamespaces: false });
-    test:assertEquals(j.toJsonString(), "{\"Invoice\":[\"\\n        \", " +
-                        "{\"PurchesedItems\":[\"\\n            \", " +
-                        "{\"PLine\":[{\"ItemCode\":\"223345\"}, {\"Count\":\"10\"}]}, " +
-                        "\"\\n            \", {\"PLine\":[{\"ItemCode\":\"223300\"}, {\"Count\":\"7\"}]}, " +
-                        "\"\\n            \", {\"PLine\":[{\"ItemCode\":\"200777\", \"@discount\":\"22%\"}, " +
-                        "{\"Count\":\"7\"}]}, \"\\n        \"]}, \"\\n        \", {\"Address\":[\"\\n            \", " +
-                        "{\"StreetAddress\":\"20, Palm grove, Colombo 3\"}, \"\\n            \", " +
-                        "{\"City\":\"Colombo\"}, \"\\n            \", {\"Zip\":\"00300\"}, \"\\n            \", " +
-                        "{\"Country\":\"LK\"}, \"\\n        \"]}, " +
-                        "\"\\n    \"], \"@ns\":\"ns.com\", \"@attr\":\"ns-attr-val\"}",
+    test:assertEquals(j.toJsonString(), "{\"Invoice\":{\"PurchesedItems\":{\"PLine\":[{\"ItemCode\":\"223345\", " +
+                     "\"Count\":\"10\"}, {\"ItemCode\":\"223300\", \"Count\":\"7\"}, {\"ItemCode\":{\"@discount\":\"22%\", " +
+                     "\"#content\":\"200777\"}, \"Count\":\"7\"}]}, \"Address\":{\"StreetAddress\":\"20, Palm grove, Colombo 3\", " +
+                     "\"City\":\"Colombo\", \"Zip\":\"00300\", \"Country\":\"LK\"}, \"@ns\":\"ns.com\", \"@attr\":\"ns-attr-val\"}}",
                         msg = "testFromXML result incorrect");
 }
 
@@ -179,7 +161,7 @@ isolated function testXMLSameKeyToJosnArray() returns Error? {
 isolated function testXMLSameKeyWithAttrToJsonArray() returns Error? {
     xml x = xml `<Root><A attr="hello">A</A><A attr="name">B</A><A>C</A></Root>`;
     json j = check toJson(x);
-    json expected = {"Root": [{"A":"A", "@attr":"hello"}, {"A":"B", "@attr":"name"}, {"A": "C"}]};
+    json expected = {"Root": {"A": [{"@attr": "hello","#content": "A"},{"@attr": "name","#content": "B"},"C"]}};
     test:assertEquals(j, expected, msg = "testXMLSameKeyWithAttrToJsonArray result incorrect");
 }
 
@@ -260,57 +242,21 @@ function testElementWithSameNamedChildrenElementItemsWithNonConvertibleEnd() {
 }
 function testElementWithSameNamedEmptyChildren() {
     test:assertEquals(convertToJson("<root><hello attr0=\"hello\"></hello><hello></hello></root>"),
-    "{\"root\":{\"hello\":[{\"hello\":{\"@attr0\":\"hello\"}}, []]}}",
+    "{\"root\":{\"hello\":[{\"@attr0\":\"hello\"}, \"\"]}}",
     msg = "testElementWithSameNamedEmptyChildren result incorrect");
 }
 
 @test:Config {
-    groups: ["toJson"]
+    groups: ["toJson"],
+    dependsOn: [testComplexXMLElementToJson]
 }
 function testComplexXMLtoJson() {
-    test:assertEquals(convertToJson(
-    "<Invoice xmlns=\"example.com\" attr=\"attr-val\" xmlns:ns=\"ns.com\" ns:attr=\"ns-attr-val\">\n" +
-                            "        <PurchesedItems>\n" +
-                            "            <PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>\n" +
-                            "            <PLine><ItemCode>223300</ItemCode><Count>7</Count></PLine>\n" +
-                            "            <PLine><ItemCode discount=\"22%\">200777</ItemCode><Count>7</Count></PLine>\n" +
-                            "        </PurchesedItems>\n" +
-                            "        <Address xmlns=\"\">\n" +
-                            "            <StreetAddress>20, Palm grove, Colombo 3</StreetAddress>\n" +
-                            "            <City>Colombo</City>\n" +
-                            "            <Zip>00300</Zip>\n" +
-                            "            <Country>LK</Country>\n" +
-                            "        </Address>\n" +
-                            "    </Invoice>"),
-    "{\"Invoice\":{\"Invoice\":[\"\\n        \", {\"PurchesedItems\":[\"\\n            \", " +
-                            "{\"PLine\":[{\"ItemCode\":\"223345\", \"@xmlns\":\"example.com\"}, " +
-                            "{\"Count\":\"10\", \"@xmlns\":\"example.com\"}], \"@xmlns\":\"example.com\"}, " +
-                            "\"\\n            \", {\"PLine\":[{\"ItemCode\":\"223300\", \"@xmlns\":\"example.com\"}, " +
-                            "{\"Count\":\"7\", \"@xmlns\":\"example.com\"}], \"@xmlns\":\"example.com\"}, " +
-                            "\"\\n            \", {\"PLine\":[{\"ItemCode\":\"200777\", " +
-                            "\"@xmlns\":\"example.com\", \"@discount\":\"22%\"}, " +
-                            "{\"Count\":\"7\", \"@xmlns\":\"example.com\"}], \"@xmlns\":\"example.com\"}, " +
-                            "\"\\n        \"], \"@xmlns\":\"example.com\"}, \"\\n        \", " +
-                            "{\"Address\":[\"\\n            \", " +
-                            "{\"StreetAddress\":\"20, Palm grove, Colombo 3\"}, \"\\n            \", " +
-                            "{\"City\":\"Colombo\"}, \"\\n            \", {\"Zip\":\"00300\"}, \"\\n            \", " +
-                            "{\"Country\":\"LK\"}, \"\\n        \"], \"@xmlns\":\"\"}, \"\\n    \"], " +
-                            "\"@xmlns\":\"example.com\", \"@attr\":\"attr-val\", \"@ns:attr\":\"ns-attr-val\", " +
-                            "\"@xmlns:ns\":\"ns.com\"}}",
+    test:assertEquals(convertToJson(e.toString()),"{\"Invoice\":{\"PurchesedItems\":{\"PLine\":[{\"ItemCode\":\"223345\", " +
+                          "\"Count\":\"10\"}, {\"ItemCode\":\"223300\", \"Count\":\"7\"}, {\"ItemCode\":{\"@discount\":\"22%\", " +
+                          "\"#content\":\"200777\"}, \"Count\":\"7\"}]}, \"Address\":{\"StreetAddress\":\"20, Palm grove, Colombo 3\", " +
+                          "\"City\":\"Colombo\", \"Zip\":\"00300\", \"Country\":\"LK\", \"@xmlns\":\"\"}, \"@xmlns\":\"example.com\", " +
+                          "\"@attr\":\"attr-val\", \"@ns:attr\":\"ns-attr-val\", \"@xmlns:ns\":\"ns.com\"}}",
     msg = "testComplexXMLtoJson result incorrect");
-}
-
-@test:Config {
-    groups: ["toJson"]
-}
-isolated function testFromXMLWithEmptyXML() {
-    xml x1 = xml `</>`;
-    json|Error j = toJson(x1);
-    if (j is json) {
-        test:assertEquals(j.toJsonString(), "\"\"");
-    } else {
-        test:assertFail("testFromXML result is not json");
-    }
 }
 
 @test:Config {
@@ -346,9 +292,219 @@ isolated function testFromXMLWithXmlSequence() {
     xml x1 = xml `<family><root><fname>Peter</fname></root><root></root><?pi test?><!-- my comment --></family>`;
     json|Error j = toJson(x1);
     if (j is json) {
-        test:assertEquals(j.toJsonString(), "{\"family\":{\"root\":[{\"fname\":\"Peter\"}, []]}}");
+        test:assertEquals(j.toJsonString(), "{\"family\":{\"root\":[{\"fname\":\"Peter\"}, \"\"]}}");
     } else {
         test:assertFail("testFromXML result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testComplexXmlWithoutNamespace() {
+    xml x1 = xml `<bookStore status="online">
+                    <storeName>foo</storeName>
+                    <postalCode>94</postalCode>
+                    <isOpen>true</isOpen>
+                    <address>
+                      <street>foo</street>
+                      <city>94</city>
+                      <country>true</country>
+                    </address>
+                    <codes>
+                      <item>4</item>
+                      <item>8</item>
+                      <item>9</item>
+                    </codes>
+                  </bookStore>
+                  <!-- some comment -->
+                  <?doc document="book.doc"?>
+                  <metaInfo>some info</metaInfo>`;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{\"bookStore\":{\"storeName\":\"foo\", \"postalCode\":\"94\", " +
+                          "\"isOpen\":\"true\", \"address\":{\"street\":\"foo\", \"city\":\"94\", " +
+                          "\"country\":\"true\"}, \"codes\":{\"item\":[\"4\", \"8\", \"9\"]}, " +
+                          "\"@status\":\"online\"}, \"metaInfo\":\"some info\"}");
+    } else {
+        test:assertFail("testComplexXmlWithoutNamespace result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testComplexXmlWithNamespace() {
+    xml x1 = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">
+                    <ns0:storeName>foo</ns0:storeName>
+                    <ns0:postalCode>94</ns0:postalCode>
+                    <ns0:isOpen>true</ns0:isOpen>
+                    <ns0:address>
+                      <ns0:street>foo</ns0:street>
+                      <ns0:city>94</ns0:city>
+                      <ns0:country>true</ns0:country>
+                    </ns0:address>
+                    <ns0:codes>
+                      <ns0:item>4</ns0:item>
+                      <ns0:item>8</ns0:item>
+                      <ns0:item>9</ns0:item>
+                    </ns0:codes>
+                  </ns0:bookStore>
+                  <!-- some comment -->
+                  <?doc document="book.doc"?>
+                  <metaInfo>some info</metaInfo>`;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{\"ns0:bookStore\":{\"ns0:storeName\":\"foo\", " +
+        "\"ns0:postalCode\":\"94\", \"ns0:isOpen\":\"true\", \"ns0:address\":{\"ns0:street\":\"foo\", " +
+        "\"ns0:city\":\"94\", \"ns0:country\":\"true\"}, \"ns0:codes\":{\"ns0:item\":[\"4\", \"8\", \"9\"]}, " +
+        "\"@xmlns:ns0\":\"http://sample.com/test\", \"@status\":\"online\"}, \"metaInfo\":\"some info\"}");
+    } else {
+        test:assertFail("testComplexXmlWithNamespace result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testXmlWithOutNamespace() {
+    xml x1 = xml `<books>
+                      <item>
+                          <bookName>book1</bookName>
+                          <bookId>101</bookId>
+                      </item>
+                      <item>
+                          <bookName>book2</bookName>
+                          <bookId>102</bookId>
+                      </item>
+                      <item>
+                          <bookName>book3</bookName>
+                          <bookId>103</bookId>
+                      </item>
+                  </books>`;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[{\"bookName\":\"book1\", \"bookId\":\"101\"}, " +
+        "{\"bookName\":\"book2\", \"bookId\":\"102\"}, {\"bookName\":\"book3\", \"bookId\":\"103\"}]}}");
+    } else {
+        test:assertFail("testXmlWithOutNamespace result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testXmlWithOutNamespace1() {
+    xml x1 = xml `<books>
+                    <item>
+                       <item>
+                          <bookName>book1</bookName>
+                          <bookId>101</bookId>
+                       </item>
+                    </item>
+                    <item>
+                       <item>
+                          <bookName>book2</bookName>
+                          <bookId>102</bookId>
+                       </item>
+                    </item>
+                    <item>
+                      <item>
+                          <bookName>book3</bookName>
+                          <bookId>103</bookId>
+                       </item>
+                    </item>
+                  </books>
+                  `;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[{\"item\":{\"bookName\":\"book1\", " +
+                          "\"bookId\":\"101\"}}, {\"item\":{\"bookName\":\"book2\", \"bookId\":\"102\"}}, " +
+                          "{\"item\":{\"bookName\":\"book3\", \"bookId\":\"103\"}}]}}");
+    } else {
+        test:assertFail("testXmlWithOutNamespace result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testXmlWithOutNamespace2() {
+    xml x1 = xml `<books>
+                      <item>book1</item>
+                      <item>book2</item>
+                      <item>book3</item>
+                  </books>
+                  `;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[\"book1\", \"book2\", \"book3\"]}}");
+    } else {
+        test:assertFail("testXmlWithOutNamespace result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testXmlWithMultipleArray() {
+    xml x1 = xml `<books>
+                      <item>book1</item>
+                      <item>book2</item>
+                      <item>book3</item>
+                      <item1>book1</item1>
+                      <item1>book2</item1>
+                      <item1>book3</item1>
+                  </books>
+                  `;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[\"book1\", \"book2\", \"book3\"], " +
+                          "\"item1\":[\"book1\", \"book2\", \"book3\"]}}");
+    } else {
+        test:assertFail("testXmlWithOutNamespace result is not json");
+    }
+}
+
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testXmlWithOutNamespace3() {
+    xml x1 = xml `<books>
+                      book1
+                      book2
+                      book3
+                  </books>
+                  `;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toString(), "{\"books\":\"book1\n" +
+                                        "                      book2\n                      " +
+                                        "book3\"}");
+    } else {
+        test:assertFail("testXmlWithOutNamespace result is not json");
+    }
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testXmlWithOutNamespace4() {
+    xml x1 = xml `<books>
+                      book3
+                      book4
+                      <item>book1</item>
+                      <item>book2</item>
+                      <item>book6</item>
+                  </books>
+                  `;
+    json|Error j = toJson(x1);
+    if (j is json) {
+        test:assertEquals(j.toString(), "{\"books\":{\"#content\":\"book3\n" +
+                                         "                      book4\",\"item\":[\"book1\",\"book2\",\"book6\"]}}");
+    } else {
+        test:assertFail(j.toString());
     }
 }
 
