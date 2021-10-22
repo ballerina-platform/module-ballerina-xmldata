@@ -20,43 +20,31 @@ import ballerina/test;
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testFromXML() {
+isolated function testFromXML() returns error? {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>supun</name>`;
     xml x3 = x1 + x2;
-    json|Error j = toJson(x3);
-    if (j is json) {
-        test:assertEquals(j.toJsonString(), "{\"name\":\"supun\"}", msg = "testFromXML result incorrect");
-    } else {
-        test:assertFail("testFromXML result is not json");
-    }
+    json j = check toJson(x3);
+    test:assertEquals(j.toJsonString(), "{\"name\":\"supun\"}", msg = "testFromXML result incorrect");
 }
 
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testtoJson() {
+isolated function testtoJson() returns error? {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>"supun"</name>`;
     xml x3 = x1 + x2;
-    json|Error j = toJson(x3);
-    if (j is json) {
-        test:assertEquals(j.toJsonString(), "{\"name\":\"\\\"supun\\\"\"}", msg = "testFromXML result incorrect");
-    } else {
-        test:assertFail("testFromXML result is not json");
-    }
+    json j = check toJson(x3);
+    test:assertEquals(j.toJsonString(), "{\"name\":\"\\\"supun\\\"\"}", msg = "testFromXML result incorrect");
 }
 
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testFromXML2() {
-    json|Error j = toJson(xml `foo`);
-    if (j is json) {
-        test:assertEquals(j.toJsonString(), "\"foo\"", msg = "testFromXML result incorrect");
-    } else {
-        test:assertFail("testFromXML2 result is not json");
-    }
+isolated function testFromXML2() returns error? {
+    json j = check toJson(xml `foo`);
+    test:assertEquals(j.toJsonString(), "\"foo\"", msg = "testFromXML result incorrect");
 }
 
 xml e = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
@@ -89,7 +77,7 @@ function testComplexXMLElementToJson() returns Error? {
 @test:Config {
     groups: ["toJson"]
 }
-function testComplexXMLElementToJsonNoPreserveNS() returns Error? {
+function testComplexXMLElementToJsonNoPreserveNS() returns error? {
     json j = check toJson(e, { preserveNamespaces: false });
     test:assertEquals(j.toJsonString(), "{\"Invoice\":{\"PurchesedItems\":{\"PLine\":[{\"ItemCode\":\"223345\", " +
                      "\"Count\":\"10\"}, {\"ItemCode\":\"223300\", \"Count\":\"7\"}, {\"ItemCode\":{\"@discount\":\"22%\", " +
@@ -101,7 +89,7 @@ function testComplexXMLElementToJsonNoPreserveNS() returns Error? {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testUsingConvertedJsonValue() returns Error|error? {
+isolated function testUsingConvertedJsonValue() returns error? {
     json j = check toJson(xml `<Element><A>BCD</A><A>ZZZ</A></Element>`);
     json[] ar = <json[]>(check j.Element.A);
     test:assertEquals((<string> ar[0]) + ":" + (<string> ar[1]), "BCD:ZZZ", msg = "testFromXML result incorrect");
@@ -116,7 +104,7 @@ type PInfo record {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXmlToJsonToPInfo() returns Error|error? {
+isolated function testXmlToJsonToPInfo() returns error? {
     json j = check toJson(
         xml `<PInfo><name>Jane</name><age>33</age><gender>not-specified</gender></PInfo>`);
     json k =  check j.PInfo;
@@ -334,7 +322,7 @@ isolated function testComplexXmlWithoutNamespace() {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testComplexXmlWithNamespace() {
+isolated function testComplexXmlWithNamespace() returns error?  {
     xml x1 = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">
                     <ns0:storeName>foo</ns0:storeName>
                     <ns0:postalCode>94</ns0:postalCode>
@@ -353,21 +341,17 @@ isolated function testComplexXmlWithNamespace() {
                   <!-- some comment -->
                   <?doc document="book.doc"?>
                   <metaInfo>some info</metaInfo>`;
-    json|Error j = toJson(x1);
-    if (j is json) {
-        test:assertEquals(j.toJsonString(), "{\"ns0:bookStore\":{\"ns0:storeName\":\"foo\", " +
-        "\"ns0:postalCode\":\"94\", \"ns0:isOpen\":\"true\", \"ns0:address\":{\"ns0:street\":\"foo\", " +
-        "\"ns0:city\":\"94\", \"ns0:country\":\"true\"}, \"ns0:codes\":{\"ns0:item\":[\"4\", \"8\", \"9\"]}, " +
-        "\"@xmlns:ns0\":\"http://sample.com/test\", \"@status\":\"online\"}, \"metaInfo\":\"some info\"}");
-    } else {
-        test:assertFail("testComplexXmlWithNamespace result is not json");
-    }
+    json j = check toJson(x1);
+    test:assertEquals(j.toJsonString(), "{\"ns0:bookStore\":{\"ns0:storeName\":\"foo\", " +
+    "\"ns0:postalCode\":\"94\", \"ns0:isOpen\":\"true\", \"ns0:address\":{\"ns0:street\":\"foo\", " +
+    "\"ns0:city\":\"94\", \"ns0:country\":\"true\"}, \"ns0:codes\":{\"ns0:item\":[\"4\", \"8\", \"9\"]}, " +
+    "\"@xmlns:ns0\":\"http://sample.com/test\", \"@status\":\"online\"}, \"metaInfo\":\"some info\"}");
 }
 
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXmlWithOutNamespace() {
+isolated function testXmlWithOutNamespace() returns error? {
     xml x1 = xml `<books>
                       <item>
                           <bookName>book1</bookName>
@@ -382,19 +366,15 @@ isolated function testXmlWithOutNamespace() {
                           <bookId>103</bookId>
                       </item>
                   </books>`;
-    json|Error j = toJson(x1);
-    if (j is json) {
-        test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[{\"bookName\":\"book1\", \"bookId\":\"101\"}, " +
-        "{\"bookName\":\"book2\", \"bookId\":\"102\"}, {\"bookName\":\"book3\", \"bookId\":\"103\"}]}}");
-    } else {
-        test:assertFail("testXmlWithOutNamespace result is not json");
-    }
+    json j = check toJson(x1);
+    test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[{\"bookName\":\"book1\", \"bookId\":\"101\"}, " +
+                      "{\"bookName\":\"book2\", \"bookId\":\"102\"}, {\"bookName\":\"book3\", \"bookId\":\"103\"}]}}");
 }
 
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXmlWithOutNamespace1() {
+isolated function testXmlWithOutNamespace1() returns error? {
     xml x1 = xml `<books>
                     <item>
                        <item>
@@ -416,38 +396,30 @@ isolated function testXmlWithOutNamespace1() {
                     </item>
                   </books>
                   `;
-    json|Error j = toJson(x1);
-    if (j is json) {
-        test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[{\"item\":{\"bookName\":\"book1\", " +
+    json j = check toJson(x1);
+    test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[{\"item\":{\"bookName\":\"book1\", " +
                           "\"bookId\":\"101\"}}, {\"item\":{\"bookName\":\"book2\", \"bookId\":\"102\"}}, " +
                           "{\"item\":{\"bookName\":\"book3\", \"bookId\":\"103\"}}]}}");
-    } else {
-        test:assertFail("testXmlWithOutNamespace result is not json");
-    }
 }
 
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXmlWithOutNamespace2() {
+isolated function testXmlWithArray() returns error? {
     xml x1 = xml `<books>
                       <item>book1</item>
                       <item>book2</item>
                       <item>book3</item>
                   </books>
                   `;
-    json|Error j = toJson(x1);
-    if (j is json) {
-        test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[\"book1\", \"book2\", \"book3\"]}}");
-    } else {
-        test:assertFail("testXmlWithOutNamespace result is not json");
-    }
+    json j = check toJson(x1);
+    test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[\"book1\", \"book2\", \"book3\"]}}");
 }
 
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXmlWithMultipleArray() {
+isolated function testXmlWithMultipleArray() returns error? {
     xml x1 = xml `<books>
                       <item>book1</item>
                       <item>book2</item>
@@ -457,40 +429,32 @@ isolated function testXmlWithMultipleArray() {
                       <item1>book3</item1>
                   </books>
                   `;
-    json|Error j = toJson(x1);
-    if (j is json) {
-        test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[\"book1\", \"book2\", \"book3\"], " +
-                          "\"item1\":[\"book1\", \"book2\", \"book3\"]}}");
-    } else {
-        test:assertFail("testXmlWithOutNamespace result is not json");
-    }
+    json j = check toJson(x1);
+    test:assertEquals(j.toJsonString(), "{\"books\":{\"item\":[\"book1\", \"book2\", \"book3\"], " +
+                                        "\"item1\":[\"book1\", \"book2\", \"book3\"]}}");
 }
 
 
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXmlWithOutNamespace3() {
+isolated function testXmlWithKeyValue() returns error? {
     xml x1 = xml `<books>
                       book1
                       book2
                       book3
                   </books>
                   `;
-    json|Error j = toJson(x1);
-    if (j is json) {
-        test:assertEquals(j.toString(), "{\"books\":\"book1\n" +
-                                        "                      book2\n                      " +
-                                        "book3\"}");
-    } else {
-        test:assertFail("testXmlWithOutNamespace result is not json");
-    }
+    json j = check toJson(x1);
+    test:assertEquals(j.toString(), "{\"books\":\"book1\n" +
+                                    "                      book2\n                      " +
+                                    "book3\"}");
 }
 
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXmlWithOutNamespace4() {
+isolated function testComplexXml() returns error? {
     xml x1 = xml `<books>
                       book3
                       book4
@@ -499,13 +463,9 @@ isolated function testXmlWithOutNamespace4() {
                       <item>book6</item>
                   </books>
                   `;
-    json|Error j = toJson(x1);
-    if (j is json) {
-        test:assertEquals(j.toString(), "{\"books\":{\"#content\":\"book3\n" +
-                                         "                      book4\",\"item\":[\"book1\",\"book2\",\"book6\"]}}");
-    } else {
-        test:assertFail(j.toString());
-    }
+    json j = check toJson(x1);
+    test:assertEquals(j.toString(), "{\"books\":{\"#content\":\"book3\n" +
+                                    "                      book4\",\"item\":[\"book1\",\"book2\",\"book6\"]}}");
 }
 
 public function convertToJson(string xmlStr) returns string = @java:Method {
