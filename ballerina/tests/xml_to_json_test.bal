@@ -80,10 +80,10 @@ function testComplexXMLElementToJson() returns Error? {
 function testComplexXMLElementToJsonNoPreserveNS() returns error? {
     json j = check toJson(e, { preserveNamespaces: false });
     test:assertEquals(j.toJsonString(), "{\"Invoice\":{\"PurchesedItems\":{\"PLine\":[{\"ItemCode\":\"223345\", " +
-                     "\"Count\":\"10\"}, {\"ItemCode\":\"223300\", \"Count\":\"7\"}, {\"ItemCode\":{\"@discount\":\"22%\", " +
-                     "\"#content\":\"200777\"}, \"Count\":\"7\"}]}, \"Address\":{\"StreetAddress\":\"20, Palm grove, Colombo 3\", " +
-                     "\"City\":\"Colombo\", \"Zip\":\"00300\", \"Country\":\"LK\"}, \"@ns\":\"ns.com\", \"@attr\":\"ns-attr-val\"}}",
-                        msg = "testFromXML result incorrect");
+                     "\"Count\":\"10\"}, {\"ItemCode\":\"223300\", \"Count\":\"7\"}, {" +
+                     "\"ItemCode\":\"200777\", \"Count\":\"7\"}]}, \"Address\":{\"StreetAddress\":\"20, Palm grove, Colombo 3\", " +
+                     "\"City\":\"Colombo\", \"Zip\":\"00300\", \"Country\":\"LK\"}}}",
+                     msg = "testFromXML result incorrect");
 }
 
 @test:Config {
@@ -346,6 +346,78 @@ isolated function testComplexXmlWithNamespace() returns error?  {
     "\"ns0:postalCode\":\"94\", \"ns0:isOpen\":\"true\", \"ns0:address\":{\"ns0:street\":\"foo\", " +
     "\"ns0:city\":\"94\", \"ns0:country\":\"true\"}, \"ns0:codes\":{\"ns0:item\":[\"4\", \"8\", \"9\"]}, " +
     "\"@xmlns:ns0\":\"http://sample.com/test\", \"@status\":\"online\"}, \"metaInfo\":\"some info\"}");
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testComplexXmlWithOutNamespace() returns error?  {
+    xml x1 = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">
+                    <ns0:storeName>foo</ns0:storeName>
+                    <ns0:postalCode>94</ns0:postalCode>
+                    <ns0:isOpen>true</ns0:isOpen>
+                    <ns0:address>
+                      <ns0:street>foo</ns0:street>
+                      <ns0:city>94</ns0:city>
+                      <ns0:country>true</ns0:country>
+                    </ns0:address>
+                    <ns0:codes>
+                      <ns0:item>4</ns0:item>
+                      <ns0:item>8</ns0:item>
+                      <ns0:item>9</ns0:item>
+                    </ns0:codes>
+                  </ns0:bookStore>
+                  <!-- some comment -->
+                  <?doc document="book.doc"?>
+                  <metaInfo>some info</metaInfo>`;
+    json j = check toJson(x1, { preserveNamespaces: false });
+    test:assertEquals(j.toJsonString(), "{\"bookStore\":{\"storeName\":\"foo\", " +
+    "\"postalCode\":\"94\", \"isOpen\":\"true\", \"address\":{\"street\":\"foo\", " +
+    "\"city\":\"94\", \"country\":\"true\"}, \"codes\":{\"item\":[\"4\", \"8\", \"9\"]}" +
+    "}, \"metaInfo\":\"some info\"}");
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testComplexXmlWithOutNamespace2() returns error?  {
+    xml x1 = xml `<?xml version="1.0" encoding="UTF-8"?>
+                  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+                     <soapenv:Header />
+                     <soapenv:Body>
+                        <ns:getSimpleQuoteResponse xmlns:ns="http://services.samples">
+                           <ns:return xmlns:ax21="http://services.samples/xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ax21:GetQuoteResponse">
+                              <ax21:change>4.49588025550579</ax21:change>
+                           </ns:return>
+                        </ns:getSimpleQuoteResponse>
+                     </soapenv:Body>
+                  </soapenv:Envelope>`;
+    json j = check toJson(x1, { preserveNamespaces: false });
+    test:assertEquals(j.toJsonString(), "{\"Envelope\":{\"Header\":\"\", \"Body\":{\"getSimpleQuoteResponse\":" +
+                      "{\"return\":{\"change\":\"4.49588025550579\"}}}}}");
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testComplexXmlWithOutNamespace3() returns error?  {
+    xml x1 = xml `<xmlns_prefix:A xmlns:xmlns_prefix="http://sample.com/test" xmlns:xsi="http://sample.com/test">
+                    <xsi:B>test_Value</xsi:B>
+                  </xmlns_prefix:A>`;
+    json j = check toJson(x1, { preserveNamespaces: false });
+    test:assertEquals(j.toJsonString(), "{\"A\":{\"B\":\"test_Value\"}}");
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testComplexXmlWithOutNamespace4() returns error?  {
+    xml x1 = xml `<xmlns_prefix:A xmlns:xmlns_prefix="http://sample.com/test" xmlns:xsi="http://sample.com/test">
+                    <xsi:B>test_Value</xsi:B>
+                  </xmlns_prefix:A>`;
+    json j = check toJson(x1);
+    test:assertEquals(j.toJsonString(), "{\"xmlns_prefix:A\":{\"xsi:B\":\"test_Value\", " +
+                     "\"@xmlns:xmlns_prefix\":\"http://sample.com/test\", \"@xmlns:xsi\":\"http://sample.com/test\"}}");
 }
 
 @test:Config {

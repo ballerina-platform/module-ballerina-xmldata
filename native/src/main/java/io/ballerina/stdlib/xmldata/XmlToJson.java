@@ -126,7 +126,9 @@ public class XmlToJson {
                                          boolean preserveNamespaces) {
         BMap<BString, Object> rootNode = newJsonMap();
         BMap<BString, Object> mapData = newJsonMap();
-        getAttributes(xmlItem, preserveNamespaces, attributePrefix, mapData);
+        if (preserveNamespaces) {
+            getAttributes(xmlItem, preserveNamespaces, attributePrefix, mapData);
+        }
         String keyValue = getElementKey(xmlItem, preserveNamespaces);
         Object children = convertBXmlSequence((BXmlSequence) xmlItem.getChildrenSeq(), attributePrefix,
                 preserveNamespaces);
