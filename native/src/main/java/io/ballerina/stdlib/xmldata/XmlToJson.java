@@ -37,10 +37,9 @@ import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.namespace.QName;
 
@@ -61,8 +60,7 @@ public class XmlToJson {
     private static final String EMPTY_STRING = "";
     private static final ArrayType JSON_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
     public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_NS_URI_PREFIX.length();
-    private static LinkedHashMap<String, String> attributeMap = new LinkedHashMap<>();
-    private static LinkedHashMap<String, String> tempAttributeMap = new LinkedHashMap<>();
+    private static ConcurrentHashMap<String, String> attributeMap;
 
     /**
      * Converts an XML to the corresponding JSON representation.
@@ -76,10 +74,8 @@ public class XmlToJson {
             String attributePrefix = ((BString) options.get(StringUtils.fromString(Constants.OPTIONS_ATTRIBUTE_PREFIX)))
                     .getValue();
             boolean preserveNamespaces = ((Boolean) options.get(StringUtils.fromString(Constants.OPTIONS_PRESERVE_NS)));
-            Object output = convertToJSON(xml, attributePrefix, preserveNamespaces);
-            attributeMap = new LinkedHashMap<>();
-            tempAttributeMap = new LinkedHashMap<>();
-            return output;
+            attributeMap = new ConcurrentHashMap<>();
+            return convertToJSON(xml, attributePrefix, preserveNamespaces);
         } catch (Exception e) {
             return XmlDataUtils.getError(e.getMessage());
         }
@@ -161,11 +157,12 @@ public class XmlToJson {
 
     private static void getAttributes(BXmlItem xmlItem, boolean preserveNamespaces, String attributePrefix,
                                       BMap<BString, Object> mapData) {
+        ConcurrentHashMap<String, String> tempAttributeMap =  new ConcurrentHashMap<>();
         if (attributeMap.isEmpty()) {
             attributeMap = collectAttributesAndNamespaces(xmlItem, preserveNamespaces);
             tempAttributeMap = attributeMap;
         } else {
-            LinkedHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem,
+            ConcurrentHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem,
                     preserveNamespaces);
             if (!newAttributeMap.isEmpty()) {
                 for (Map.Entry<String, String> entrySet : newAttributeMap.entrySet()) {
@@ -180,12 +177,11 @@ public class XmlToJson {
         }
         if (!tempAttributeMap.isEmpty()) {
             addAttributes(mapData, attributePrefix, tempAttributeMap);
-            tempAttributeMap = new LinkedHashMap<>();
         }
     }
 
     private static void addAttributes(BMap<BString, Object> rootNode, String attributePrefix,
-                                      LinkedHashMap<String, String> attributeMap) {
+                                      ConcurrentHashMap<String, String> attributeMap) {
         for (Map.Entry<String, String> entry : attributeMap.entrySet()) {
             putAsBStrings(rootNode, attributePrefix + entry.getKey(), entry.getValue());
         }
@@ -288,9 +284,9 @@ public class XmlToJson {
      * @param element XML element to extract attributes and namespaces
      * @param preserveNamespaces should namespace attribute be preserved
      */
-    private static LinkedHashMap<String, String> collectAttributesAndNamespaces(BXmlItem element,
+    private static ConcurrentHashMap<String, String> collectAttributesAndNamespaces(BXmlItem element,
                                                                                 boolean preserveNamespaces) {
-        LinkedHashMap<String, String> attributeMap = new LinkedHashMap<>();
+        ConcurrentHashMap<String, String> attributeMap = new ConcurrentHashMap<>();
         BMap<BString, BString> attributesMap = element.getAttributesMap();
         Map<String, String> nsPrefixMap = getNamespacePrefixes(attributesMap);
 
@@ -308,7 +304,7 @@ public class XmlToJson {
         return attributeMap;
     }
 
-    private static void addNamespacePrefixAttribute(LinkedHashMap<String, String> attributeMap,
+    private static void addNamespacePrefixAttribute(ConcurrentHashMap<String, String> attributeMap,
                                                     Map.Entry<BString, BString> entry) {
         String key = entry.getKey().getValue();
         String value = entry.getValue().getValue();
@@ -320,7 +316,7 @@ public class XmlToJson {
         }
     }
 
-    private static void addAttributeDiscardingNamespace(LinkedHashMap<String, String> attributeMap,
+    private static void addAttributeDiscardingNamespace(ConcurrentHashMap<String, String> attributeMap,
                                                         Map.Entry<BString, BString> entry) {
         String key = entry.getKey().getValue();
         String value = entry.getValue().getValue();
@@ -336,7 +332,7 @@ public class XmlToJson {
         }
     }
 
-    private static void addAttributePreservingNamespace(LinkedHashMap<String, String> attributeMap,
+    private static void addAttributePreservingNamespace(ConcurrentHashMap<String, String> attributeMap,
                                                         Map<String, String> nsPrefixMap,
                                                         Map.Entry<BString, BString> entry) {
         String key = entry.getKey().getValue();
@@ -359,8 +355,9 @@ public class XmlToJson {
         }
     }
 
-    private static Map<String, String> getNamespacePrefixes(BMap<BString, BString> xmlAttributeMap) {
-        HashMap<String, String> nsPrefixMap = new HashMap<>();
+    private static ConcurrentHashMap<String, String> getNamespacePrefixes(BMap<BString,
+            BString> xmlAttributeMap) {
+        ConcurrentHashMap<String, String> nsPrefixMap = new ConcurrentHashMap<>();
         for (Map.Entry<BString, BString> entry : xmlAttributeMap.entrySet()) {
             if (isNamespacePrefixEntry(entry)) {
                 String prefix = entry.getKey().getValue().substring(NS_PREFIX_BEGIN_INDEX);

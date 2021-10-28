@@ -69,8 +69,8 @@ function testComplexXMLElementToJson() returns Error? {
     test:assertEquals(j.toJsonString(), "{\"Invoice\":{\"PurchesedItems\":{\"PLine\":[{\"ItemCode\":\"223345\", " +
     "\"Count\":\"10\"}, {\"ItemCode\":\"223300\", \"Count\":\"7\"}, {\"ItemCode\":{\"@discount\":\"22%\", " +
     "\"#content\":\"200777\"}, \"Count\":\"7\"}]}, \"Address\":{\"StreetAddress\":\"20, Palm grove, Colombo 3\", " +
-    "\"City\":\"Colombo\", \"Zip\":\"00300\", \"Country\":\"LK\", \"@xmlns\":\"\"}, \"@xmlns\":\"example.com\", " +
-    "\"@xmlns:ns\":\"ns.com\", \"@attr\":\"attr-val\", \"@ns:attr\":\"ns-attr-val\"}}",
+    "\"City\":\"Colombo\", \"Zip\":\"00300\", \"Country\":\"LK\", \"@xmlns\":\"\"}, \"@xmlns:ns\":\"ns.com\", " +
+    "\"@xmlns\":\"example.com\", \"@attr\":\"attr-val\", \"@ns:attr\":\"ns-attr-val\"}}",
     msg = "testComplexXMLElementToJson result incorrect");
 }
 
@@ -236,16 +236,15 @@ function testElementWithSameNamedEmptyChildren() {
 }
 
 @test:Config {
-    groups: ["toJson"],
-    dependsOn: [testComplexXMLElementToJson]
+    groups: ["toJson"]
 }
 function testComplexXMLtoJson() {
     test:assertEquals(convertToJson(e.toString()),"{\"Invoice\":{\"PurchesedItems\":{\"PLine\":[" +
                             "{\"ItemCode\":\"223345\", \"Count\":\"10\"}, {\"ItemCode\":\"223300\", \"Count\":\"7\"}, " +
                             "{\"ItemCode\":{\"@discount\":\"22%\", \"#content\":\"200777\"}, \"Count\":\"7\"}]}, " +
                             "\"Address\":{\"StreetAddress\":\"20, Palm grove, Colombo 3\", \"City\":\"Colombo\", " +
-                            "\"Zip\":\"00300\", \"Country\":\"LK\", \"@xmlns\":\"\"}, \"@xmlns\":\"example.com\", " +
-                            "\"@attr\":\"attr-val\", \"@ns:attr\":\"ns-attr-val\", \"@xmlns:ns\":\"ns.com\"}}", msg =
+                            "\"Zip\":\"00300\", \"Country\":\"LK\", \"@xmlns\":\"\"}, \"@xmlns:ns\":\"ns.com\", " +
+                            "\"@xmlns\":\"example.com\", \"@attr\":\"attr-val\", \"@ns:attr\":\"ns-attr-val\"}}", msg =
                             "testComplexXMLtoJson result incorrect");
 }
 
@@ -413,9 +412,9 @@ isolated function testComplexXmlWithOutNamespace4() returns error?  {
                     <xsi:B>test_Value</xsi:B>
                   </xmlns_prefix:A>`;
     json j = check toJson(x1);
-    test:assertEquals(j.toJsonString(), "{\"xmlns_prefix:A\":{\"xsi:B\":\"test_Value\", " +
-                            "\"@xmlns:xmlns_prefix\":\"http://sample.com/test\", " +
-                            "\"@xmlns:xsi\":\"http://sample.com/test\"}}");
+    test:assertEquals(j.toJsonString(), "{\"xmlns_prefix:A\":{\"xsi:B\":\"test_Value\"" +
+                            ", \"@xmlns:xsi\":\"http://sample.com/test\", " +
+                            "\"@xmlns:xmlns_prefix\":\"http://sample.com/test\"}}");
 }
 
 @test:Config {
