@@ -234,9 +234,9 @@ function testComplexXMLtoJson() {
                             "{\"ItemCode\":\"223345\", \"Count\":\"10\"}, {\"ItemCode\":\"223300\", \"Count\":\"7\"}, " +
                             "{\"ItemCode\":{\"@discount\":\"22%\", \"#content\":\"200777\"}, \"Count\":\"7\"}]}, " +
                             "\"Address\":{\"StreetAddress\":\"20, Palm grove, Colombo 3\", \"City\":\"Colombo\", " +
-                            "\"Zip\":\"00300\", \"Country\":\"LK\", \"@xmlns\":\"\"}, \"@xmlns:ns\":\"ns.com\", " +
-                            "\"@xmlns\":\"example.com\", \"@attr\":\"attr-val\", \"@ns:attr\":\"ns-attr-val\"}}", msg =
-                            "testComplexXMLtoJson result incorrect");
+                            "\"Zip\":\"00300\", \"Country\":\"LK\", \"@xmlns\":\"\"}, " +
+                            "\"@xmlns\":\"example.com\", \"@attr\":\"attr-val\", \"@ns:attr\":\"ns-attr-val\", " +
+                            "\"@xmlns:ns\":\"ns.com\"}}", msg = "testComplexXMLtoJson result incorrect");
 }
 
 @test:Config {

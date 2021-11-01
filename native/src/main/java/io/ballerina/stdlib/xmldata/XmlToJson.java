@@ -37,6 +37,7 @@ import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -156,18 +157,18 @@ public class XmlToJson {
 
     private static void getAttributes(BXmlItem xmlItem, boolean preserveNamespaces, String attributePrefix,
                                       BMap<BString, Object> mapData, AttributeManager attributeManager) {
-        ConcurrentHashMap<String, String> tempAttributeMap =  new ConcurrentHashMap<>();
+        LinkedHashMap<String, String> tempAttributeMap =  new LinkedHashMap<>();
         if (attributeManager.getMap().isEmpty()) {
             tempAttributeMap = collectAttributesAndNamespaces(xmlItem, preserveNamespaces);
             attributeManager.initializeMap(tempAttributeMap);
         } else {
-            ConcurrentHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem,
+            LinkedHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem,
                     preserveNamespaces);
             if (!newAttributeMap.isEmpty()) {
                 for (Map.Entry<String, String> entrySet : newAttributeMap.entrySet()) {
                     String key = entrySet.getKey();
                     String value = entrySet.getValue();
-                    ConcurrentHashMap<String, String> attributeMap = attributeManager.getMap();
+                    LinkedHashMap<String, String> attributeMap = attributeManager.getMap();
                     if (attributeMap.get(key) == null || !attributeMap.get(key).equals(value)) {
                         attributeManager.setValue(key, value);
                         tempAttributeMap.put(key, value);
@@ -181,7 +182,7 @@ public class XmlToJson {
     }
 
     private static void addAttributes(BMap<BString, Object> rootNode, String attributePrefix,
-                                      ConcurrentHashMap<String, String> attributeMap) {
+                                      LinkedHashMap<String, String> attributeMap) {
         for (Map.Entry<String, String> entry : attributeMap.entrySet()) {
             putAsBStrings(rootNode, attributePrefix + entry.getKey(), entry.getValue());
         }
@@ -285,9 +286,9 @@ public class XmlToJson {
      * @param element XML element to extract attributes and namespaces
      * @param preserveNamespaces should namespace attribute be preserved
      */
-    private static ConcurrentHashMap<String, String> collectAttributesAndNamespaces(BXmlItem element,
+    private static LinkedHashMap<String, String> collectAttributesAndNamespaces(BXmlItem element,
                                                                                 boolean preserveNamespaces) {
-        ConcurrentHashMap<String, String> attributeMap = new ConcurrentHashMap<>();
+        LinkedHashMap<String, String> attributeMap = new LinkedHashMap<>();
         BMap<BString, BString> attributesMap = element.getAttributesMap();
         Map<String, String> nsPrefixMap = getNamespacePrefixes(attributesMap);
 
@@ -305,7 +306,7 @@ public class XmlToJson {
         return attributeMap;
     }
 
-    private static void addNamespacePrefixAttribute(ConcurrentHashMap<String, String> attributeMap,
+    private static void addNamespacePrefixAttribute(LinkedHashMap<String, String> attributeMap,
                                                     Map.Entry<BString, BString> entry) {
         String key = entry.getKey().getValue();
         String value = entry.getValue().getValue();
@@ -317,7 +318,7 @@ public class XmlToJson {
         }
     }
 
-    private static void addAttributeDiscardingNamespace(ConcurrentHashMap<String, String> attributeMap,
+    private static void addAttributeDiscardingNamespace(LinkedHashMap<String, String> attributeMap,
                                                         Map.Entry<BString, BString> entry) {
         String key = entry.getKey().getValue();
         String value = entry.getValue().getValue();
@@ -333,7 +334,7 @@ public class XmlToJson {
         }
     }
 
-    private static void addAttributePreservingNamespace(ConcurrentHashMap<String, String> attributeMap,
+    private static void addAttributePreservingNamespace(LinkedHashMap<String, String> attributeMap,
                                                         Map<String, String> nsPrefixMap,
                                                         Map.Entry<BString, BString> entry) {
         String key = entry.getKey().getValue();

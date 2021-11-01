@@ -18,7 +18,7 @@
 
 package io.ballerina.stdlib.xmldata;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.LinkedHashMap;
 
 /**
  * Attribute manager handles attributes and namespaces of XML elements.
@@ -27,21 +27,21 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AttributeManager {
 
-    private ConcurrentHashMap<String, String> concurrentHashMap;
+    private LinkedHashMap<String, String> attributeMap;
 
     public AttributeManager() {
-        concurrentHashMap = new ConcurrentHashMap<>();
+        attributeMap = new LinkedHashMap<>();
     }
 
-    public void initializeMap(ConcurrentHashMap<String, String> concurrentHashMap) {
-        this.concurrentHashMap = concurrentHashMap;
+    public void initializeMap(LinkedHashMap<String, String> attributeMap) {
+        this.attributeMap = attributeMap;
     }
 
     public void setValue(String key, String value) {
-        this.concurrentHashMap.put(key, value);
+        this.attributeMap.put(key, value);
     }
 
-    public ConcurrentHashMap<String, String> getMap() {
-        return this.concurrentHashMap;
+    public LinkedHashMap<String, String> getMap() {
+        return this.attributeMap;
     }
 }
