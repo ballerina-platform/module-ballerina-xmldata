@@ -286,12 +286,11 @@ isolated function testComplexXmlWithoutNamespace() returns error? {
                     </codes>
                   </bookStore>
                   <!-- some comment -->
-                  <?doc document="book.doc"?>
-                  <metaInfo>some info</metaInfo>`;
+                  <?doc document="book.doc"?>`;
     json j = check toJson(x1);
     test:assertEquals(j, {"bookStore":{"storeName":"foo","postalCode":"94","isOpen":"true",
                           "address":{"street":"foo","city":"94","country":"true"},
-                          "codes":{"item":["4","8","9"]},"@status":"online"},"metaInfo":"some info"});
+                          "codes":{"item":["4","8","9"]},"@status":"online"}});
 }
 
 @test:Config {
@@ -314,13 +313,12 @@ isolated function testComplexXmlWithNamespace() returns error?  {
                     </ns0:codes>
                   </ns0:bookStore>
                   <!-- some comment -->
-                  <?doc document="book.doc"?>
-                  <metaInfo>some info</metaInfo>`;
+                  <?doc document="book.doc"?>`;
     json j = check toJson(x1);
     test:assertEquals(j, {"ns0:bookStore":{"ns0:storeName":"foo","ns0:postalCode":"94","ns0:isOpen":"true",
                           "ns0:address":{"ns0:street":"foo","ns0:city":"94","ns0:country":"true"},
                           "ns0:codes":{"ns0:item":["4","8","9"]},"@xmlns:ns0":"http://sample.com/test",
-                          "@status":"online"},"metaInfo":"some info"});
+                          "@status":"online"}});
 }
 
 @test:Config {
