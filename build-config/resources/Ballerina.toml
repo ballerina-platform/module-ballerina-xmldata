@@ -6,7 +6,3 @@ distribution = "slbeta3"
 
 [[platform.java11.dependency]]
 path = "../native/build/libs/xmldata-native-@project.version@.jar"
-
-[[platform.java11.dependency]]
-path = "../test-utils/build/libs/xmldata-test-utils-@project.version@.jar"
-scope = "testOnly"
