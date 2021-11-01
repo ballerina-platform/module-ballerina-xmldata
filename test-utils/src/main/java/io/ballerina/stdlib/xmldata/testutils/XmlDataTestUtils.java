@@ -21,6 +21,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.XmlUtils;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BXml;
+import io.ballerina.stdlib.xmldata.AttributeManager;
 import io.ballerina.stdlib.xmldata.XmlToJson;
 /**
  * Class to test functionality of xmldata.
@@ -31,14 +32,14 @@ public class XmlDataTestUtils {
 
     public static BString convertToJson(BString xmlStr) {
         BXml parse = XmlUtils.parse(xmlStr.toString());
-        Object json = XmlToJson.convertToJSON(parse, "@", true);
+        Object json = XmlToJson.convertToJSON(parse, "@", true, new AttributeManager());
         String jsonString = StringUtils.getJsonString(json);
         return io.ballerina.runtime.api.utils.StringUtils.fromString(jsonString);
     }
 
     public static BString convertChildrenToJson(BString xmlStr) {
         BXml parse = XmlUtils.parse(xmlStr.toString()).children();
-        Object json = XmlToJson.convertToJSON(parse, "@", true);
+        Object json = XmlToJson.convertToJSON(parse, "@", true, new AttributeManager());
         String jsonString = StringUtils.getJsonString(json);
         return io.ballerina.runtime.api.utils.StringUtils.fromString(jsonString);
     }
