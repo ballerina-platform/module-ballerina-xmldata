@@ -120,36 +120,34 @@ public class XmlToJson {
      */
     private static Object convertElement(BXmlItem xmlItem, String attributePrefix,
                                          boolean preserveNamespaces, AttributeManager attributeManager) {
-        BMap<BString, Object> rootNode = newJsonMap();
-        BMap<BString, Object> mapData = newJsonMap();
+        BMap<BString, Object> childrenData = newJsonMap();
         if (preserveNamespaces) {
-            processAttributes(xmlItem, preserveNamespaces, attributePrefix, mapData, attributeManager);
+            processAttributes(xmlItem, preserveNamespaces, attributePrefix, childrenData, attributeManager);
         }
         String keyValue = getElementKey(xmlItem, preserveNamespaces);
         Object children = convertBXmlSequence((BXmlSequence) xmlItem.getChildrenSeq(), attributePrefix,
                 preserveNamespaces, attributeManager);
-        if (mapData.size() > 0) {
-            if (children == null || children instanceof BString) {
-                if (children != null) {
-                    putAsBStrings(mapData, CONTENT, children.toString().trim());
-                    rootNode = mapData;
-                } else {
-                    putAsBStrings(rootNode, keyValue, mapData);
-                }
-            } else {
+        BMap<BString, Object> rootNode = newJsonMap();
+        if (childrenData.size() > 0) {
+            if (children instanceof BMap) {
                 BMap<BString, Object> data = (BMap<BString, Object>) children;
-                for (Map.Entry<BString, Object> entry: mapData.entrySet()) {
+                for (Map.Entry<BString, Object> entry: childrenData.entrySet()) {
                     data.put(entry.getKey(), entry.getValue());
                 }
                 putAsBStrings(rootNode, keyValue, data);
+            } else if (children == null) {
+                putAsBStrings(rootNode, keyValue, childrenData);
+            } else if (children instanceof BString) {
+                putAsBStrings(childrenData, CONTENT, children.toString().trim());
+                return childrenData;
             }
         } else {
-            if (children == null) {
+            if (children instanceof BMap) {
+                putAsBStrings(rootNode, keyValue, children);
+            } else if (children == null) {
                 putAsBStrings(rootNode, keyValue, EMPTY_STRING);
             } else if (children instanceof BString) {
                 putAsBStrings(rootNode, keyValue, children.toString().trim());
-            } else {
-                putAsBStrings(rootNode, keyValue, children);
             }
         }
         return rootNode;
