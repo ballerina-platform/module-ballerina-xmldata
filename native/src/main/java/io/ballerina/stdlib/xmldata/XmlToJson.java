@@ -122,7 +122,7 @@ public class XmlToJson {
                                          boolean preserveNamespaces, AttributeManager attributeManager) {
         BMap<BString, Object> childrenData = newJsonMap();
         if (preserveNamespaces) {
-            processAttributes(xmlItem, preserveNamespaces, attributePrefix, childrenData, attributeManager);
+            processAttributes(xmlItem, attributePrefix, childrenData, attributeManager);
         }
         String keyValue = getElementKey(xmlItem, preserveNamespaces);
         Object children = convertBXmlSequence((BXmlSequence) xmlItem.getChildrenSeq(), attributePrefix,
@@ -153,30 +153,25 @@ public class XmlToJson {
         return rootNode;
     }
 
-    private static void processAttributes(BXmlItem xmlItem, boolean preserveNamespaces, String attributePrefix,
+    private static void processAttributes(BXmlItem xmlItem, String attributePrefix,
                                       BMap<BString, Object> mapData, AttributeManager attributeManager) {
         LinkedHashMap<String, String> tempAttributeMap =  new LinkedHashMap<>();
         if (attributeManager.getMap().isEmpty()) {
-            tempAttributeMap = collectAttributesAndNamespaces(xmlItem, preserveNamespaces);
+            tempAttributeMap = collectAttributesAndNamespaces(xmlItem);
             attributeManager.initializeMap(tempAttributeMap);
         } else {
-            LinkedHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem,
-                    preserveNamespaces);
-            if (!newAttributeMap.isEmpty()) {
-                for (Map.Entry<String, String> entrySet : newAttributeMap.entrySet()) {
-                    String key = entrySet.getKey();
-                    String value = entrySet.getValue();
-                    LinkedHashMap<String, String> attributeMap = attributeManager.getMap();
-                    if (attributeMap.get(key) == null || !attributeMap.get(key).equals(value)) {
-                        attributeManager.setValue(key, value);
-                        tempAttributeMap.put(key, value);
-                    }
+            LinkedHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem);
+            LinkedHashMap<String, String> attributeMap = attributeManager.getMap();
+            for (Map.Entry<String, String> entrySet : newAttributeMap.entrySet()) {
+                String key = entrySet.getKey();
+                String value = entrySet.getValue();
+                if (attributeMap.get(key) == null || !attributeMap.get(key).equals(value)) {
+                    attributeManager.setValue(key, value);
+                    tempAttributeMap.put(key, value);
                 }
             }
         }
-        if (!tempAttributeMap.isEmpty()) {
-            addAttributes(mapData, attributePrefix, tempAttributeMap);
-        }
+        addAttributes(mapData, attributePrefix, tempAttributeMap);
     }
 
     private static void addAttributes(BMap<BString, Object> rootNode, String attributePrefix,
@@ -235,19 +230,17 @@ public class XmlToJson {
                 Object result = convertToJSON((BXml) bxml, attributePrefix,
                         preserveNamespaces, attributeManager);
                 result = validateResult(result, elementName);
-                if (mapJson.get(elementName) == null) {
+                Object value = mapJson.get(elementName);
+                if (value == null) {
                     mapJson.put(elementName, result);
+                } else if (value instanceof BArray) {
+                    ((BArray) value).append(result);
+                    mapJson.put(elementName, value);
                 } else {
-                    Object value = mapJson.get(elementName);
-                    if (value instanceof BArray) {
-                        ((BArray) value).append(result);
-                        mapJson.put(elementName, value);
-                    } else {
-                        BArray jsonList = newJsonList();
-                        jsonList.append(value);
-                        jsonList.append(result);
-                        mapJson.put(elementName, jsonList);
-                    }
+                    BArray jsonList = newJsonList();
+                    jsonList.append(value);
+                    jsonList.append(result);
+                    mapJson.put(elementName, jsonList);
                 }
             }
         }
@@ -282,23 +275,17 @@ public class XmlToJson {
      * Extract attributes and namespaces from the XML element.
      *
      * @param element XML element to extract attributes and namespaces
-     * @param preserveNamespaces should namespace attribute be preserved
      */
-    private static LinkedHashMap<String, String> collectAttributesAndNamespaces(BXmlItem element,
-                                                                                boolean preserveNamespaces) {
+    private static LinkedHashMap<String, String> collectAttributesAndNamespaces(BXmlItem element) {
         LinkedHashMap<String, String> attributeMap = new LinkedHashMap<>();
         BMap<BString, BString> attributesMap = element.getAttributesMap();
         Map<String, String> nsPrefixMap = getNamespacePrefixes(attributesMap);
 
         for (Map.Entry<BString, BString> entry : attributesMap.entrySet()) {
-            if (preserveNamespaces) {
-                if (isNamespacePrefixEntry(entry)) {
-                    addNamespacePrefixAttribute(attributeMap, entry);
-                } else {
-                    addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry);
-                }
+            if (isNamespacePrefixEntry(entry)) {
+                addNamespacePrefixAttribute(attributeMap, entry);
             } else {
-                addAttributeDiscardingNamespace(attributeMap, entry);
+                addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry);
             }
         }
         return attributeMap;
@@ -313,22 +300,6 @@ public class XmlToJson {
             attributeMap.put(prefix, value);
         } else {
             attributeMap.put(XMLNS + ":" + prefix, value);
-        }
-    }
-
-    private static void addAttributeDiscardingNamespace(LinkedHashMap<String, String> attributeMap,
-                                                        Map.Entry<BString, BString> entry) {
-        String key = entry.getKey().getValue();
-        String value = entry.getValue().getValue();
-        int nsEndIndex = key.lastIndexOf('}');
-        if (nsEndIndex > 0) {
-            String localName = key.substring(nsEndIndex + 1);
-            if (localName.equals(XMLNS)) {
-                return;
-            }
-            attributeMap.put(localName, value);
-        } else {
-            attributeMap.put(key, value);
         }
     }
 
