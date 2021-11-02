@@ -123,7 +123,7 @@ public class XmlToJson {
         BMap<BString, Object> rootNode = newJsonMap();
         BMap<BString, Object> mapData = newJsonMap();
         if (preserveNamespaces) {
-            getAttributes(xmlItem, preserveNamespaces, attributePrefix, mapData, attributeManager);
+            processAttributes(xmlItem, preserveNamespaces, attributePrefix, mapData, attributeManager);
         }
         String keyValue = getElementKey(xmlItem, preserveNamespaces);
         Object children = convertBXmlSequence((BXmlSequence) xmlItem.getChildrenSeq(), attributePrefix,
@@ -155,7 +155,7 @@ public class XmlToJson {
         return rootNode;
     }
 
-    private static void getAttributes(BXmlItem xmlItem, boolean preserveNamespaces, String attributePrefix,
+    private static void processAttributes(BXmlItem xmlItem, boolean preserveNamespaces, String attributePrefix,
                                       BMap<BString, Object> mapData, AttributeManager attributeManager) {
         LinkedHashMap<String, String> tempAttributeMap =  new LinkedHashMap<>();
         if (attributeManager.getMap().isEmpty()) {
