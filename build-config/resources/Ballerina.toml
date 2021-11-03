@@ -2,6 +2,10 @@
 org = "ballerina"
 name = "xmldata"
 version = "@toml.version@"
+authors = ["Ballerina"]
+keywords = ["xml", "json"]
+repository = "https://github.com/ballerina-platform/module-ballerina-xmldata"
+license = ["Apache-2.0"]
 distribution = "slbeta3"
 
 [[platform.java11.dependency]]
