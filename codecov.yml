@@ -1,6 +1,3 @@
-ignore:
-  - "xmldata-test-utils"
-
 coverage:
   precision: 2
   round: down
