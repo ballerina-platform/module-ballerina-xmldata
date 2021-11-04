@@ -60,7 +60,7 @@ function testComplexXMLElementToJson() returns Error? {
     json expectedOutput = {
         Invoice: {
             PurchesedItems: {
-                "PLine": [
+                PLine: [
                     {ItemCode: "223345", Count: "10"},
                     {ItemCode: "223300", Count: "7"},
                     {
@@ -160,7 +160,7 @@ isolated function testXMLToJosnArray() returns Error? {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testXMLSameKeyToJosnArray() returns Error? {
+isolated function testXMLSameKeyToJsonArray() returns Error? {
     xml x = xml `<Root><A>A</A><A>B</A><A>C</A></Root>`;
     json j = check toJson(x);
     json expected = {Root: {A: ["A", "B", "C"]}};
@@ -237,12 +237,12 @@ isolated function testComplexXmlWithoutNamespace() returns error? {
                   <?doc document="book.doc"?>`;
     json j = check toJson(x1);
     test:assertEquals(j, {
-        "bookStore": {
-            "storeName": "foo",
-            "postalCode": "94",
-            "isOpen": "true",
-            "address": {"street": "foo", "city": "94", "country": "true"},
-            "codes": {"item": ["4", "8", "9"]},
+        bookStore: {
+            storeName: "foo",
+            postalCode: "94",
+            isOpen: "true",
+            address: {"street": "foo", "city": "94", "country": "true"},
+            codes: {"item": ["4", "8", "9"]},
             "@status": "online"
         }
     });
@@ -303,18 +303,16 @@ isolated function testComplexXmlWithOutNamespace() returns error? {
                     </ns0:codes>
                   </ns0:bookStore>
                   <!-- some comment -->
-                  <?doc document="book.doc"?>
-                  <metaInfo>some info</metaInfo>`;
+                  <?doc document="book.doc"?>`;
     json j = check toJson(x1, {preserveNamespaces: false});
     test:assertEquals(j, {
-        "bookStore": {
-            "storeName": "foo",
-            "postalCode": "94",
-            "isOpen": "true",
-            "address": {"street": "foo", "city": "94", "country": "true"},
-            "codes": {"item": ["4", "8", "9"]}
-        },
-        "metaInfo": "some info"
+        bookStore: {
+            storeName: "foo",
+            postalCode: "94",
+            isOpen: "true",
+            address: {"street": "foo", "city": "94", "country": "true"},
+            codes: {"item": ["4", "8", "9"]}
+        }
     });
 }
 
@@ -336,11 +334,11 @@ isolated function testComplexXmlWithOutNamespace2() returns error? {
                   </soapenv:Envelope>`;
     json j = check toJson(x1, {preserveNamespaces: false});
     test:assertEquals(j, {
-        "Envelope": {
-            "Header": "",
-            "Body": {
-                "getSimpleQuoteResponse": {
-                    "return": {"change": "4.49588025550579"}
+        Envelope: {
+            Header: "",
+            Body: {
+                getSimpleQuoteResponse: {
+                    "return": {change: "4.49588025550579"}
                 }
             }
         }
@@ -355,7 +353,7 @@ isolated function testComplexXmlWithOutNamespace3() returns error? {
                     <xsi:B>test_Value</xsi:B>
                   </xmlns_prefix:A>`;
     json j = check toJson(x1, {preserveNamespaces: false});
-    test:assertEquals(j, {"A": {"B": "test_Value"}});
+    test:assertEquals(j, {A: {B: "test_Value"}});
 }
 
 @test:Config {
@@ -395,11 +393,11 @@ isolated function testXmlWithOutNamespace() returns error? {
                   </books>`;
     json j = check toJson(x1);
     test:assertEquals(j, {
-        "books": {
-            "item": [
-                {"bookName": "book1", "bookId": "101"},
-                {"bookName": "book2", "bookId": "102"},
-                {"bookName": "book3", "bookId": "103"}
+        books: {
+            item: [
+                {bookName: "book1", "bookId": "101"},
+                {bookName: "book2", "bookId": "102"},
+                {bookName: "book3", "bookId": "103"}
             ]
         }
     });
@@ -432,11 +430,11 @@ isolated function testXmlWithOutNamespace1() returns error? {
                   `;
     json j = check toJson(x1);
     test:assertEquals(j, {
-        "books": {
-            "item": [
-                {"item": {"bookName": "book1", "bookId": "101"}},
-                {"item": {"bookName": "book2", "bookId": "102"}},
-                {"item": {"bookName": "book3", "bookId": "103"}}
+        books: {
+            item: [
+                {item: {"bookName": "book1", "bookId": "101"}},
+                {item: {"bookName": "book2", "bookId": "102"}},
+                {item: {"bookName": "book3", "bookId": "103"}}
             ]
         }
     });
@@ -453,7 +451,7 @@ isolated function testXmlWithArray() returns error? {
                   </books>
                   `;
     json j = check toJson(x1);
-    test:assertEquals(j, {"books": {"item": ["book1", "book2", "book3"]}});
+    test:assertEquals(j, {books: {item: ["book1", "book2", "book3"]}});
 }
 
 @test:Config {
@@ -470,7 +468,7 @@ isolated function testXmlWithMultipleArray() returns error? {
                   </books>
                   `;
     json j = check toJson(x1);
-    test:assertEquals(j, {"books": {"item": ["book1", "book2", "book3"], "item1": ["book1", "book2", "book3"]}});
+    test:assertEquals(j, {books: {item: ["book1", "book2", "book3"], item1: ["book1", "book2", "book3"]}});
 }
 
 @test:Config {
@@ -485,7 +483,7 @@ isolated function testXmlWithKeyValue() returns error? {
                   `;
     json j = check toJson(x1);
     test:assertEquals(j, {
-        "books": "book1\n" +
+        books: "book1\n" +
                             "                      book2\n                      " +
                             "book3"
     });
@@ -508,7 +506,7 @@ isolated function testComplexXml() returns error? {
         "books": {
             "#content": "book3\n" +
                         "                      book4",
-            "item": ["book1", "book2", "book6"]
+            item: ["book1", "book2", "book6"]
         }
     });
 }
