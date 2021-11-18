@@ -44,31 +44,31 @@ public type JsonOptions record {
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
 
     if !isLeafNode(jsonValue) {
-        return getElement("root", check traverseNode(jsonValue), check getAttributesMap(jsonValue));
+        return getElement("root", check traverseNode(jsonValue, {}), check getAttributesMap(jsonValue));
     } else {
         map<json>|error jMap = jsonValue.ensureType();
         if jMap is map<json> {
             if jMap.length() == 0 {
                 return xml ``;
             }
-            return getElement(jMap.keys()[0], check traverseNode(jMap.toArray()[0]));
+            return getElement(jMap.keys()[0], check traverseNode(jMap.toArray()[0], {}));
         }
     }
     return error Error("failed to parse xml");
 }
 
-isolated function traverseNode(json jNode) returns xml|Error {
+isolated function traverseNode(json jNode, map<string> parentNamespaces) returns xml|Error {
     xml xNode = xml ``;
     if jNode is map<json> {
         foreach [string, json] [k, v] in jNode.entries() {
             if !k.startsWith("@") {
-                xml node = check getElement(k, check traverseNode(v), check getAttributesMap(v));
+                xml node = check getElement(k, check traverseNode(v, check getNamespacesMap(v, parentNamespaces)), check getAttributesMap(v, parentNamespaces));
                 xNode += node;
             }
         }
     } else if jNode is json[] {
         foreach var i in jNode {
-            xml item = check getElement("item", check traverseNode(i), check getAttributesMap(i));
+            xml item = check getElement("item", check traverseNode(i, check getNamespacesMap(i, parentNamespaces)), check getAttributesMap(i));
             xNode += item;
         }
     } else {
@@ -96,15 +96,17 @@ isolated function isLeafNode(json node) returns boolean {
 
 isolated function getElement(string name, xml children, map<string> attributes = {}) returns xml|Error {
     xml:Element element;
-    string namespaceUrl = XMLNS_NAMESPACE_URI;
     int? index = name.indexOf(":");
     if index is int {
         string prefix = name.substring(0, index);
+        string namespaceUrl = attributes[string `{http://www.w3.org/2000/xmlns/}${prefix}`].toString();
         string elementName = name.substring(index + 1, name.length());
-        element = xml:createElement(string `{${namespaceUrl}}${elementName}`);
-        map<string> atMap = element.getAttributes();
-        atMap[string `{http://www.w3.org/2000/xmlns/}${prefix}`] = namespaceUrl;
-        _ = atMap.remove("{http://www.w3.org/2000/xmlns/}xmlns");
+
+        if namespaceUrl == "" {
+            element = xml:createElement(elementName, attributes, children);
+        } else {
+            element = xml:createElement(string `{${namespaceUrl}}${elementName}`, attributes, children);
+        }
     } else {
         if (!name.startsWith("@")) {
             element = xml:createElement(name, attributes, children);
@@ -112,17 +114,11 @@ isolated function getElement(string name, xml children, map<string> attributes =
             return error Error("attribute cannot be an object or array");
         }
     }
-    map<string> attr = element.getAttributes();
-    foreach [string, string] [k, v] in attributes.entries() {
-        if !k.includes(":") {
-            attr[k.substring(1)] = v;
-        }
-    }
     return element;
 }
 
-isolated function getAttributesMap(json jTree) returns map<string>|Error {
-    map<string> attributes = {};
+isolated function getAttributesMap(json jTree, map<string> parentNamespaces = {}) returns map<string>|Error {
+    map<string> attributes = parentNamespaces;
     map<json>|error attr = jTree.ensureType();
     if attr is map<json> {
         foreach [string, json] [k, v] in attr.entries() {
@@ -130,11 +126,35 @@ isolated function getAttributesMap(json jTree) returns map<string>|Error {
                 if v is map<json> || v is json[] {
                     return error Error("attribute cannot be an object or array");
                 }
-                attributes[k] = v.toString();
+                if k.startsWith("@xmlns") {
+                    string prefix = k.substring(<int>k.indexOf(":") + 1);
+                    attributes[string `{http://www.w3.org/2000/xmlns/}${prefix}`] = v.toString();
+                } else {
+                    attributes[k.substring(1)] = v.toString();    
+                }
             }
         }
     }
     return attributes;
+}
+
+isolated function getNamespacesMap(json jTree, map<string> parentNamespaces = {}) returns map<string>|Error {
+    map<string> namespaces = parentNamespaces;
+    map<json>|error attr = jTree.ensureType();
+    if attr is map<json> {
+        foreach [string, json] [k, v] in attr.entries() {
+            if k.startsWith("@") {
+                if v is map<json> || v is json[] {
+                    return error Error("attribute cannot be an object or array");
+                }
+                if k.startsWith("@xmlns") {
+                    string prefix = k.substring(<int>k.indexOf(":") + 1);
+                    namespaces[string `{http://www.w3.org/2000/xmlns/}${prefix}`] = v.toString();
+                }
+            }
+        }
+    }
+    return namespaces;
 }
 
 # Provides configurations for converting XML to JSON.
