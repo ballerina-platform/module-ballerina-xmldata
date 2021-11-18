@@ -99,7 +99,7 @@ isolated function getElement(string name, xml children, map<string> attributes =
     int? index = name.indexOf(":");
     if index is int {
         string prefix = name.substring(0, index);
-        string namespaceUrl = attributes[string `{http://www.w3.org/2000/xmlns/}${prefix}`].toString();
+        string namespaceUrl = attributes[string `{XMLNS_NAMESPACE_URI}${prefix}`].toString();
         string elementName = name.substring(index + 1, name.length());
 
         if namespaceUrl == "" {
@@ -128,7 +128,7 @@ isolated function getAttributesMap(json jTree, map<string> parentNamespaces = {}
                 }
                 if k.startsWith("@xmlns") {
                     string prefix = k.substring(<int>k.indexOf(":") + 1);
-                    attributes[string `{http://www.w3.org/2000/xmlns/}${prefix}`] = v.toString();
+                    attributes[string `{XMLNS_NAMESPACE_URI}${prefix}`] = v.toString();
                 } else {
                     attributes[k.substring(1)] = v.toString();    
                 }
@@ -149,7 +149,7 @@ isolated function getNamespacesMap(json jTree, map<string> parentNamespaces = {}
                 }
                 if k.startsWith("@xmlns") {
                     string prefix = k.substring(<int>k.indexOf(":") + 1);
-                    namespaces[string `{http://www.w3.org/2000/xmlns/}${prefix}`] = v.toString();
+                    namespaces[string `{XMLNS_NAMESPACE_URI}${prefix}`] = v.toString();
                 }
             }
         }
