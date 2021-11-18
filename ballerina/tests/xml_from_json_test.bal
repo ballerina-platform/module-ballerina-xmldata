@@ -401,9 +401,9 @@ isolated function testNamespace() {
             "<ns0:postalCode>94</ns0:postalCode>" +
             "<ns0:isOpen>true</ns0:isOpen>" +
             "<ns0:address>" +
+                "<ns0:street>No 20, Palm Grove</ns0:street>" +
                 "<ns0:city>Colombo 03</ns0:city>" +
                 "<ns0:country>Sri Lanka</ns0:country>" +
-                "<ns0:street>No 20, Palm Grove</ns0:street>" +
             "</ns0:address>" +
             "<ns0:codes>" +
                 "<item>4</item>" +
