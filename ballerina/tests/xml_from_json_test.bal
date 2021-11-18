@@ -16,71 +16,29 @@
 
 import ballerina/test;
 
-type Person record {
-    int id;
-    int age = -1;
-    decimal salary;
-    string name;
-    boolean married;
-};
-
-type Employee record {
-    int id;
-    string name;
-    float salary;
-    boolean permanent;
-    string[] dependents;
-    Contact contact;
-};
-
-type Contact record {
-    int[] phone;
-    Address address;
-    string emergency;
-};
-
-type Address record {
-    int number;
-    string street;
-};
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testJsonDataSize() {
+    json data = {id: 30};
+    xml expected = xml `<id>30</id>`;
+    xml|Error? result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testFromJSON result incorrect");
+    } else {
+        test:assertFail("testFromJson result is not xml");
+    }
+}
 
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testFromJSON() {
-    json data = {
-        name: "John",
-        age: 30
-    };
-    xml|Error? result = fromJson(data);
-    if (result is xml) {
-        test:assertEquals(result.toString(), "<name>John</name><age>30</age>", msg = "testFromJSON result incorrect");
-    } else {
-        test:assertFail("testFromJson result is not xml");
-    }
-}
-
-@test:Config {
-    groups: ["fromJson", "size"]
-}
-isolated function testJsonDataSize() {
-    json data = {id: 30};
-    xml|Error? result = fromJson(data);
-    if (result is xml) {
-        test:assertEquals(result.toString(), "<id>30</id>", msg = "testFromJSON result incorrect");
-    } else {
-        test:assertFail("testFromJson result is not xml");
-    }
-}
-
-@test:Config {
-    groups: ["fromJson", "size"]
-}
 isolated function testEmptyJson() {
     json data = {};
+    xml expected = xml ``;
     xml|Error? result = fromJson(data);
-    if (result is xml) {
-        test:assertEquals(result.toString(), "", msg = "testFromJSON result incorrect");
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testFromJSON result incorrect");
     } else {
         test:assertFail("testFromJson result is not xml");
     }
@@ -90,24 +48,30 @@ isolated function testEmptyJson() {
     groups: ["fromJson", "size"]
 }
 isolated function testJsonArray() {
-    json data = {   fname: "John",
-                    lname: "Stallone",
-                    family: [
-                        {fname: "Peter", lname: "Stallone"},
-                        {fname: "Emma", lname: "Stallone"},
-                        {fname: "Jena", lname: "Stallone"},
-                        {fname: "Paul", lname: "Stallone"}
-                    ]
-                };
+    json data = {
+        fname: "John",
+        lname: "Stallone",
+        family: [
+            {fname: "Peter", lname: "Stallone"},
+            {fname: "Emma", lname: "Stallone"},
+            {fname: "Jena", lname: "Stallone"},
+            {fname: "Paul", lname: "Stallone"}
+        ]
+    };
+    string expected = 
+    "<root>" +
+        "<fname>John</fname>" +
+        "<lname>Stallone</lname>" +
+        "<family>" +
+            "<item><fname>Peter</fname><lname>Stallone</lname></item>" +
+            "<item><fname>Emma</fname><lname>Stallone</lname></item>" +
+            "<item><fname>Jena</fname><lname>Stallone</lname></item>" +
+            "<item><fname>Paul</fname><lname>Stallone</lname></item>" +
+        "</family>" +
+    "</root>";
     xml|Error? result = fromJson(data);
-    if (result is xml) {
-        test:assertEquals(result.toString(),
-                    "<fname>John</fname><lname>Stallone</lname><family><root><fname>Peter</fname>" +
-                    "<lname>Stallone</lname></root><root><fname>Emma</fname>" +
-                    "<lname>Stallone</lname></root><root><fname>Jena</fname>" +
-                    "<lname>Stallone</lname></root><root><fname>Paul</fname>" +
-                    "<lname>Stallone</lname></root></family>",
-                    msg = "testFromJSON result incorrect");
+    if result is xml {
+        test:assertEquals(result.toString(), expected, msg = "testFromJSON result incorrect");
     } else {
         test:assertFail("testFromJson result is not xml");
     }
@@ -117,15 +81,15 @@ isolated function testJsonArray() {
     groups: ["fromJson", "negative"]
 }
 isolated function testAttributeValidation() {
-    json data =  {
-                    "@writer": {
-                         fname: "Christopher",
-                         lname: "Nolan",
-                         age: 30
-                    }
-                 };
+    json data = {
+        "@writer": {
+            fname: "Christopher",
+            lname: "Nolan",
+            age: 30
+        }
+    };
     xml|Error? result = fromJson(data);
-    if (result is Error) {
+    if result is Error {
         test:assertTrue(result.toString().includes("attribute cannot be an object or array"),
                     msg = "testFromJSON result incorrect");
     } else {
@@ -137,46 +101,322 @@ isolated function testAttributeValidation() {
     groups: ["fromJson"]
 }
 isolated function testNodeNameNull() {
-    json data =  [
-                    {
-                        "@writer": "Christopher",
-                         lname: "Nolan",
-                         age: 30,
-                         address: ["Uduvil"]
-                    },
-                    1
-                ];
+    json data = [
+        {
+            "@writer": "Christopher",
+            lname: "Nolan",
+            age: 30,
+            address: ["Uduvil"]
+        },
+        1
+    ];
+    string expected = 
+    "<root>" +
+        "<item writer=\"Christopher\">" +
+            "<lname>Nolan</lname>" +
+            "<age>30</age>" +
+            "<address><item>Uduvil</item></address>" +
+        "</item>" +
+        "<item>1</item>" +
+    "</root>";
     xml|Error? result = fromJson(data);
-    if (result is xml) {
-        test:assertEquals(result.toString(), "<root writer=\"Christopher\"><lname>Nolan</lname><age>30</age>" +
-                    "<address><root>Uduvil</root></address></root><root>1</root>",
-                    msg = "testFromJSON result incorrect");
+    if result is xml {
+        test:assertEquals(result.toString(), expected, msg = "testFromJSON result incorrect");
     } else {
         test:assertFail("Result is not mismatch");
     }
 }
 
 @test:Config {
-     groups: ["fromJson"]
- }
- isolated function testJsonAsInt() {
-     json data = 5;
-     xml|Error? result = fromJson(data);
-     if (result is Error) {
-         test:assertTrue(result.toString().includes("failed to parse xml"), msg = "testFromJSON result incorrect");
-     } else {
-         test:assertFail("Result is not mismatch");
-     }
- }
+    groups: ["fromJson"]
+}
+isolated function testJsonAsInt() {
+    json data = 5;
+    xml|Error? result = fromJson(data);
+    if result is Error {
+        test:assertTrue(result.toString().includes("failed to parse xml"), msg = "testFromJSON result incorrect");
+    } else {
+        test:assertEquals(result, "");
+        test:assertFail("Result is not mismatch");
+    }
+}
 
 @test:Config {
- groups: ["fromJson"]
+    groups: ["fromJson"]
 }
 isolated function testJsonAsNull() {
- json data = null;
- xml?|Error result = fromJson(data);
- if (!(result is Error)) {
-     test:assertEquals(result.toString(), "");
-     test:assertTrue(result is ());
- }
+    json data = null;
+    xml expected = xml ``;
+    xml?|Error result = fromJson(data);
+    if !(result is Error) {
+        test:assertEquals(result, expected);
+        test:assertTrue(result is ());
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testSingleElement() {
+    json data = {
+        name: "Alex"
+    };
+    xml expected = xml `<name>Alex</name>`;
+    xml?|error result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testMultipleElements() {
+    json data = {
+        name: "Alex",
+        age: 32,
+        married: true
+    };
+    string expected = 
+    "<root>" +
+        "<name>Alex</name>" +
+        "<age>32</age>" +
+        "<married>true</married>" +
+    "</root>";
+    xml?|error result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testMultipleLevels() {
+    json data = {
+        name: "Alex",
+        age: 32,
+        married: true,
+        address: {
+            street: "No 20, Palm Grove",
+            city: "Colombo 03",
+            country: "Sri Lanka"
+        },
+        contact: {
+            telephone: {
+                office: 777334555,
+                home: 94112546456
+            }
+        }
+    };
+    string expected =
+    "<root>" +
+        "<name>Alex</name>" +
+        "<age>32</age>" +
+        "<married>true</married>" +
+        "<address>" +
+            "<street>No 20, Palm Grove</street>" +
+            "<city>Colombo 03</city>" +
+            "<country>Sri Lanka</country>" +
+        "</address>" +
+        "<contact>" +
+            "<telephone>" +
+                "<office>777334555</office>" +
+                "<home>94112546456</home>" +
+            "</telephone>" +
+        "</contact>" +
+    "</root>";
+    xml?|error result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testStringArray() {
+    json data = {
+        "books": [
+            "book1",
+            "book2",
+            "book3"
+        ]
+    };
+    string expected =
+    "<root>" +
+        "<books>" +
+            "<item>book1</item>" +
+            "<item>book2</item>" +
+            "<item>book3</item>" +
+        "</books>" +
+    "</root>";
+    xml?|error result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testMultiLevelJsonArray() {
+    json data = {
+        "books": [
+            [
+                {
+                    "bookName": "book1",
+                    "bookId": 101
+                }
+            ],
+            [
+                {
+                    "bookName": "book2",
+                    "bookId": 102
+                }
+            ],
+            [
+                {
+                    "bookName": "book3",
+                    "bookId": 103
+                }
+            ]
+        ]
+    };
+    string expected =
+    "<root>" +
+        "<books>" +
+            "<item>" +
+                "<item>" +
+                    "<bookName>book1</bookName>" +
+                    "<bookId>101</bookId>" +
+                "</item>" +
+            "</item>" +
+            "<item>" +
+                "<item>" +
+                    "<bookName>book2</bookName>" +
+                    "<bookId>102</bookId>" +
+                "</item>" +
+            "</item>" +
+            "<item>" +
+                "<item>" +
+                    "<bookName>book3</bookName>" +
+                    "<bookId>103</bookId>" +
+                "</item>" +
+            "</item>" +
+        "</books>" +
+    "</root>";       
+    xml?|error result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testArray() {
+    json data = [
+        {
+            fname: "foo",
+            lname: "bar"
+        },
+        1
+    ];
+    string expected =
+    "<root>" +
+        "<item>" +
+            "<fname>foo</fname>" +
+            "<lname>bar</lname>" +
+        "</item>" +
+        "<item>1</item>" +
+    "</root>";
+    xml?|error result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testWithAttribute() {
+    json data = {
+        "@series": "Dark",
+        genre: "Sci-Fi",
+        language: "German",
+        seasons: 3,
+        "@id": 3296
+    };
+    xml?|error result = fromJson(data);
+    string expected =
+    "<root series=\"Dark\" id=\"3296\">" +
+        "<genre>Sci-Fi</genre>" +
+        "<language>German</language>" +
+        "<seasons>3</seasons>" +
+    "</root>";
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testNamespace() {
+    json data = {
+        "ns0:bookStore": {
+            "@xmlns:ns0": "http://sample.com/test",
+            "@status": "online",
+            "ns0:storeName": "foo",
+            "ns0:postalCode": "94",
+            "ns0:isOpen": "true",
+            "ns0:address": {
+                "ns0:street": "No 20, Palm Grove",
+                "ns0:city": "Colombo 03",
+                "ns0:country": "Sri Lanka"
+            },
+            "ns0:codes": ["4", "8", "9"]
+        },
+        "metaInfo": "some info"
+    };
+    string expected =
+    "<root>" + 
+        "<ns0:bookStore xmlns:ns0=\"http://sample.com/test\" status=\"online\">" +
+            "<ns0:storeName>foo</ns0:storeName>" +
+            "<ns0:postalCode>94</ns0:postalCode>" +
+            "<ns0:isOpen>true</ns0:isOpen>" +
+            "<ns0:address>" +
+                "<ns0:city>Colombo 03</ns0:city>" +
+                "<ns0:country>Sri Lanka</ns0:country>" +
+                "<ns0:street>No 20, Palm Grove</ns0:street>" +
+            "</ns0:address>" +
+            "<ns0:codes>" +
+                "<item>4</item>" +
+                "<item>8</item>" +
+                "<item>9</item>" +
+            "</ns0:codes>" +
+        "</ns0:bookStore>" +
+        "<metaInfo>some info</metaInfo>" +    
+    "</root>";
+    xml?|error result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
 }

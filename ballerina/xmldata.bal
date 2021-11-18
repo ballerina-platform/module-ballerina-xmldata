@@ -16,6 +16,8 @@
 
 import ballerina/jballerina.java;
 
+const string XMLNS_NAMESPACE_URI = "http://www.w3.org/2000/xmlns/";
+
 # Represents a record type to provide configurations for the JSON to XML
 # conversion.
 #
@@ -38,10 +40,102 @@ public type JsonOptions record {
 # + jsonValue - The JSON source to be converted to XML
 # + options - The `xmldata:xmldata:JsonOptions` record for JSON to XML conversion properties
 # + return - XML representation of the given JSON if the JSON is
-#            successfully converted or else an `xmldata:Error`
-public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error = @java:Method {
-    'class: "io.ballerina.stdlib.xmldata.JsonToXml"
-} external;
+# successfully converted or else an `xmldata:Error`
+public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
+
+    if !isLeafNode(jsonValue) {
+        return getElement("root", check traverseNode(jsonValue), check getAttributesMap(jsonValue));
+    } else {
+        map<json>|error jMap = jsonValue.ensureType();
+        if jMap is map<json> {
+            if jMap.length() == 0 {
+                return xml ``;
+            }
+            return getElement(jMap.keys()[0], check traverseNode(jMap.toArray()[0]));
+        }
+    }
+    return error Error("failed to parse xml");
+}
+
+isolated function traverseNode(json jNode) returns xml|Error {
+    xml xNode = xml ``;
+    if jNode is map<json> {
+        foreach [string, json] [k, v] in jNode.entries() {
+            if !k.startsWith("@") {
+                xml node = check getElement(k, check traverseNode(v), check getAttributesMap(v));
+                xNode += node;
+            }
+        }
+    } else if jNode is json[] {
+        foreach var i in jNode {
+            xml item = check getElement("item", check traverseNode(i), check getAttributesMap(i));
+            xNode += item;
+        }
+    } else {
+        xNode = xml:createText(jNode.toString());
+    }
+    return xNode;
+}
+
+isolated function isLeafNode(json node) returns boolean {
+    map<json>|error jMap = node.ensureType();
+    if jMap is map<json> {
+        if jMap.length() > 1 {
+            return false;
+        } else if jMap.length() == 1 {
+            if jMap.toArray()[0] is map<json> || jMap.toArray()[0] is json[] {
+                return false;
+            }
+        }
+    }
+    if node is json[] {
+        return false;
+    }
+    return true;
+}
+
+isolated function getElement(string name, xml children, map<string> attributes = {}) returns xml|Error {
+    xml:Element element;
+    string namespaceUrl = XMLNS_NAMESPACE_URI;
+    int? index = name.indexOf(":");
+    if index is int {
+        string prefix = name.substring(0, index);
+        string elementName = name.substring(index + 1, name.length());
+        element = xml:createElement(string `{${namespaceUrl}}${elementName}`);
+        map<string> atMap = element.getAttributes();
+        atMap[string `{http://www.w3.org/2000/xmlns/}${prefix}`] = namespaceUrl;
+        _ = atMap.remove("{http://www.w3.org/2000/xmlns/}xmlns");
+    } else {
+        if (!name.startsWith("@")) {
+            element = xml:createElement(name, attributes, children);
+        } else {
+            return error Error("attribute cannot be an object or array");
+        }
+    }
+    map<string> attr = element.getAttributes();
+    foreach [string, string] [k, v] in attributes.entries() {
+        if !k.includes(":") {
+            attr[k.substring(1)] = v;
+        }
+    }
+    return element;
+}
+
+isolated function getAttributesMap(json jTree) returns map<string>|Error {
+    map<string> attributes = {};
+    map<json>|error attr = jTree.ensureType();
+    if attr is map<json> {
+        foreach [string, json] [k, v] in attr.entries() {
+            if k.startsWith("@") {
+                if v is map<json> || v is json[] {
+                    return error Error("attribute cannot be an object or array");
+                }
+                attributes[k] = v.toString();
+            }
+        }
+    }
+    return attributes;
+}
 
 # Provides configurations for converting XML to JSON.
 #
