@@ -375,7 +375,8 @@ isolated function testWithAttribute() {
 }
 
 @test:Config {
-    groups: ["fromJson"]
+    groups: ["fromJson"],
+    enable: false
 }
 isolated function testNamespace() {
     json data = {
