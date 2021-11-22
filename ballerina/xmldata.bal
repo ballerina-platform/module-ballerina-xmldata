@@ -42,7 +42,6 @@ public type JsonOptions record {
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
-
     if !isLeafNode(jsonValue) {
         return getElement("root", check traverseNode(jsonValue, {}), check getAttributesMap(jsonValue));
     } else {
@@ -62,13 +61,15 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces) returns
     if jNode is map<json> {
         foreach [string, json] [k, v] in jNode.entries() {
             if !k.startsWith("@") {
-                xml node = check getElement(k, check traverseNode(v, check getNamespacesMap(v, parentNamespaces)), check getAttributesMap(v, parentNamespaces));
+                xml node = check getElement(k, check traverseNode(v, check getNamespacesMap(v, parentNamespaces)),
+                check getAttributesMap(v, parentNamespaces));
                 xNode += node;
             }
         }
     } else if jNode is json[] {
         foreach var i in jNode {
-            xml item = check getElement("item", check traverseNode(i, check getNamespacesMap(i, parentNamespaces)), check getAttributesMap(i));
+            xml item = check getElement("item", check traverseNode(i, check getNamespacesMap(i, parentNamespaces)),
+            check getAttributesMap(i));
             xNode += item;
         }
     } else {
@@ -99,8 +100,8 @@ isolated function getElement(string name, xml children, map<string> attributes =
     int? index = name.indexOf(":");
     if index is int {
         string prefix = name.substring(0, index);
-        string namespaceUrl = attributes[string `{XMLNS_NAMESPACE_URI}${prefix}`].toString();
         string elementName = name.substring(index + 1, name.length());
+        string namespaceUrl = attributes[string `{${XMLNS_NAMESPACE_URI}}${prefix}`].toString();
 
         if namespaceUrl == "" {
             element = xml:createElement(elementName, attributes, children);
@@ -108,7 +109,7 @@ isolated function getElement(string name, xml children, map<string> attributes =
             element = xml:createElement(string `{${namespaceUrl}}${elementName}`, attributes, children);
         }
     } else {
-        if (!name.startsWith("@")) {
+        if !name.startsWith("@") {
             element = xml:createElement(name, attributes, children);
         } else {
             return error Error("attribute cannot be an object or array");
@@ -128,7 +129,7 @@ isolated function getAttributesMap(json jTree, map<string> parentNamespaces = {}
                 }
                 if k.startsWith("@xmlns") {
                     string prefix = k.substring(<int>k.indexOf(":") + 1);
-                    attributes[string `{XMLNS_NAMESPACE_URI}${prefix}`] = v.toString();
+                    attributes[string `{${XMLNS_NAMESPACE_URI}}${prefix}`] = v.toString();
                 } else {
                     attributes[k.substring(1)] = v.toString();    
                 }
