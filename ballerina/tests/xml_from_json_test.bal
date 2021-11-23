@@ -375,8 +375,7 @@ isolated function testWithAttribute() {
 }
 
 @test:Config {
-    groups: ["fromJson"],
-    enable: false
+    groups: ["fromJson"]
 }
 isolated function testNamespace() {
     json data = {
@@ -423,8 +422,7 @@ isolated function testNamespace() {
 }
 
 @test:Config {
-    groups: ["fromJson"],
-    enable: false
+    groups: ["fromJson"]
 }
 isolated function testMultipleNamespaces() {
     json data = {
@@ -452,7 +450,7 @@ isolated function testMultipleNamespaces() {
     };
     string expected =
     "<root>" +
-        "<ns0:bookStore xmlns:ns0=\"http://sample.com/test\" status=\"online\">" +
+        "<ns0:bookStore xmlns:ns0=\"http://sample.com/foo\" status=\"online\">" +
             "<ns0:storeName>foo</ns0:storeName>" +
             "<ns0:postalCode>94</ns0:postalCode>" +
             "<ns0:isOpen>true</ns0:isOpen>" +
@@ -460,8 +458,9 @@ isolated function testMultipleNamespaces() {
                 "<ns0:street>No 20, Palm Grove</ns0:street>" +
                 "<ns0:city>Colombo 03</ns0:city>" +
                 "<ns0:country>Sri Lanka</ns0:country>" +
+                "<ns1:state>Western</state>" +
             "</ns0:address>" +
-            "<ns1:capacity xmlns:ns1=\"http://sample.com/beta\" xmlns:ns0=\"http://sample.com/alpha\">" +
+            "<ns1:capacity xmlns:ns0=\"http://sample.com/alpha\"> xmlns:ns1=\"http://sample.com/beta\"" +
             "<ns1:shelves>100</ns1:shelves>" +
             "</ns1:capacity>" +
             "<ns0:codes>" +
