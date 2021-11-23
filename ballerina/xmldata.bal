@@ -69,7 +69,7 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces) returns
     } else if jNode is json[] {
         foreach var i in jNode {
             xml item = check getElement("item", check traverseNode(i, check getNamespacesMap(i, parentNamespaces)),
-            check getAttributesMap(i));
+            check getAttributesMap(i, parentNamespaces));
             xNode += item;
         }
     } else {
@@ -119,7 +119,7 @@ isolated function getElement(string name, xml children, map<string> attributes =
 }
 
 isolated function getAttributesMap(json jTree, map<string> parentNamespaces = {}) returns map<string>|Error {
-    map<string> attributes = parentNamespaces;
+    map<string> attributes = parentNamespaces.clone();
     map<json>|error attr = jTree.ensureType();
     if attr is map<json> {
         foreach [string, json] [k, v] in attr.entries() {
@@ -140,7 +140,7 @@ isolated function getAttributesMap(json jTree, map<string> parentNamespaces = {}
 }
 
 isolated function getNamespacesMap(json jTree, map<string> parentNamespaces = {}) returns map<string>|Error {
-    map<string> namespaces = parentNamespaces;
+    map<string> namespaces = parentNamespaces.clone();
     map<json>|error attr = jTree.ensureType();
     if attr is map<json> {
         foreach [string, json] [k, v] in attr.entries() {
@@ -150,7 +150,7 @@ isolated function getNamespacesMap(json jTree, map<string> parentNamespaces = {}
                 }
                 if k.startsWith("@xmlns") {
                     string prefix = k.substring(<int>k.indexOf(":") + 1);
-                    namespaces[string `{XMLNS_NAMESPACE_URI}${prefix}`] = v.toString();
+                    namespaces[string `{${XMLNS_NAMESPACE_URI}}${prefix}`] = v.toString();
                 }
             }
         }

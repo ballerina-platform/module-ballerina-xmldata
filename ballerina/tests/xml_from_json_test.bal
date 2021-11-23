@@ -58,7 +58,7 @@ isolated function testJsonArray() {
             {fname: "Paul", lname: "Stallone"}
         ]
     };
-    string expected = 
+    string expected =
     "<root>" +
         "<fname>John</fname>" +
         "<lname>Stallone</lname>" +
@@ -110,7 +110,7 @@ isolated function testNodeNameNull() {
         },
         1
     ];
-    string expected = 
+    string expected =
     "<root>" +
         "<item writer=\"Christopher\">" +
             "<lname>Nolan</lname>" +
@@ -179,7 +179,7 @@ isolated function testMultipleElements() {
         age: 32,
         married: true
     };
-    string expected = 
+    string expected =
     "<root>" +
         "<name>Alex</name>" +
         "<age>32</age>" +
@@ -313,7 +313,7 @@ isolated function testMultiLevelJsonArray() {
                 "</item>" +
             "</item>" +
         "</books>" +
-    "</root>";       
+    "</root>";
     xml?|error result = fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
@@ -396,7 +396,7 @@ isolated function testNamespace() {
         "metaInfo": "some info"
     };
     string expected =
-    "<root>" + 
+    "<root>" +
         "<ns0:bookStore xmlns:ns0=\"http://sample.com/test\" status=\"online\">" +
             "<ns0:storeName>foo</ns0:storeName>" +
             "<ns0:postalCode>94</ns0:postalCode>" +
@@ -412,7 +412,65 @@ isolated function testNamespace() {
                 "<item>9</item>" +
             "</ns0:codes>" +
         "</ns0:bookStore>" +
-        "<metaInfo>some info</metaInfo>" +    
+        "<metaInfo>some info</metaInfo>" +
+    "</root>";
+    xml?|error result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"],
+    enable: false
+}
+isolated function testMultipleNamespaces() {
+    json data = {
+        "ns0:bookStore": {
+            "@xmlns:ns0": "http://sample.com/foo",
+            "@status": "online",
+            "ns0:storeName": "foo",
+            "ns0:postalCode": "94",
+            "ns0:isOpen": "true",
+            "ns0:address": {
+                "@xmlns:ns1": "http://sample.com/bar",
+                "ns0:street": "No 20, Palm Grove",
+                "ns0:city": "Colombo 03",
+                "ns0:country": "Sri Lanka",
+                "ns1:state": "Western"
+            },
+            "ns1:capacity": {
+                "@xmlns:ns0": "http://sample.com/alpha",
+                "@xmlns:ns1": "http://sample.com/beta",
+                "ns1:shelves": "100"
+            },
+            "ns0:codes": ["4", "8", "9"]
+        },
+        "metaInfo": "some info"
+    };
+    string expected =
+    "<root>" +
+        "<ns0:bookStore xmlns:ns0=\"http://sample.com/test\" status=\"online\">" +
+            "<ns0:storeName>foo</ns0:storeName>" +
+            "<ns0:postalCode>94</ns0:postalCode>" +
+            "<ns0:isOpen>true</ns0:isOpen>" +
+            "<ns0:address xmlns:ns1=\"http://sample.com/bar\">" +
+                "<ns0:street>No 20, Palm Grove</ns0:street>" +
+                "<ns0:city>Colombo 03</ns0:city>" +
+                "<ns0:country>Sri Lanka</ns0:country>" +
+            "</ns0:address>" +
+            "<ns1:capacity xmlns:ns1=\"http://sample.com/beta\" xmlns:ns0=\"http://sample.com/alpha\">" +
+            "<ns1:shelves>100</ns1:shelves>" +
+            "</ns1:capacity>" +
+            "<ns0:codes>" +
+                "<item>4</item>" +
+                "<item>8</item>" +
+                "<item>9</item>" +
+            "</ns0:codes>" +
+        "</ns0:bookStore>" +
+        "<metaInfo>some info</metaInfo>" +
     "</root>";
     xml?|error result = fromJson(data);
     if result is xml {
