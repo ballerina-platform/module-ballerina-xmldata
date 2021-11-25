@@ -21,24 +21,28 @@ type Student record {
     Address1 address;
     float gpa;
     boolean married;
+    Courses courses;
 };
 
 type Address1 record {
     string city;
     int code;
-    Contact1 contact;
+    Contacts contact;
 };
 
-type Contact1 record {
-    int home;
-    int office;
+type Contacts record {
+    int[] item;
+};
+
+type Courses record {
+    string[] item;
 };
 
 @test:Config {
     groups: ["toJson"]
 }
 isolated function testToRecord() returns Error? {
-    xml x = xml `<?xml version="1.0" encoding="UTF-8"?>
+    xml payload = xml `<?xml version="1.0" encoding="UTF-8"?>
                 <!-- outer comment -->
                 <name>Alex</name>
                 <age>29</age>
@@ -46,27 +50,29 @@ isolated function testToRecord() returns Error? {
                     <city>Colombo</city>
                     <code>10230</code>
                     <contact>
-                        <home>768122</home>
-                        <office>955433</office>
+                        <item>768122</item>
+                        <item>955433</item>
                     </contact>
                 </address>
                 <gpa>3.986</gpa>
-                <married>true</married>`;
+                <married>true</married>
+                <courses>
+                    <item>Math</item>
+                    <item>Physics</item>
+                </courses>`;
     Student expected = {
         name: "Alex",
         age: 29,
         address: {
             city: "Colombo",
             code: 10230,
-            contact: {
-                home: 768122,
-                office: 955433
-            }
+            contact: {item: [768122, 955433]}
         },
         gpa: 3.986,
-        married: true
+        married: true,
+        courses: {item: ["Math" ,"Physics"]}
     };
-    Student|Error actual = toRecord(x);
+    Student|Error actual = toRecord(payload);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {

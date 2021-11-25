@@ -201,20 +201,27 @@ public class XmlToJson {
     private static void putAsFieldTypes(BMap<BString, Object> map, String key, String value, Type type,
                                         String uniqueKey) {
         if (type != null) {
-            Type t = type;
             String[] keys = {};
             if (!uniqueKey.equals("")) {
                 keys = uniqueKey.split("\\.");
             }
-            String valueType = "string";
+            String valueType;
 
             for (String k : keys) {
-                if (((RecordType) t).getFields().get(k) != null) {
-                    t = ((RecordType) t).getFields().get(k).getFieldType();
-                    valueType = t.getName();
-                } else {
-                    break;
+                if (type instanceof RecordType) {
+                    if (((RecordType) type).getFields().get(k) != null) {
+                        type = ((RecordType) type).getFields().get(k).getFieldType();
+                    } else {
+                        break;
+                    }
+                } else if (type instanceof ArrayType) {
+                    type = ((ArrayType) type).getElementType();
                 }
+            }
+            if (type instanceof ArrayType) {
+                valueType = ((ArrayType) type).getElementType().getName();
+            } else {
+                valueType = type.getName();
             }
             switch (valueType) {
                 case "int":
@@ -250,7 +257,7 @@ public class XmlToJson {
                                               boolean preserveNamespaces, AttributeManager attributeManager,
                                               Type type, String uniqueKey) {
         List<BXml> sequence = xmlSequence.getChildrenList();
-        List<BXml> newSequence = new ArrayList<BXml>();
+        List<BXml> newSequence = new ArrayList<>();
         for (BXml value: sequence) {
             String textValue = value.getTextValue();
             if (textValue.isEmpty() || !textValue.trim().isEmpty()) {
@@ -274,7 +281,6 @@ public class XmlToJson {
         BMap<BString, Object> mapJson = newJsonMap();
         for (BXml bxml : sequence) {
             if (isCommentOrPi(bxml)) {
-                continue;
             } else if (bxml.getNodeType() == XmlNodeType.TEXT) {
                 mapJson.put(fromString(CONTENT), fromString(bxml.toString().trim()));
             } else {
