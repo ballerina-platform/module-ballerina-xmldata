@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/test;
+
 type Student record {
     string name;
     int age;
@@ -39,7 +40,7 @@ type Courses record {
 };
 
 @test:Config {
-    groups: ["toJson"]
+    groups: ["toRecord"]
 }
 isolated function testToRecord() returns Error? {
     xml payload = xml `<?xml version="1.0" encoding="UTF-8"?>
@@ -70,9 +71,78 @@ isolated function testToRecord() returns Error? {
         },
         gpa: 3.986,
         married: true,
-        courses: {item: ["Math" ,"Physics"]}
+        courses: {item: ["Math", "Physics"]}
     };
     Student|Error actual = toRecord(payload);
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
+    }
+}
+
+type Commercial record {
+    BookStore bookstore;
+};
+
+type BookStore record {
+    string storeName;
+    int postalCode;
+    boolean isOpen;
+    Address2 address;
+    Codes codes;
+    string _status;
+};
+
+type Address2 record {
+    string street;
+    string city;
+    string country;
+};
+
+type Codes record {
+    int[] item;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithAttribues() returns Error? {
+    xml payload = xml `
+                    <bookstore status="online">
+                        <storeName>foo</storeName>
+                        <postalCode>94</postalCode>
+                        <isOpen>true</isOpen>
+                        <address>
+                            <street>Galle Road</street>
+                            <city>Colombo</city>
+                            <country>Sri Lanka</country>
+                        </address>
+                        <codes>
+                            <item>4</item>
+                            <item>8</item>
+                            <item>9</item>
+                        </codes>
+                    </bookstore>
+                    <!-- some comment -->
+                    <?doc document="book.doc"?>`;
+    Commercial expected = {
+        bookstore: {
+            storeName: "foo",
+            postalCode: 94,
+            isOpen: true,
+            address: {
+                street: "Galle Road",
+                city: "Colombo",
+                country: "Sri Lanka"
+            },
+            codes: {
+                item: [4, 8, 9]
+            },
+            _status: "online"
+        }
+    };
+    BookStore|Error actual = toRecord(payload);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
