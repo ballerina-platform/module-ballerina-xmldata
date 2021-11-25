@@ -43,7 +43,8 @@ type Courses record {
     groups: ["toRecord"]
 }
 isolated function testToRecord() returns Error? {
-    xml payload = xml `<?xml version="1.0" encoding="UTF-8"?>
+    xml payload = xml `
+                <?xml version="1.0" encoding="UTF-8"?>
                 <!-- outer comment -->
                 <name>Alex</name>
                 <age>29</age>
@@ -139,6 +140,67 @@ isolated function testToRecordWithAttribues() returns Error? {
             codes: {
                 item: [4, 8, 9]
             },
+            _status: "online"
+        }
+    };
+    BookStore|Error actual = toRecord(payload);
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
+    }
+}
+
+type Commercial2 record {
+    BookStore2 bookstore;
+};
+
+type BookStore2 record {
+    string storeName;
+    int postalCode;
+    boolean isOpen;
+    Address2 address;
+    Codes codes;
+    string _status;
+    string _xmlns_ns0;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithNamespaces() returns Error? {
+    xml payload = xml `
+                    <bookstore status="online" xmlns:ns0="http://sample.com/test">
+                        <storeName>foo</storeName>
+                        <postalCode>94</postalCode>
+                        <isOpen>true</isOpen>
+                        <address>
+                            <street>Galle Road</street>
+                            <city>Colombo</city>
+                            <country>Sri Lanka</country>
+                        </address>
+                        <codes>
+                            <item>4</item>
+                            <item>8</item>
+                            <item>9</item>
+                        </codes>
+                    </bookstore>
+                    <!-- some comment -->
+                    <?doc document="book.doc"?>`;
+    Commercial2 expected = {
+        bookstore: {
+            storeName: "foo",
+            postalCode: 94,
+            isOpen: true,
+            address: {
+                street: "Galle Road",
+                city: "Colombo",
+                country: "Sri Lanka"
+            },
+            codes: {
+                item: [4, 8, 9]
+            },
+            _xmlns_ns0: "http://sample.com/test",
             _status: "online"
         }
     };
