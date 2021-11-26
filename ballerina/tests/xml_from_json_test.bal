@@ -458,9 +458,9 @@ isolated function testMultipleNamespaces() {
                 "<ns0:street>No 20, Palm Grove</ns0:street>" +
                 "<ns0:city>Colombo 03</ns0:city>" +
                 "<ns0:country>Sri Lanka</ns0:country>" +
-                "<ns1:state>Western</state>" +
+                "<ns1:state>Western</ns1:state>" +
             "</ns0:address>" +
-            "<ns1:capacity xmlns:ns0=\"http://sample.com/alpha\"> xmlns:ns1=\"http://sample.com/beta\"" +
+            "<ns1:capacity xmlns:ns1=\"http://sample.com/beta\" xmlns:ns0=\"http://sample.com/alpha\">" +
             "<ns1:shelves>100</ns1:shelves>" +
             "</ns1:capacity>" +
             "<ns0:codes>" +
