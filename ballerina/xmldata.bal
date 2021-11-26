@@ -25,7 +25,7 @@ const string XMLNS_NAMESPACE_URI = "http://www.w3.org/2000/xmlns/";
 # + arrayEntryTag - The XML tag to add an element from a JSON array
 public type JsonOptions record {
     string attributePrefix = "@";
-    string arrayEntryTag = "root";
+    string arrayEntryTag = "item";
 };
 
 # Converts a JSON object to an XML representation.
