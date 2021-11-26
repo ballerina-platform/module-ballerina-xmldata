@@ -348,7 +348,7 @@ public class XmlToJson {
             if (isNamespacePrefixEntry(entry)) {
                 addNamespacePrefixAttribute(attributeMap, entry, namespaceDelimiter);
             } else {
-                addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry);
+                addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
             }
         }
         return attributeMap;
@@ -368,7 +368,7 @@ public class XmlToJson {
 
     private static void addAttributePreservingNamespace(LinkedHashMap<String, String> attributeMap,
                                                         Map<String, String> nsPrefixMap,
-                                                        Map.Entry<BString, BString> entry) {
+                                                        Map.Entry<BString, BString> entry, String namespaceDelimiter) {
         String key = entry.getKey().getValue();
         String value = entry.getValue().getValue();
         int nsEndIndex = key.lastIndexOf('}');
@@ -382,7 +382,7 @@ public class XmlToJson {
             } else if (nsPrefix.equals(XMLNS)) {
                 attributeMap.put(XMLNS, value);
             } else {
-                attributeMap.put(nsPrefix + ":" + local, value);
+                attributeMap.put(nsPrefix + namespaceDelimiter + local, value);
             }
         } else {
             attributeMap.put(key, value);

@@ -60,16 +60,123 @@ isolated function testToRecordWithEscapedString() {
     }
 }
 
+type Order record {
+    Invoice Invoice;
+};
+
+type Invoice record {
+    PurchesedItems PurchesedItems;
+    Address1 Address;
+    string _xmlns?;
+    string _xmlns_ns?;
+    string _attr?;
+    string _ns_attr?;
+};
+
+type PurchesedItems record {
+    Purchase[] PLine;
+};
+
+type Purchase record {
+    string ItemCode;
+    string Count;
+};
+
+type Address1 record {
+    string StreetAddress;
+    string City;
+    string Zip;
+    string Country;
+    string _xmlns?;
+};
+
+xml e2 = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
+                <PurchesedItems>
+                    <PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>
+                    <PLine><ItemCode>223300</ItemCode><Count>7</Count></PLine>
+                    <PLine><ItemCode>200777</ItemCode><Count>7</Count></PLine>
+                </PurchesedItems>
+                <Address xmlns="">
+                    <StreetAddress>20, Palm grove, Colombo 3</StreetAddress>
+                    <City>Colombo</City>
+                    <Zip>00300</Zip>
+                    <Country>LK</Country>
+                </Address>
+              </Invoice>`;
+
+@test:Config {
+    groups: ["toRecord"]
+}
+function testToRecordComplexXmlElement() returns Error? {
+    Order expected = {
+        Invoice: {
+            PurchesedItems: {
+                PLine: [
+                    {ItemCode: "223345", Count: "10"},
+                    {ItemCode: "223300", Count: "7"},
+                    {ItemCode: "200777", Count: "7"}
+                ]
+            },
+            Address: {
+                StreetAddress: "20, Palm grove, Colombo 3",
+                City: "Colombo",
+                Zip: "00300",
+                Country: "LK",
+                _xmlns: ""
+            },
+            _xmlns: "example.com",
+            _xmlns_ns: "ns.com",
+            _attr: "attr-val",
+            _ns_attr: "ns-attr-val"
+        }
+    };
+    Invoice|Error actual = toRecord(e2);
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecordComplexXmlElement result incorrect");
+    }
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+function testToRecordComplexXmlElementWithoutPreserveNamespaces() returns Error? {
+    Order expected = {
+        Invoice: {
+            PurchesedItems: {
+                PLine: [
+                    {ItemCode: "223345", Count: "10"},
+                    {ItemCode: "223300", Count: "7"},
+                    {ItemCode: "200777", Count: "7"}
+                ]
+            },
+            Address: {
+                StreetAddress: "20, Palm grove, Colombo 3",
+                City: "Colombo",
+                Zip: "00300",
+                Country: "LK"
+            }
+        }
+    };
+    Invoice|Error actual = toRecord(e2, {preserveNamespaces: false});
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces result incorrect");
+    }
+}
+
 type Student record {
     string name;
     int age;
-    Address1 address;
+    Address2 address;
     float gpa;
     boolean married;
     Courses courses;
 };
 
-type Address1 record {
+type Address2 record {
     string city;
     int code;
     Contacts contact;
@@ -136,12 +243,12 @@ type BookStore record {
     string storeName;
     int postalCode;
     boolean isOpen;
-    Address2 address;
+    Address3 address;
     Codes codes;
     string _status;
 };
 
-type Address2 record {
+type Address3 record {
     string street;
     string city;
     string country;
@@ -207,7 +314,7 @@ type BookStore2 record {
     string storeName;
     int postalCode;
     boolean isOpen;
-    Address2 address;
+    Address3 address;
     Codes codes;
     string _status;
     string _xmlns_ns0;
