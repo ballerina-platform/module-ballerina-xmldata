@@ -16,6 +16,50 @@
 
 import ballerina/test;
 
+type Employee1 record {
+    string name;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecord() {
+    var x1 = xml `<!-- outer comment -->`;
+    var x2 = xml `<name>Supun</name>`;
+    xml x3 = x1 + x2;
+
+    Employee1 expected = {
+        name: "Supun"
+    };
+
+    Employee1|Error actual = toRecord(x3);
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
+    }
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithEscapedString() {
+    var x1 = xml `<!-- outer comment -->`;
+    var x2 = xml `<name>"Supun"</name>`;
+    xml x3 = x1 + x2;
+
+    Employee1 expected = {
+        name: "\"Supun\""
+    };
+
+    Employee1|Error actual = toRecord(x3);
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecordWithEscapedString result incorrect");
+    }
+}
+
 type Student record {
     string name;
     int age;
@@ -42,7 +86,7 @@ type Courses record {
 @test:Config {
     groups: ["toRecord"]
 }
-isolated function testToRecord() returns Error? {
+isolated function testToRecordWithMultiLevelRecords() {
     xml payload = xml `
                 <?xml version="1.0" encoding="UTF-8"?>
                 <!-- outer comment -->
@@ -62,6 +106,7 @@ isolated function testToRecord() returns Error? {
                     <item>Math</item>
                     <item>Physics</item>
                 </courses>`;
+
     Student expected = {
         name: "Alex",
         age: 29,
@@ -74,11 +119,12 @@ isolated function testToRecord() returns Error? {
         married: true,
         courses: {item: ["Math", "Physics"]}
     };
+
     Student|Error actual = toRecord(payload);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
-        test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
+        test:assertEquals(actual, expected, msg = "testToRecordWithMultiLevelRecords result incorrect");
     }
 }
 
@@ -108,7 +154,7 @@ type Codes record {
 @test:Config {
     groups: ["toRecord"]
 }
-isolated function testToRecordWithAttribues() returns Error? {
+isolated function testToRecordWithAttribues() {
     xml payload = xml `
                     <bookstore status="online">
                         <storeName>foo</storeName>
@@ -127,6 +173,7 @@ isolated function testToRecordWithAttribues() returns Error? {
                     </bookstore>
                     <!-- some comment -->
                     <?doc document="book.doc"?>`;
+
     Commercial expected = {
         bookstore: {
             storeName: "foo",
@@ -143,6 +190,7 @@ isolated function testToRecordWithAttribues() returns Error? {
             _status: "online"
         }
     };
+
     BookStore|Error actual = toRecord(payload);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
@@ -168,7 +216,7 @@ type BookStore2 record {
 @test:Config {
     groups: ["toRecord"]
 }
-isolated function testToRecordWithNamespaces() returns Error? {
+isolated function testToRecordWithNamespaces() {
     xml payload = xml `
                     <bookstore status="online" xmlns:ns0="http://sample.com/test">
                         <storeName>foo</storeName>
@@ -187,6 +235,7 @@ isolated function testToRecordWithNamespaces() returns Error? {
                     </bookstore>
                     <!-- some comment -->
                     <?doc document="book.doc"?>`;
+
     Commercial2 expected = {
         bookstore: {
             storeName: "foo",
@@ -204,6 +253,7 @@ isolated function testToRecordWithNamespaces() returns Error? {
             _status: "online"
         }
     };
+
     BookStore|Error actual = toRecord(payload);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
