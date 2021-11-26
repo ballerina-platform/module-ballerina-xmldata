@@ -147,7 +147,7 @@ isolated function testToRecordWithAttribues() returns Error? {
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
-        test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
+        test:assertEquals(actual, expected, msg = "testToRecordWithAttribues result incorrect");
     }
 }
 
@@ -208,6 +208,6 @@ isolated function testToRecordWithNamespaces() returns Error? {
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
-        test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
+        test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
     }
 }
