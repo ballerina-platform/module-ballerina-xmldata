@@ -28,6 +28,8 @@ public type JsonOptions record {
     string arrayEntryTag = "item";
 };
 
+isolated string arrayEntryTag = "item";
+
 # Converts a JSON object to an XML representation.
 # ```ballerina
 # json data = {
@@ -42,6 +44,9 @@ public type JsonOptions record {
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
+    lock {
+        arrayEntryTag = options.arrayEntryTag == "" ? "item" : options.arrayEntryTag;
+    }
     if !isLeafNode(jsonValue) {
         return getElement("root", check traverseNode(jsonValue, {}), check getAttributesMap(jsonValue));
     } else {
@@ -57,6 +62,10 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
 }
 
 isolated function traverseNode(json jNode, map<string> parentNamespaces) returns xml|Error {
+    string arrayTag = "item";
+    lock {
+        arrayTag = arrayEntryTag;
+    }
     xml xNode = xml ``;
     if jNode is map<json> {
         foreach [string, json] [k, v] in jNode.entries() {
@@ -68,7 +77,7 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces) returns
         }
     } else if jNode is json[] {
         foreach var i in jNode {
-            xml item = check getElement("item", check traverseNode(i, check getNamespacesMap(i, parentNamespaces)),
+            xml item = check getElement(arrayTag, check traverseNode(i, check getNamespacesMap(i, parentNamespaces)),
             check getAttributesMap(i, parentNamespaces));
             xNode += item;
         }

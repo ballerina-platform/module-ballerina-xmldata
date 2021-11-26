@@ -352,6 +352,33 @@ isolated function testArray() {
 @test:Config {
     groups: ["fromJson"]
 }
+isolated function testArrayWithArrayEntryTag() {
+    json data = [
+        {
+            fname: "foo",
+            lname: "bar"
+        },
+        1
+    ];
+    string expected =
+    "<root>" +
+        "<hello>" +
+            "<fname>foo</fname>" +
+            "<lname>bar</lname>" +
+        "</hello>" +
+        "<hello>1</hello>" +
+    "</root>";
+    xml?|error result = fromJson(data, {arrayEntryTag: "hello"});
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
 isolated function testWithAttribute() {
     json data = {
         "@series": "Dark",
