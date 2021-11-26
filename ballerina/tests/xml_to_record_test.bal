@@ -79,13 +79,13 @@ type PurchesedItems record {
 
 type Purchase record {
     string ItemCode;
-    string Count;
+    int Count;
 };
 
 type Address1 record {
     string StreetAddress;
     string City;
-    string Zip;
+    int Zip;
     string Country;
     string _xmlns?;
 };
@@ -99,7 +99,7 @@ xml e2 = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:
                 <Address xmlns="">
                     <StreetAddress>20, Palm grove, Colombo 3</StreetAddress>
                     <City>Colombo</City>
-                    <Zip>00300</Zip>
+                    <Zip>300</Zip>
                     <Country>LK</Country>
                 </Address>
               </Invoice>`;
@@ -107,20 +107,20 @@ xml e2 = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:
 @test:Config {
     groups: ["toRecord"]
 }
-function testToRecordComplexXmlElement() returns Error? {
+function testToRecordComplexXmlElement() {
     Order expected = {
         Invoice: {
             PurchesedItems: {
                 PLine: [
-                    {ItemCode: "223345", Count: "10"},
-                    {ItemCode: "223300", Count: "7"},
-                    {ItemCode: "200777", Count: "7"}
+                    {ItemCode: "223345", Count: 10},
+                    {ItemCode: "223300", Count: 7},
+                    {ItemCode: "200777", Count: 7}
                 ]
             },
             Address: {
                 StreetAddress: "20, Palm grove, Colombo 3",
                 City: "Colombo",
-                Zip: "00300",
+                Zip: 300,
                 Country: "LK",
                 _xmlns: ""
             },
@@ -141,20 +141,20 @@ function testToRecordComplexXmlElement() returns Error? {
 @test:Config {
     groups: ["toRecord"]
 }
-function testToRecordComplexXmlElementWithoutPreserveNamespaces() returns Error? {
+function testToRecordComplexXmlElementWithoutPreserveNamespaces() {
     Order expected = {
         Invoice: {
             PurchesedItems: {
                 PLine: [
-                    {ItemCode: "223345", Count: "10"},
-                    {ItemCode: "223300", Count: "7"},
-                    {ItemCode: "200777", Count: "7"}
+                    {ItemCode: "223345", Count: 10},
+                    {ItemCode: "223300", Count: 7},
+                    {ItemCode: "200777", Count: 7}
                 ]
             },
             Address: {
                 StreetAddress: "20, Palm grove, Colombo 3",
                 City: "Colombo",
-                Zip: "00300",
+                Zip: 300,
                 Country: "LK"
             }
         }
@@ -164,6 +164,30 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() returns Error?
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
         test:assertEquals(actual, expected, msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces result incorrect");
+    }
+}
+
+type emptyChild record {
+    foo foo;
+};
+
+type foo record {
+    string bar;
+    string car;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithEmptyChildren() {
+    xml x = xml `<foo><bar>2</bar><car></car></foo>`;
+    emptyChild expected = {foo: {bar: "2", car: ""}};
+
+    emptyChild|Error actual = toRecord(x);
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecordWithEmptyChildren result incorrect");
     }
 }
 

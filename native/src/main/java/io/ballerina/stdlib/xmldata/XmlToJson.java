@@ -219,7 +219,9 @@ public class XmlToJson {
                         type = ((RecordType) type).getFields().get(k).getFieldType();
                     }
                 } else if (type instanceof ArrayType) {
-                    type = ((ArrayType) type).getElementType();
+                    if (((RecordType) ((ArrayType) type).getElementType()).getFields().get(k) != null) {
+                        type = ((RecordType) ((ArrayType) type).getElementType()).getFields().get(k).getFieldType();
+                    }
                 }
             }
             if (type instanceof ArrayType) {
