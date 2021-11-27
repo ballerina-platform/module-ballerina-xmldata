@@ -167,6 +167,62 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() {
     }
 }
 
+type mail record {
+    Envelope Envelope;
+};
+
+type Envelope record {
+    string Header;
+    Body Body;
+};
+
+type Body record {
+    getSimpleQuoteResponse getSimpleQuoteResponse;
+};
+
+type getSimpleQuoteResponse record {
+    'return 'return;
+};
+
+type 'return record {
+    string change;
+};
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testToRecordComplexXmlElementWithoutPreserveNamespaces2() returns error? {
+    xml x1 = xml `<?xml version="1.0" encoding="UTF-8"?>
+                  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+                     <soapenv:Header/>
+                     <soapenv:Body>
+                        <ns:getSimpleQuoteResponse xmlns:ns="http://services.samples">
+                           <ns:return xmlns:ax21="http://services.samples/xsd"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ax21:GetQuoteResponse">
+                              <ax21:change>4.49588025550579</ax21:change>
+                           </ns:return>
+                        </ns:getSimpleQuoteResponse>
+                     </soapenv:Body>
+                  </soapenv:Envelope>`;
+
+    mail expected = {
+        Envelope: {
+            Header: "",
+            Body: {
+                getSimpleQuoteResponse: {
+                    "return": {change: "4.49588025550579"}
+                }
+            }
+        }
+    };
+    Invoice|Error actual = toRecord(x1, {preserveNamespaces: false});
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces2 result incorrect");
+    }
+}
+
 type emptyChild record {
     foo foo;
 };
@@ -188,6 +244,120 @@ isolated function testToRecordWithEmptyChildren() {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
         test:assertEquals(actual, expected, msg = "testToRecordWithEmptyChildren result incorrect");
+    }
+}
+
+type r1 record {
+    Root1 Root;
+};
+
+type Root1 record {
+    string[] A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordSameKeyArray() returns Error? {
+    xml x = xml `<Root><A>A</A><A>B</A><A>C</A></Root>`;
+    r1 expected = {
+        Root: {
+            A: ["A", "B", "C"]
+        }
+    };
+
+    r1|Error actual = toRecord(x);
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecordSameKeyArray result incorrect");
+    }
+}
+
+type r2 record {
+    Root2 Root;
+};
+
+type Root2 record {
+    string _xmlns_ns;
+    string _ns_x;
+    string _x;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithMultipleAttributesAndNamespaces() returns Error? {
+    xml x = xml `<Root xmlns:ns="ns.com" ns:x="y" x="z"/>`;
+
+    r2 expected = {
+        Root: {
+            _xmlns_ns: "ns.com",
+            _ns_x: "y",
+            _x: "z"
+        }
+    };
+
+    r2|Error actual = toRecord(x);
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecordWithMultipleAttributesAndNamespaces result incorrect");
+    }
+}
+
+type empty record {
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithComment() returns error? {
+    xml x = xml `<?xml version="1.0" encoding="UTF-8"?>`;
+    empty|Error actual = toRecord(x);
+
+    empty expected = {};
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecordWithComment result incorrect");
+    }
+}
+
+type shelf record {
+    books books;
+};
+
+type books record {
+    string[] item;
+    string[] item1;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithMultipleArray() returns error? {
+    xml x = xml `<books>
+                      <item>book1</item>
+                      <item>book2</item>
+                      <item>book3</item>
+                      <item1>book1</item1>
+                      <item1>book2</item1>
+                      <item1>book3</item1>
+                  </books>
+                  `;
+    shelf|Error actual = toRecord(x);
+
+    shelf expected = {
+        books: {
+            item: ["book1", "book2", "book3"],
+            item1: ["book1", "book2", "book3"]
+        }
+    };
+    if actual is Error {
+        test:assertFail("failed to convert xml to record: " + actual.message());
+    } else {
+        test:assertEquals(actual, expected, msg = "testToRecordWithMultipleArray result incorrect");
     }
 }
 
