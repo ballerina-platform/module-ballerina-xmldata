@@ -163,7 +163,8 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() {
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
-        test:assertEquals(actual, expected, msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces result incorrect");
+        test:assertEquals(actual, expected,
+        msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces result incorrect");
     }
 }
 
@@ -189,7 +190,7 @@ type 'return record {
 };
 
 @test:Config {
-    groups: ["toJson"]
+    groups: ["toRecord"]
 }
 isolated function testToRecordComplexXmlElementWithoutPreserveNamespaces2() returns error? {
     xml x1 = xml `<?xml version="1.0" encoding="UTF-8"?>
@@ -219,7 +220,8 @@ isolated function testToRecordComplexXmlElementWithoutPreserveNamespaces2() retu
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
-        test:assertEquals(actual, expected, msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces2 result incorrect");
+        test:assertEquals(actual, expected,
+        msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces2 result incorrect");
     }
 }
 
