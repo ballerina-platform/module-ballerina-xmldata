@@ -47,7 +47,7 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
     lock {
         arrayEntryTag = options.arrayEntryTag == "" ? "item" : options.arrayEntryTag;
     }
-    if !isLeafNode(jsonValue) {
+    if !isSingleNode(jsonValue) {
         return getElement("root", check traverseNode(jsonValue, {}), check getAttributesMap(jsonValue));
     } else {
         map<json>|error jMap = jsonValue.ensureType();
@@ -87,7 +87,7 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces) returns
     return xNode;
 }
 
-isolated function isLeafNode(json node) returns boolean {
+isolated function isSingleNode(json node) returns boolean {
     map<json>|error jMap = node.ensureType();
     if jMap is map<json> {
         if jMap.length() > 1 {
