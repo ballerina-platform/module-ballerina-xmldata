@@ -28,8 +28,6 @@ public type JsonOptions record {
     string arrayEntryTag = "item";
 };
 
-isolated string arrayEntryTag = "item";
-
 # Converts a JSON object to an XML representation.
 # ```ballerina
 # json data = {
@@ -44,28 +42,22 @@ isolated string arrayEntryTag = "item";
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
-    lock {
-        arrayEntryTag = options.arrayEntryTag == "" ? "item" : options.arrayEntryTag;
-    }
     if !isSingleNode(jsonValue) {
-        return getElement("root", check traverseNode(jsonValue, {}), check getAttributesMap(jsonValue));
+        return getElement("root", check traverseNode(jsonValue, {}, options), check getAttributesMap(jsonValue));
     } else {
         map<json>|error jMap = jsonValue.ensureType();
         if jMap is map<json> {
             if jMap.length() == 0 {
                 return xml ``;
             }
-            return getElement(jMap.keys()[0], check traverseNode(jMap.toArray()[0], {}));
+            return getElement(jMap.keys()[0], check traverseNode(jMap.toArray()[0], {}, options));
         }
     }
     return error Error("failed to parse xml");
 }
 
-isolated function traverseNode(json jNode, map<string> parentNamespaces) returns xml|Error {
-    string arrayTag = "item";
-    lock {
-        arrayTag = arrayEntryTag;
-    }
+isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOptions options = {}) returns xml|Error {
+    string arrayEntryTag = options.arrayEntryTag == "" ? "item" : options.arrayEntryTag;
     xml xNode = xml ``;
     if jNode is map<json> {
         foreach [string, json] [k, v] in jNode.entries() {
@@ -77,7 +69,7 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces) returns
         }
     } else if jNode is json[] {
         foreach var i in jNode {
-            xml item = check getElement(arrayTag, check traverseNode(i, check getNamespacesMap(i, parentNamespaces)),
+            xml item = check getElement(arrayEntryTag, check traverseNode(i, check getNamespacesMap(i, parentNamespaces)),
             check getAttributesMap(i, parentNamespaces));
             xNode += item;
         }
