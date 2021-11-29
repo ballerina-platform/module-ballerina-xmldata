@@ -505,3 +505,28 @@ isolated function testMultipleNamespaces() {
         test:assertFail("failed to convert json to xml");
     }
 }
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testWithCustomAttribute() {
+    json data = {
+        "$series": "Dark",
+        genre: "Sci-Fi",
+        language: "German",
+        seasons: 3,
+        "$id": 3296
+    };
+    xml?|error result = fromJson(data, {attributePrefix: "$"});
+    string expected =
+    "<root series=\"Dark\" id=\"3296\">" +
+        "<genre>Sci-Fi</genre>" +
+        "<language>German</language>" +
+        "<seasons>3</seasons>" +
+    "</root>";
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
