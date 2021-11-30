@@ -231,7 +231,7 @@ public class XmlToJson {
             }
             switch (valueType) {
                 case "int":
-                    map.put(fromString(key), Integer.parseInt(value));
+                    map.put(fromString(key), Long.parseLong(value));
                     break;
                 case "float":
                     map.put(fromString(key), Double.parseDouble(value));

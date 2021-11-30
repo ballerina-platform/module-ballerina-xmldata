@@ -130,7 +130,7 @@ function testToRecordComplexXmlElement() {
             _ns_attr: "ns-attr-val"
         }
     };
-    Invoice|Error actual = toRecord(e2);
+    Order|Error actual = toRecord(e2);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
@@ -159,7 +159,7 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() {
             }
         }
     };
-    Invoice|Error actual = toRecord(e2, {preserveNamespaces: false});
+    Order|Error actual = toRecord(e2, {preserveNamespaces: false});
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
@@ -216,7 +216,7 @@ isolated function testToRecordComplexXmlElementWithoutPreserveNamespaces2() retu
             }
         }
     };
-    Invoice|Error actual = toRecord(x1, {preserveNamespaces: false});
+    mail|Error actual = toRecord(x1, {preserveNamespaces: false});
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
@@ -494,7 +494,7 @@ isolated function testToRecordWithAttribues() {
         }
     };
 
-    BookStore|Error actual = toRecord(payload);
+    Commercial|Error actual = toRecord(payload);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
@@ -557,7 +557,7 @@ isolated function testToRecordWithNamespaces() {
         }
     };
 
-    BookStore|Error actual = toRecord(payload);
+    Commercial2|Error actual = toRecord(payload);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
