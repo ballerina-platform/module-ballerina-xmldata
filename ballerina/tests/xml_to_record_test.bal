@@ -564,3 +564,44 @@ isolated function testToRecordWithNamespaces() {
         test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
     }
 }
+
+type Employee2 record {
+    string name;
+    int age;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordNagativeOpenRecord() {
+    var x1 = xml `<!-- outer comment -->`;
+    var x2 = xml `<name>Supun</name>`;
+    xml x3 = x1 + x2;
+
+    Employee2|Error actual = toRecord(x3);
+    if actual is Error {
+        test:assertTrue(actual.toString().includes("missing required field 'age' of type 'int' in record 'xmldata:Employee2'"));
+    } else {
+        test:assertFail("testToRecordNagative result is not a mismatch");
+    }
+}
+
+type Employee3 record {|
+    string name;
+|};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordNagativeClosedRecord() {
+    var x1 = xml `<!-- outer comment -->`;
+    var x2 = xml `<name>Supun</name><age>29</age>`;
+    xml x3 = x1 + x2;
+
+    Employee3|error actual = toRecord(x3);
+    if actual is error {
+        test:assertTrue(actual.toString().includes("field 'age' cannot be added to the closed record 'xmldata:Employee3'"));
+    } else {
+        test:assertFail("testToRecordNagative result is not a mismatch");
+    }
+}

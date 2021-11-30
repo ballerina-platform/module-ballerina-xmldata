@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.xmldata;
 
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
@@ -26,6 +27,8 @@ import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 import org.ballerinalang.langlib.value.CloneWithType;
+
+import java.util.Map;
 
 import static io.ballerina.stdlib.xmldata.XmlToJson.toJson;
 
@@ -40,9 +43,14 @@ public class XmlToRecord {
         try {
             options.put(StringUtils.fromString(Constants.OPTIONS_ATTRIBUTE_PREFIX), StringUtils.fromString("_"));
             Object jsonObject = toJson(xml, options, type.getDescribingType());
-            return  CloneWithType.convert(type.getDescribingType(), jsonObject);
+            Object record = CloneWithType.convert(type.getDescribingType(), jsonObject);
+            if (record instanceof BError) {
+                return XmlDataUtils.getError("xml type mismatch with record type: " +
+                        ((Map) ((BError) record).getDetails()).get(StringUtils.fromString("message")).toString());
+            }
+            return record;
         } catch (Exception e) {
-            return XmlDataUtils.getError("xml type mismatch with record type: " + e.getMessage());
+            return XmlDataUtils.getError("failed to convert xml to record type: " + e.getMessage());
         }
     }
 }
