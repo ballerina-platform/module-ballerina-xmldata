@@ -195,6 +195,6 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 # + options - The `xmldata:XmlOptions` record consisting of the configurations for the conversion
 # + returnType - The `typedesc` of the record that should be returned as a result.
 # + return - The Record representation of the given XML on success, else returns an `xmldata:Error`
-public isolated function toRecord(xml xmlValue, XmlOptions options = {}, typedesc<record {}> returnType = <>) returns returnType|Error = @java:Method {
+public isolated function toRecord(xml xmlValue, boolean preserveNamespaces = true, typedesc<record {}> returnType = <>) returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.XmlToRecord"
 } external;    

@@ -84,12 +84,9 @@ public class XmlToJson {
         }
     }
 
-    public static Object toJson(BXml xml, BMap<?, ?> options, Type type) {
+    public static Object toJson(BXml xml, boolean preserveNamespaces, Type type) {
         try {
-            String attributePrefix = ((BString) options.get(StringUtils.fromString(Constants.OPTIONS_ATTRIBUTE_PREFIX)))
-                    .getValue();
-            boolean preserveNamespaces = ((Boolean) options.get(StringUtils.fromString(Constants.OPTIONS_PRESERVE_NS)));
-            return convertToJSON(xml, attributePrefix, preserveNamespaces, new AttributeManager(),
+            return convertToJSON(xml, "_", preserveNamespaces, new AttributeManager(),
                     type, "", UNDERSCORE);
         } catch (Exception e) {
             return XmlDataUtils.getError(e.getMessage());
