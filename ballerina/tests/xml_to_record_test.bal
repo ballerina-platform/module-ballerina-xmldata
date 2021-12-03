@@ -159,7 +159,7 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() {
             }
         }
     };
-    Order|Error actual = toRecord(e2, {preserveNamespaces: false});
+    Order|Error actual = toRecord(e2, preserveNamespaces = false);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
@@ -216,7 +216,7 @@ isolated function testToRecordComplexXmlElementWithoutPreserveNamespaces2() retu
             }
         }
     };
-    mail|Error actual = toRecord(x1, {preserveNamespaces: false});
+    mail|Error actual = toRecord(x1, preserveNamespaces = false);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {

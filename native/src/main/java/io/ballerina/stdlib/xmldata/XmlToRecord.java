@@ -20,11 +20,8 @@ package io.ballerina.stdlib.xmldata;
 
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
-import io.ballerina.runtime.api.values.BMap;
-import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.api.values.BXml;
-import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 import org.ballerinalang.langlib.value.CloneWithType;
 
@@ -39,10 +36,9 @@ import static io.ballerina.stdlib.xmldata.XmlToJson.toJson;
  */
 public class XmlToRecord {
 
-    public static Object toRecord(BXml xml, BMap<BString, BString> options, BTypedesc type) {
+    public static Object toRecord(BXml xml, Boolean preserveNamespaces , BTypedesc type) {
         try {
-            options.put(StringUtils.fromString(Constants.OPTIONS_ATTRIBUTE_PREFIX), StringUtils.fromString("_"));
-            Object jsonObject = toJson(xml, options, type.getDescribingType());
+            Object jsonObject = toJson(xml, preserveNamespaces, type.getDescribingType());
             Object record = CloneWithType.convert(type.getDescribingType(), jsonObject);
             if (record instanceof BError) {
                 return XmlDataUtils.getError("xml type mismatch with record type: " +
