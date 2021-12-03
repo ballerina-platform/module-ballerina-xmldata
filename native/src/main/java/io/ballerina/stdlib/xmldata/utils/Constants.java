@@ -28,6 +28,5 @@ public class Constants {
     private Constants() {}
 
     public static final String OPTIONS_ATTRIBUTE_PREFIX = "attributePrefix";
-    public static final String OPTIONS_ARRAY_ENTRY_TAG = "arrayEntryTag";
     public static final String OPTIONS_PRESERVE_NS = "preserveNamespaces";
 }

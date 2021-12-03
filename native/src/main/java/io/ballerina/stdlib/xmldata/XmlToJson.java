@@ -86,7 +86,7 @@ public class XmlToJson {
 
     public static Object toJson(BXml xml, boolean preserveNamespaces, Type type) {
         try {
-            return convertToJSON(xml, "_", preserveNamespaces, new AttributeManager(),
+            return convertToJSON(xml, UNDERSCORE, preserveNamespaces, new AttributeManager(),
                     type, "", UNDERSCORE);
         } catch (Exception e) {
             return XmlDataUtils.getError(e.getMessage());
