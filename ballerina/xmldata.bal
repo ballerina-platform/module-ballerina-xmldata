@@ -193,7 +193,7 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 #
 # + xmlValue - The XML source to be converted to a Record
 # + preserveNamespaces - Instructs whether to preserve the namespaces of the XML when converting
-# + returnType - The `typedesc` of the record that should be returned as a result.
+# + returnType - The `typedesc` of the record that should be returned as a result
 # + return - The Record representation of the given XML on success, else returns an `xmldata:Error`
 public isolated function toRecord(xml xmlValue, boolean preserveNamespaces = true, typedesc<record {}> returnType = <>) returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.XmlToRecord"
