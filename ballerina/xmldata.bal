@@ -184,3 +184,17 @@ public type XmlOptions record {
 public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns json|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.XmlToJson"
 } external;
+
+# Converts an XML to its Record representation.
+# ```ballerina
+# xml xmlValue = xml `<!-- outer comment -->` + xml `<name>Alex</name>`;
+# Person|xmldata:Error person = xmldata:toRecord(xmlValue);
+# ```
+#
+# + xmlValue - The XML source to be converted to a Record
+# + preserveNamespaces - Instructs whether to preserve the namespaces of the XML when converting
+# + returnType - The `typedesc` of the record that should be returned as a result
+# + return - The Record representation of the given XML on success, else returns an `xmldata:Error`
+public isolated function toRecord(xml xmlValue, boolean preserveNamespaces = true, typedesc<record {}> returnType = <>) returns returnType|Error = @java:Method {
+    'class: "io.ballerina.stdlib.xmldata.XmlToRecord"
+} external;    

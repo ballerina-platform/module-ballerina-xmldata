@@ -19,23 +19,23 @@ import ballerina/test;
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testFromXML() returns error? {
+isolated function testToJson() returns error? {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>supun</name>`;
     xml x3 = x1 + x2;
     json j = check toJson(x3);
-    test:assertEquals(j, {name: "supun"}, msg = "testFromXML result incorrect");
+    test:assertEquals(j, {name: "supun"}, msg = "testToJson result incorrect");
 }
 
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testtoJson() returns error? {
+isolated function testToJsonWithEscapedString() returns error? {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>"supun"</name>`;
     xml x3 = x1 + x2;
     json j = check toJson(x3);
-    test:assertEquals(j, {name: "\"supun\""}, msg = "testtoJson result incorrect");
+    test:assertEquals(j, {name: "\"supun\""}, msg = "testToJsonWithEscapedString result incorrect");
 }
 
 xml e = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
@@ -55,7 +55,7 @@ xml e = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:a
 @test:Config {
     groups: ["toJson"]
 }
-function testComplexXMLElementToJson() returns Error? {
+function testToJsonComplexXmlElement() returns Error? {
     json j = check toJson(e);
     json expectedOutput = {
         Invoice: {
@@ -82,7 +82,7 @@ function testComplexXMLElementToJson() returns Error? {
             "@ns:attr": "ns-attr-val"
         }
     };
-    test:assertEquals(j, expectedOutput, msg = "testComplexXMLElementToJson result incorrect");
+    test:assertEquals(j, expectedOutput, msg = "testToJsonComplexXmlElement result incorrect");
 }
 
 @test:Config {
