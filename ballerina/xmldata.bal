@@ -50,7 +50,8 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
             if jMap.length() == 0 {
                 return xml ``;
             }
-            return getElement(jMap.keys()[0], check traverseNode(jMap.toArray()[0], {}, options), check getAttributesMap(jMap.toArray()[0], options = options));
+            json value = jMap.toArray()[0];
+            return getElement(jMap.keys()[0], check traverseNode(value, {}, options), check getAttributesMap(value, options = options));
         }
     }
     return error Error("failed to parse xml");
