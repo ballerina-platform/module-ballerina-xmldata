@@ -50,7 +50,7 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
             if jMap.length() == 0 {
                 return xml ``;
             }
-            return getElement(jMap.keys()[0], check traverseNode(jMap.toArray()[0], {}, options));
+            return getElement(jMap.keys()[0], check traverseNode(jMap.toArray()[0], {}, options), check getAttributesMap(jMap.toArray()[0], options = options));
         }
     }
     return error Error("failed to parse xml");
@@ -82,14 +82,8 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOpt
 
 isolated function isSingleNode(json node) returns boolean {
     map<json>|error jMap = node.ensureType();
-    if jMap is map<json> {
-        if jMap.length() > 1 {
-            return false;
-        } else if jMap.length() == 1 {
-            if jMap.toArray()[0] is map<json> || jMap.toArray()[0] is json[] {
-                return false;
-            }
-        }
+    if jMap is map<json> && jMap.length() > 1 {
+        return false;
     }
     if node is json[] {
         return false;

@@ -250,13 +250,11 @@ isolated function testStringArray() {
         ]
     };
     string expected =
-    "<root>" +
-        "<books>" +
-            "<item>book1</item>" +
-            "<item>book2</item>" +
-            "<item>book3</item>" +
-        "</books>" +
-    "</root>";
+    "<books>" +
+        "<item>book1</item>" +
+        "<item>book2</item>" +
+        "<item>book3</item>" +
+    "</books>";
     xml?|error result = fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
@@ -292,28 +290,26 @@ isolated function testMultiLevelJsonArray() {
         ]
     };
     string expected =
-    "<root>" +
-        "<books>" +
+    "<books>" +
+        "<item>" +
             "<item>" +
-                "<item>" +
-                    "<bookName>book1</bookName>" +
-                    "<bookId>101</bookId>" +
-                "</item>" +
+                "<bookName>book1</bookName>" +
+                "<bookId>101</bookId>" +
             "</item>" +
+        "</item>" +
+        "<item>" +
             "<item>" +
-                "<item>" +
-                    "<bookName>book2</bookName>" +
-                    "<bookId>102</bookId>" +
-                "</item>" +
+                "<bookName>book2</bookName>" +
+                "<bookId>102</bookId>" +
             "</item>" +
+        "</item>" +
+        "<item>" +
             "<item>" +
-                "<item>" +
-                    "<bookName>book3</bookName>" +
-                    "<bookId>103</bookId>" +
-                "</item>" +
+                "<bookName>book3</bookName>" +
+                "<bookId>103</bookId>" +
             "</item>" +
-        "</books>" +
-    "</root>";
+        "</item>" +
+    "</books>";
     xml?|error result = fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
@@ -524,6 +520,39 @@ isolated function testWithCustomAttribute() {
         "<language>German</language>" +
         "<seasons>3</seasons>" +
     "</root>";
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testWithAttribute1() {
+    json data = {"Store": {
+        "@id": "AST",
+        "name": "Anne",
+        "address": {
+            "street": "Main",
+            "city": "94"
+        },
+        "codes": ["4", "8"]
+    }};
+    xml?|error result = fromJson(data);
+    string expected =
+    "<Store id=\"AST\">" +
+        "<name>Anne</name>" +
+        "<address>" +
+            "<street>Main</street>" +
+            "<city>94</city>" +
+        "</address>" +
+        "<codes>" +
+            "<item>4</item>" +
+            "<item>8</item>" +
+        "</codes>" +
+    "</Store>";
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
