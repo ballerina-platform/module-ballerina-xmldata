@@ -250,11 +250,11 @@ isolated function testStringArray() {
         ]
     };
     string expected =
-    "<books>" +
-        "<item>book1</item>" +
-        "<item>book2</item>" +
-        "<item>book3</item>" +
-    "</books>";
+    "<root>" +
+        "<books>book1</books>" +
+        "<books>book2</books>" +
+        "<books>book3</books>" +
+    "</root>";
     xml?|error result = fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
@@ -290,26 +290,26 @@ isolated function testMultiLevelJsonArray() {
         ]
     };
     string expected =
-    "<books>" +
-        "<item>" +
+    "<root>" +
+        "<books>" +
             "<item>" +
                 "<bookName>book1</bookName>" +
                 "<bookId>101</bookId>" +
             "</item>" +
-        "</item>" +
-        "<item>" +
+        "</books>" +
+        "<books>" +
             "<item>" +
                 "<bookName>book2</bookName>" +
                 "<bookId>102</bookId>" +
             "</item>" +
-        "</item>" +
-        "<item>" +
+        "</books>" +
+        "<books>" +
             "<item>" +
                 "<bookName>book3</bookName>" +
                 "<bookId>103</bookId>" +
             "</item>" +
-        "</item>" +
-    "</books>";
+        "</books>" +
+    "</root>";
     xml?|error result = fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
