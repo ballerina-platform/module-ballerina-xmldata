@@ -50,13 +50,21 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
             if jMap.length() == 0 {
                 return xml ``;
             }
-            return getElement(jMap.keys()[0], check traverseNode(jMap.toArray()[0], {}, options));
+            json value = jMap.toArray()[0];
+            if value is json[] {
+                return getElement("root", check traverseNode(value, {}, options, jMap.keys()[0]),
+                                  check getAttributesMap(value, options = options));
+            } else {
+                return getElement(jMap.keys()[0], check traverseNode(value, {}, options),
+                                  check getAttributesMap(value, options = options));
+            }
         }
     }
     return error Error("failed to parse xml");
 }
 
-isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOptions options = {}) returns xml|Error {
+isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOptions options = {},
+                               string? key = ()) returns xml|Error {
     string arrayEntryTag = options.arrayEntryTag == "" ? "item" : options.arrayEntryTag;
     string attributePrefix = options.attributePrefix == "" ? "@" : options.attributePrefix;
     xml xNode = xml ``;
@@ -70,7 +78,13 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOpt
         }
     } else if jNode is json[] {
         foreach var i in jNode {
-            xml item = check getElement(arrayEntryTag, check traverseNode(i, check getNamespacesMap(i, parentNamespaces, options)),
+            string arrayEntryTagKey = "";
+            if (key is string) {
+                arrayEntryTagKey = key;
+            } else {
+                arrayEntryTagKey = arrayEntryTag;
+            }
+            xml item = check getElement(arrayEntryTagKey, check traverseNode(i, check getNamespacesMap(i, parentNamespaces, options)),
             check getAttributesMap(i, parentNamespaces, options = options));
             xNode += item;
         }
@@ -82,14 +96,8 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOpt
 
 isolated function isSingleNode(json node) returns boolean {
     map<json>|error jMap = node.ensureType();
-    if jMap is map<json> {
-        if jMap.length() > 1 {
-            return false;
-        } else if jMap.length() == 1 {
-            if jMap.toArray()[0] is map<json> || jMap.toArray()[0] is json[] {
-                return false;
-            }
-        }
+    if jMap is map<json> && jMap.length() > 1 {
+        return false;
     }
     if node is json[] {
         return false;
