@@ -62,12 +62,10 @@ isolated function testJsonArray() {
     "<root>" +
         "<fname>John</fname>" +
         "<lname>Stallone</lname>" +
-        "<family>" +
-            "<item><fname>Peter</fname><lname>Stallone</lname></item>" +
-            "<item><fname>Emma</fname><lname>Stallone</lname></item>" +
-            "<item><fname>Jena</fname><lname>Stallone</lname></item>" +
-            "<item><fname>Paul</fname><lname>Stallone</lname></item>" +
-        "</family>" +
+        "<family><fname>Peter</fname><lname>Stallone</lname></family>" +
+        "<family><fname>Emma</fname><lname>Stallone</lname></family>" +
+        "<family><fname>Jena</fname><lname>Stallone</lname></family>" +
+        "<family><fname>Paul</fname><lname>Stallone</lname></family>" +
     "</root>";
     xml|Error? result = fromJson(data);
     if result is xml {
@@ -115,7 +113,7 @@ isolated function testNodeNameNull() {
         "<item writer=\"Christopher\">" +
             "<lname>Nolan</lname>" +
             "<age>30</age>" +
-            "<address><item>Uduvil</item></address>" +
+            "<address>Uduvil</address>" +
         "</item>" +
         "<item>1</item>" +
     "</root>";
@@ -428,11 +426,9 @@ isolated function testNamespace() {
                 "<ns0:city>Colombo 03</ns0:city>" +
                 "<ns0:country>Sri Lanka</ns0:country>" +
             "</ns0:address>" +
-            "<ns0:codes>" +
-                "<item>4</item>" +
-                "<item>8</item>" +
-                "<item>9</item>" +
-            "</ns0:codes>" +
+            "<ns0:codes>4</ns0:codes>" +
+            "<ns0:codes>8</ns0:codes>" +
+            "<ns0:codes>9</ns0:codes>" +
         "</ns0:bookStore>" +
         "<metaInfo>some info</metaInfo>" +
     "</root>";
@@ -486,11 +482,9 @@ isolated function testMultipleNamespaces() {
             "<ns1:capacity xmlns:ns1=\"http://sample.com/beta\" xmlns:ns0=\"http://sample.com/alpha\">" +
             "<ns1:shelves>100</ns1:shelves>" +
             "</ns1:capacity>" +
-            "<ns0:codes>" +
-                "<item>4</item>" +
-                "<item>8</item>" +
-                "<item>9</item>" +
-            "</ns0:codes>" +
+            "<ns0:codes>4</ns0:codes>" +
+            "<ns0:codes>8</ns0:codes>" +
+            "<ns0:codes>9</ns0:codes>" +
         "</ns0:bookStore>" +
         "<metaInfo>some info</metaInfo>" +
     "</root>";
@@ -548,14 +542,95 @@ isolated function testWithAttribute1() {
             "<street>Main</street>" +
             "<city>94</city>" +
         "</address>" +
-        "<codes>" +
-            "<item>4</item>" +
-            "<item>8</item>" +
-        "</codes>" +
+        "<codes>4</codes>" +
+        "<codes>8</codes>" +
     "</Store>";
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
         test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testMultiLevelJsonArray1() {
+    json data = {
+        "books": [
+            [
+                {
+                    "bookName": "book1",
+                    "bookId": 101
+                }
+            ],
+            [
+                {
+                    "bookName": "book2",
+                    "bookId": 102
+                }
+            ],
+            [
+                {
+                    "bookName": "book3",
+                    "bookId": 103
+                }
+            ]
+        ],
+        "books1": [
+            [
+                {
+                    "bookName": "book1",
+                    "bookId": 101
+                }
+          ]
+      ]
+    };
+    string expected =
+    "<root>" +
+        "<books>" +
+            "<item>" +
+                "<bookName>book1</bookName>" +
+                "<bookId>101</bookId>" +
+            "</item>" +
+        "</books>" +
+        "<books>" +
+            "<item>" +
+                "<bookName>book2</bookName>" +
+                "<bookId>102</bookId>" +
+            "</item>" +
+        "</books>" +
+        "<books>" +
+            "<item>" +
+                "<bookName>book3</bookName>" +
+                "<bookId>103</bookId>" +
+            "</item>" +
+        "</books>" +
+        "<books1>" +
+            "<item>" +
+                "<bookName>book1</bookName>" +
+                "<bookId>101</bookId>" +
+            "</item>" +
+        "</books1>" +
+    "</root>";
+    xml?|error result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testJsonKey() {
+    json data = {"#content":"text"};
+    xml expected = xml `<root>text</root>`;
+    xml|Error? result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonKey result incorrect");
+    } else {
+        test:assertFail("testJsonKey result is not xml");
     }
 }
