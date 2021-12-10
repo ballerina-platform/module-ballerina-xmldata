@@ -12,8 +12,8 @@ This is the specification for the Xmldata library which provides APIs to perform
 # Contents
 1. [Overview](#1-overview)
 2. [XML to JSON Conversion](#2-xml-to-json--conversion)
-3. [XML to Record Conversion](#2-xml-to-record-conversion)
-3. [JSON to XML Conversion](#2-json-to-xml--conversion)
+3. [XML to Record Conversion](#3-xml-to-record-conversion)
+4. [JSON to XML Conversion](#4-json-to-xml--conversion)
 
 ## 1. Overview
 This specification elaborates on the functionalities available in the Xmldata library.
