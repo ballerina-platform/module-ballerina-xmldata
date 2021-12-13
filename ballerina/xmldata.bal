@@ -79,7 +79,7 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOpt
             if !k.startsWith(attributePrefix) {
                 if k == CONTENT {
                     xNode += xml:createText(v.toString());
-                } if v is json[] {
+                } else if v is json[] {
                     xml node = check traverseNode(v, check getNamespacesMap(v, parentNamespaces, options), options, k);
                     xNode += node;
                 } else {
