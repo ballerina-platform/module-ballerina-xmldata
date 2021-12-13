@@ -626,7 +626,7 @@ isolated function testMultiLevelJsonArray1() {
 }
 isolated function testJsonKey() {
     json data = {"#content":"text"};
-    xml expected = xml `<root>text</root>`;
+    xml expected = xml `text`;
     xml|Error? result = fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testJsonKey result incorrect");

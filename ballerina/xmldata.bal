@@ -58,8 +58,7 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
             } else {
                 string key = jMap.keys()[0];
                 if key == CONTENT {
-                    return getElement("root", check traverseNode(value, {}, options),
-                                                      check getAttributesMap(value, options = options));
+                    return xml:createText(value.toString());
                 }
                 return getElement(jMap.keys()[0], check traverseNode(value, {}, options),
                                   check getAttributesMap(value, options = options));
