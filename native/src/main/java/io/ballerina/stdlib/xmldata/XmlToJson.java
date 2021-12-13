@@ -285,7 +285,7 @@ public class XmlToJson {
         BMap<BString, Object> mapJson = newJsonMap();
         for (BXml bxml : sequence) {
             if (isCommentOrPi(bxml)) {
-                //
+                continue;
             } else if (bxml.getNodeType() == XmlNodeType.TEXT) {
                 if (mapJson.containsKey(fromString(CONTENT))) {
                     if (mapJson.get(fromString(CONTENT)) instanceof BString) {
