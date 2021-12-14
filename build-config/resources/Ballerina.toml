@@ -6,7 +6,7 @@ authors = ["Ballerina"]
 keywords = ["xml", "json"]
 repository = "https://github.com/ballerina-platform/module-ballerina-xmldata"
 license = ["Apache-2.0"]
-distribution = "slbeta3"
+distribution = "slbeta6"
 
 [[platform.java11.dependency]]
 path = "../native/build/libs/xmldata-native-@project.version@.jar"

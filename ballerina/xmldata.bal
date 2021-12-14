@@ -17,6 +17,7 @@
 import ballerina/jballerina.java;
 
 const string XMLNS_NAMESPACE_URI = "http://www.w3.org/2000/xmlns/";
+const string CONTENT = "#content";
 
 # Represents a record type to provide configurations for the JSON to XML
 # conversion.
@@ -55,6 +56,10 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
                 return getElement("root", check traverseNode(value, {}, options, jMap.keys()[0]),
                                   check getAttributesMap(value, options = options));
             } else {
+                string key = jMap.keys()[0];
+                if key == CONTENT {
+                    return xml:createText(value.toString());
+                }
                 return getElement(jMap.keys()[0], check traverseNode(value, {}, options),
                                   check getAttributesMap(value, options = options));
             }
@@ -71,9 +76,16 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOpt
     if jNode is map<json> {
         foreach [string, json] [k, v] in jNode.entries() {
             if !k.startsWith(attributePrefix) {
-                xml node = check getElement(k, check traverseNode(v, check getNamespacesMap(v, parentNamespaces, options)),
-                check getAttributesMap(v, parentNamespaces, options = options));
-                xNode += node;
+                if k == CONTENT {
+                    xNode += xml:createText(v.toString());
+                } else if v is json[] {
+                    xml node = check traverseNode(v, check getNamespacesMap(v, parentNamespaces, options), options, k);
+                    xNode += node;
+                } else {
+                    xml node = check getElement(k, check traverseNode(v, check getNamespacesMap(v, parentNamespaces, options)),
+                    check getAttributesMap(v, parentNamespaces, options = options));
+                    xNode += node;
+                }
             }
         }
     } else if jNode is json[] {

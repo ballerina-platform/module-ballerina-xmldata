@@ -32,7 +32,7 @@ isolated function testToRecord() {
         name: "Supun"
     };
 
-    Employee1|Error actual = toRecord(x3);
+    record{}|Error actual = toRecord(x3);
     if actual is Error {
         test:assertFail("failed to convert xml to record: " + actual.message());
     } else {
