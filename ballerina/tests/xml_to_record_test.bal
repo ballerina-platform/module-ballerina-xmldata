@@ -23,7 +23,7 @@ type Employee1 record {
 @test:Config {
     groups: ["toRecord"]
 }
-isolated function testToRecord() {
+isolated function testToRecord() returns error? {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>Supun</name>`;
     xml x3 = x1 + x2;
@@ -32,18 +32,14 @@ isolated function testToRecord() {
         name: "Supun"
     };
 
-    record{}|Error actual = toRecord(x3);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
-    }
+    record{} actual = check toRecord(x3);
+    test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
 }
 
 @test:Config {
     groups: ["toRecord"]
 }
-isolated function testToRecordWithEscapedString() {
+isolated function testToRecordWithEscapedString() returns error? {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>"Supun"</name>`;
     xml x3 = x1 + x2;
@@ -52,12 +48,8 @@ isolated function testToRecordWithEscapedString() {
         name: "\"Supun\""
     };
 
-    Employee1|Error actual = toRecord(x3);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecordWithEscapedString result incorrect");
-    }
+    Employee1 actual = check toRecord(x3);
+    test:assertEquals(actual, expected, msg = "testToRecordWithEscapedString result incorrect");
 }
 
 type Order record {
@@ -107,7 +99,7 @@ xml e2 = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:
 @test:Config {
     groups: ["toRecord"]
 }
-function testToRecordComplexXmlElement() {
+function testToRecordComplexXmlElement() returns error? {
     Order expected = {
         Invoice: {
             PurchesedItems: {
@@ -130,18 +122,14 @@ function testToRecordComplexXmlElement() {
             _ns_attr: "ns-attr-val"
         }
     };
-    Order|Error actual = toRecord(e2);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecordComplexXmlElement result incorrect");
-    }
+    Order actual = check toRecord(e2);
+    test:assertEquals(actual, expected, msg = "testToRecordComplexXmlElement result incorrect");
 }
 
 @test:Config {
     groups: ["toRecord"]
 }
-function testToRecordComplexXmlElementWithoutPreserveNamespaces() {
+function testToRecordComplexXmlElementWithoutPreserveNamespaces() returns error? {
     Order expected = {
         Invoice: {
             PurchesedItems: {
@@ -159,13 +147,9 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() {
             }
         }
     };
-    Order|Error actual = toRecord(e2, preserveNamespaces = false);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected,
-        msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces result incorrect");
-    }
+    Order actual = check toRecord(e2, preserveNamespaces = false);
+    test:assertEquals(actual, expected, 
+                msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces result incorrect");
 }
 
 type mail record {
@@ -216,13 +200,9 @@ isolated function testToRecordComplexXmlElementWithoutPreserveNamespaces2() retu
             }
         }
     };
-    mail|Error actual = toRecord(x1, preserveNamespaces = false);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected,
-        msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces2 result incorrect");
-    }
+    mail actual = check toRecord(x1, preserveNamespaces = false);
+    test:assertEquals(actual, expected,
+                msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces2 result incorrect");
 }
 
 type emptyChild record {
@@ -237,16 +217,12 @@ type foo record {
 @test:Config {
     groups: ["toRecord"]
 }
-isolated function testToRecordWithEmptyChildren() {
+isolated function testToRecordWithEmptyChildren() returns error? {
     xml x = xml `<foo><bar>2</bar><car></car></foo>`;
     emptyChild expected = {foo: {bar: "2", car: ""}};
 
-    emptyChild|Error actual = toRecord(x);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecordWithEmptyChildren result incorrect");
-    }
+    emptyChild actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithEmptyChildren result incorrect");
 }
 
 type r1 record {
@@ -268,12 +244,8 @@ isolated function testToRecordSameKeyArray() returns Error? {
         }
     };
 
-    r1|Error actual = toRecord(x);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecordSameKeyArray result incorrect");
-    }
+    r1 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordSameKeyArray result incorrect");
 }
 
 type r2 record {
@@ -300,12 +272,8 @@ isolated function testToRecordWithMultipleAttributesAndNamespaces() returns Erro
         }
     };
 
-    r2|Error actual = toRecord(x);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecordWithMultipleAttributesAndNamespaces result incorrect");
-    }
+    r2 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithMultipleAttributesAndNamespaces result incorrect");
 }
 
 type empty record {
@@ -316,14 +284,10 @@ type empty record {
 }
 isolated function testToRecordWithComment() returns error? {
     xml x = xml `<?xml version="1.0" encoding="UTF-8"?>`;
-    empty|Error actual = toRecord(x);
+    empty actual = check toRecord(x);
 
     empty expected = {};
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecordWithComment result incorrect");
-    }
+    test:assertEquals(actual, expected, msg = "testToRecordWithComment result incorrect");
 }
 
 type shelf record {
@@ -348,7 +312,7 @@ isolated function testToRecordWithMultipleArray() returns error? {
                       <item1>book3</item1>
                   </books>
                   `;
-    shelf|Error actual = toRecord(x);
+    shelf actual = check toRecord(x);
 
     shelf expected = {
         books: {
@@ -356,11 +320,7 @@ isolated function testToRecordWithMultipleArray() returns error? {
             item1: ["book1", "book2", "book3"]
         }
     };
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecordWithMultipleArray result incorrect");
-    }
+    test:assertEquals(actual, expected, msg = "testToRecordWithMultipleArray result incorrect");
 }
 
 type Student record {
@@ -389,7 +349,7 @@ type Courses record {
 @test:Config {
     groups: ["toRecord"]
 }
-isolated function testToRecordWithMultiLevelRecords() {
+isolated function testToRecordWithMultiLevelRecords() returns error? {
     xml payload = xml `
                 <?xml version="1.0" encoding="UTF-8"?>
                 <!-- outer comment -->
@@ -423,12 +383,8 @@ isolated function testToRecordWithMultiLevelRecords() {
         courses: {item: ["Math", "Physics"]}
     };
 
-    Student|Error actual = toRecord(payload);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecordWithMultiLevelRecords result incorrect");
-    }
+    Student actual = check toRecord(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithMultiLevelRecords result incorrect");
 }
 
 type Commercial record {
@@ -457,7 +413,7 @@ type Codes record {
 @test:Config {
     groups: ["toRecord"]
 }
-isolated function testToRecordWithAttribues() {
+isolated function testToRecordWithAttribues() returns error? {
     xml payload = xml `
                     <bookstore status="online">
                         <storeName>foo</storeName>
@@ -494,12 +450,8 @@ isolated function testToRecordWithAttribues() {
         }
     };
 
-    Commercial|Error actual = toRecord(payload);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecordWithAttribues result incorrect");
-    }
+    Commercial actual = check toRecord(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithAttribues result incorrect");
 }
 
 type Commercial2 record {
@@ -519,7 +471,7 @@ type BookStore2 record {
 @test:Config {
     groups: ["toRecord"]
 }
-isolated function testToRecordWithNamespaces() {
+isolated function testToRecordWithNamespaces() returns error? {
     xml payload = xml `
                     <bookstore status="online" xmlns:ns0="http://sample.com/test">
                         <storeName>foo</storeName>
@@ -557,12 +509,8 @@ isolated function testToRecordWithNamespaces() {
         }
     };
 
-    Commercial2|Error actual = toRecord(payload);
-    if actual is Error {
-        test:assertFail("failed to convert xml to record: " + actual.message());
-    } else {
-        test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
-    }
+    Commercial2 actual = check toRecord(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
 }
 
 type Employee2 record {
