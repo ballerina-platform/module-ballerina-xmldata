@@ -510,3 +510,16 @@ isolated function testComplexXml() returns error? {
         }
     });
 }
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testXMLMultipleTextNode() returns error? {
+    xml x1 = xml `<e>
+                    some
+                    <a>textual</a>
+                    content
+                  </e>`;
+    json j = check toJson(x1);
+    test:assertEquals(j, {e:{"#content":["some","content"],a:"textual"}}, msg = "testToJson result incorrect");
+}

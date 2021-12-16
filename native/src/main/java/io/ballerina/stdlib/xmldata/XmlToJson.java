@@ -86,7 +86,7 @@ public class XmlToJson {
 
     public static Object toJson(BXml xml, boolean preserveNamespaces, Type type) {
         try {
-            return convertToJSON(xml, "_", preserveNamespaces, new AttributeManager(),
+            return convertToJSON(xml, UNDERSCORE, preserveNamespaces, new AttributeManager(),
                     type, "", UNDERSCORE);
         } catch (Exception e) {
             return XmlDataUtils.getError(e.getMessage());
@@ -158,7 +158,8 @@ public class XmlToJson {
                 putAsBStrings(rootNode, keyValue, childrenData);
             } else if (children instanceof BString) {
                 putAsFieldTypes(childrenData, CONTENT, children.toString().trim(), type, uKeyValue);
-                return childrenData;
+                putAsBStrings(rootNode, keyValue, childrenData);
+                return rootNode;
             }
         } else {
             if (children instanceof BMap) {
@@ -284,8 +285,22 @@ public class XmlToJson {
         BMap<BString, Object> mapJson = newJsonMap();
         for (BXml bxml : sequence) {
             if (isCommentOrPi(bxml)) {
+                continue;
             } else if (bxml.getNodeType() == XmlNodeType.TEXT) {
-                mapJson.put(fromString(CONTENT), fromString(bxml.toString().trim()));
+                if (mapJson.containsKey(fromString(CONTENT))) {
+                    if (mapJson.get(fromString(CONTENT)) instanceof BString) {
+                        BArray jsonList = newJsonList();
+                        jsonList.append(mapJson.get(fromString(CONTENT)));
+                        jsonList.append(fromString(bxml.toString().trim()));
+                        mapJson.put(fromString(CONTENT), jsonList);
+                    } else {
+                        BArray jsonList = mapJson.getArrayValue(fromString(CONTENT));
+                        jsonList.append(fromString(bxml.toString().trim()));
+                        mapJson.put(fromString(CONTENT), jsonList);
+                    }
+                } else {
+                    mapJson.put(fromString(CONTENT), fromString(bxml.toString().trim()));
+                }
             } else {
                 BString elementName = fromString(getElementKey((BXmlItem) bxml, preserveNamespaces));
                 Object result = convertToJSON(bxml, attributePrefix, preserveNamespaces, attributeManager,

@@ -17,6 +17,7 @@
 import ballerina/jballerina.java;
 
 const string XMLNS_NAMESPACE_URI = "http://www.w3.org/2000/xmlns/";
+const string CONTENT = "#content";
 
 # Represents a record type to provide configurations for the JSON to XML
 # conversion.
@@ -42,36 +43,67 @@ public type JsonOptions record {
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
+    AttributeManager attributeManager = new(options);
     if !isSingleNode(jsonValue) {
-        return getElement("root", check traverseNode(jsonValue, {}, options), check getAttributesMap(jsonValue, options = options));
+        return getElement("root", check traverseNode(jsonValue, {}, attributeManager),
+                          check getAttributesMap(jsonValue, attributeManager));
     } else {
         map<json>|error jMap = jsonValue.ensureType();
         if jMap is map<json> {
             if jMap.length() == 0 {
                 return xml ``;
             }
-            return getElement(jMap.keys()[0], check traverseNode(jMap.toArray()[0], {}, options));
+            json value = jMap.toArray()[0];
+            if value is json[] {
+                return getElement("root", check traverseNode(value, {}, attributeManager, jMap.keys()[0]),
+                                  check getAttributesMap(value, attributeManager));
+            } else {
+                string key = jMap.keys()[0];
+                if key == CONTENT {
+                    return xml:createText(value.toString());
+                }
+                return getElement(jMap.keys()[0], check traverseNode(value, {}, attributeManager),
+                                  check getAttributesMap(value, attributeManager));
+            }
         }
     }
     return error Error("failed to parse xml");
 }
 
-isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOptions options = {}) returns xml|Error {
+isolated function traverseNode(json jNode, map<string> parentNamespaces, AttributeManager attributeManager,
+                               string? key = ()) returns xml|Error {
+    JsonOptions options = attributeManager.getJsonOption();
     string arrayEntryTag = options.arrayEntryTag == "" ? "item" : options.arrayEntryTag;
     string attributePrefix = options.attributePrefix == "" ? "@" : options.attributePrefix;
     xml xNode = xml ``;
     if jNode is map<json> {
         foreach [string, json] [k, v] in jNode.entries() {
             if !k.startsWith(attributePrefix) {
-                xml node = check getElement(k, check traverseNode(v, check getNamespacesMap(v, parentNamespaces, options)),
-                check getAttributesMap(v, parentNamespaces, options = options));
-                xNode += node;
+                if k == CONTENT {
+                    xNode += xml:createText(v.toString());
+                } else if v is json[] {
+                    xml node = check traverseNode(v, check getNamespacesMap(v, attributeManager, parentNamespaces),
+                                                  attributeManager, k);
+                    xNode += node;
+                } else {
+                    xml node = check getElement(k, check traverseNode(v, check getNamespacesMap(v,
+                                                attributeManager, parentNamespaces), attributeManager),
+                    check getAttributesMap(v,attributeManager, parentNamespaces));
+                    xNode += node;
+                }
             }
         }
     } else if jNode is json[] {
         foreach var i in jNode {
-            xml item = check getElement(arrayEntryTag, check traverseNode(i, check getNamespacesMap(i, parentNamespaces, options)),
-            check getAttributesMap(i, parentNamespaces, options = options));
+            string arrayEntryTagKey = "";
+            if (key is string) {
+                arrayEntryTagKey = key;
+            } else {
+                arrayEntryTagKey = arrayEntryTag;
+            }
+            xml item = check getElement(arrayEntryTagKey, check traverseNode(i, check getNamespacesMap(i,
+                                        attributeManager, parentNamespaces), attributeManager),
+            check getAttributesMap(i, attributeManager, parentNamespaces));
             xNode += item;
         }
     } else {
@@ -82,14 +114,8 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOpt
 
 isolated function isSingleNode(json node) returns boolean {
     map<json>|error jMap = node.ensureType();
-    if jMap is map<json> {
-        if jMap.length() > 1 {
-            return false;
-        } else if jMap.length() == 1 {
-            if jMap.toArray()[0] is map<json> || jMap.toArray()[0] is json[] {
-                return false;
-            }
-        }
+    if jMap is map<json> && jMap.length() > 1 {
+        return false;
     }
     if node is json[] {
         return false;
@@ -121,7 +147,8 @@ isolated function getElement(string name, xml children, map<string> attributes =
     return element;
 }
 
-isolated function getAttributesMap(json jTree, map<string> parentNamespaces = {}, JsonOptions options = {}) returns map<string>|Error {
+isolated function getAttributesMap(json jTree, AttributeManager attributeManager, map<string> parentNamespaces = {}) returns map<string>|Error {
+    JsonOptions options = attributeManager.getJsonOption();
     string attributePrefix = options.attributePrefix == "" ? "@" : options.attributePrefix;
     map<string> attributes = parentNamespaces.clone();
     map<json>|error attr = jTree.ensureType();
@@ -135,7 +162,7 @@ isolated function getAttributesMap(json jTree, map<string> parentNamespaces = {}
                     string prefix = k.substring(<int>k.indexOf(":") + 1);
                     attributes[string `{${XMLNS_NAMESPACE_URI}}${prefix}`] = v.toString();
                 } else {
-                    attributes[k.substring(1)] = v.toString();    
+                    attributes[k.substring(1)] = v.toString();
                 }
             }
         }
@@ -143,7 +170,8 @@ isolated function getAttributesMap(json jTree, map<string> parentNamespaces = {}
     return attributes;
 }
 
-isolated function getNamespacesMap(json jTree, map<string> parentNamespaces = {}, JsonOptions options = {}) returns map<string>|Error {
+isolated function getNamespacesMap(json jTree, AttributeManager attributeManager, map<string> parentNamespaces = {}) returns map<string>|Error {
+    JsonOptions options = attributeManager.getJsonOption();
     string attributePrefix = options.attributePrefix == "" ? "@" : options.attributePrefix;
     map<string> namespaces = parentNamespaces.clone();
     map<json>|error attr = jTree.ensureType();
@@ -192,9 +220,27 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 # ```
 #
 # + xmlValue - The XML source to be converted to a Record
-# + options - The `xmldata:XmlOptions` record consisting of the configurations for the conversion
-# + returnType - The `typedesc` of the record that should be returned as a result.
+# + preserveNamespaces - Instructs whether to preserve the namespaces of the XML when converting
+# + returnType - The `typedesc` of the record that should be returned as a result
 # + return - The Record representation of the given XML on success, else returns an `xmldata:Error`
 public isolated function toRecord(xml xmlValue, boolean preserveNamespaces = true, typedesc<record {}> returnType = <>) returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.XmlToRecord"
-} external;    
+} external;
+
+isolated class AttributeManager {
+
+    private final JsonOptions jsonOptions;
+
+    isolated function init(JsonOptions jsonOptions) {
+        self.jsonOptions = jsonOptions.cloneReadOnly();
+    }
+
+    isolated function getJsonOption() returns JsonOptions {
+         return getJsonOption(self);
+    }
+}
+
+isolated function getJsonOption(AttributeManager attributeManager) returns JsonOptions = @java:Method {
+    'class: "io.ballerina.stdlib.xmldata.utils.XmlDataUtils",
+    name: "getOption"
+} external;

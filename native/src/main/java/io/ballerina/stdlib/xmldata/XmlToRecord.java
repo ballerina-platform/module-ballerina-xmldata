@@ -36,7 +36,7 @@ import static io.ballerina.stdlib.xmldata.XmlToJson.toJson;
  */
 public class XmlToRecord {
 
-    public static Object toRecord(BXml xml, Boolean preserveNamespaces , BTypedesc type) {
+    public static Object toRecord(BXml xml, boolean preserveNamespaces, BTypedesc type) {
         try {
             Object jsonObject = toJson(xml, preserveNamespaces, type.getDescribingType());
             Object record = CloneWithType.convert(type.getDescribingType(), jsonObject);
