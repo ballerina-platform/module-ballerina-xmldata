@@ -19,10 +19,10 @@ import ballerina/test;
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testJsonDataSize() {
+isolated function testJsonDataSize() returns error? {
     json data = {id: 30};
     xml expected = xml `<id>30</id>`;
-    xml|Error? result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testFromJSON result incorrect");
     } else {
@@ -33,10 +33,10 @@ isolated function testJsonDataSize() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testEmptyJson() {
+isolated function testEmptyJson() returns error? {
     json data = {};
     xml expected = xml ``;
-    xml|Error? result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testFromJSON result incorrect");
     } else {
@@ -47,7 +47,7 @@ isolated function testEmptyJson() {
 @test:Config {
     groups: ["fromJson", "size"]
 }
-isolated function testJsonArray() {
+isolated function testJsonArray() returns error? {
     json data = {
         fname: "John",
         lname: "Stallone",
@@ -67,7 +67,7 @@ isolated function testJsonArray() {
         "<family><fname>Jena</fname><lname>Stallone</lname></family>" +
         "<family><fname>Paul</fname><lname>Stallone</lname></family>" +
     "</root>";
-    xml|Error? result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected, msg = "testFromJSON result incorrect");
     } else {
@@ -98,7 +98,7 @@ isolated function testAttributeValidation() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testNodeNameNull() {
+isolated function testNodeNameNull() returns error? {
     json data = [
         {
             "@writer": "Christopher",
@@ -117,7 +117,7 @@ isolated function testNodeNameNull() {
         "</item>" +
         "<item>1</item>" +
     "</root>";
-    xml|Error? result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected, msg = "testFromJSON result incorrect");
     } else {
@@ -155,12 +155,12 @@ isolated function testJsonAsNull() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testSingleElement() {
+isolated function testSingleElement() returns error? {
     json data = {
         name: "Alex"
     };
     xml expected = xml `<name>Alex</name>`;
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected);
     } else {
@@ -171,7 +171,7 @@ isolated function testSingleElement() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testMultipleElements() {
+isolated function testMultipleElements() returns error? {
     json data = {
         name: "Alex",
         age: 32,
@@ -183,7 +183,7 @@ isolated function testMultipleElements() {
         "<age>32</age>" +
         "<married>true</married>" +
     "</root>";
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -194,7 +194,7 @@ isolated function testMultipleElements() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testMultipleLevels() {
+isolated function testMultipleLevels() returns error? {
     json data = {
         name: "Alex",
         age: 32,
@@ -228,7 +228,7 @@ isolated function testMultipleLevels() {
             "</telephone>" +
         "</contact>" +
     "</root>";
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -239,7 +239,7 @@ isolated function testMultipleLevels() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testStringArray() {
+isolated function testStringArray() returns error? {
     json data = {
         "books": [
             "book1",
@@ -253,7 +253,7 @@ isolated function testStringArray() {
         "<books>book2</books>" +
         "<books>book3</books>" +
     "</root>";
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -264,7 +264,7 @@ isolated function testStringArray() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testMultiLevelJsonArray() {
+isolated function testMultiLevelJsonArray() returns error? {
     json data = {
         "books": [
             [
@@ -308,7 +308,7 @@ isolated function testMultiLevelJsonArray() {
             "</item>" +
         "</books>" +
     "</root>";
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -319,7 +319,7 @@ isolated function testMultiLevelJsonArray() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testArray() {
+isolated function testArray() returns error? {
     json data = [
         {
             fname: "foo",
@@ -335,7 +335,7 @@ isolated function testArray() {
         "</item>" +
         "<item>1</item>" +
     "</root>";
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -346,7 +346,7 @@ isolated function testArray() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testArrayWithArrayEntryTag() {
+isolated function testArrayWithArrayEntryTag() returns error? {
     json data = [
         {
             fname: "foo",
@@ -362,7 +362,7 @@ isolated function testArrayWithArrayEntryTag() {
         "</hello>" +
         "<hello>1</hello>" +
     "</root>";
-    xml?|error result = fromJson(data, {arrayEntryTag: "hello"});
+    xml? result = check fromJson(data, {arrayEntryTag: "hello"});
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -373,7 +373,7 @@ isolated function testArrayWithArrayEntryTag() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testWithAttribute() {
+isolated function testWithAttribute() returns error? {
     json data = {
         "@series": "Dark",
         genre: "Sci-Fi",
@@ -381,7 +381,7 @@ isolated function testWithAttribute() {
         seasons: 3,
         "@id": 3296
     };
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     string expected =
     "<root series=\"Dark\" id=\"3296\">" +
         "<genre>Sci-Fi</genre>" +
@@ -398,7 +398,7 @@ isolated function testWithAttribute() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testNamespace() {
+isolated function testNamespace() returns error? {
     json data = {
         "ns0:bookStore": {
             "@xmlns:ns0": "http://sample.com/test",
@@ -432,7 +432,7 @@ isolated function testNamespace() {
         "</ns0:bookStore>" +
         "<metaInfo>some info</metaInfo>" +
     "</root>";
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -443,7 +443,7 @@ isolated function testNamespace() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testMultipleNamespaces() {
+isolated function testMultipleNamespaces() returns error? {
     json data = {
         "ns0:bookStore": {
             "@xmlns:ns0": "http://sample.com/foo",
@@ -488,7 +488,7 @@ isolated function testMultipleNamespaces() {
         "</ns0:bookStore>" +
         "<metaInfo>some info</metaInfo>" +
     "</root>";
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -499,7 +499,7 @@ isolated function testMultipleNamespaces() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testWithCustomAttribute() {
+isolated function testWithCustomAttribute() returns error? {
     json data = {
         "$series": "Dark",
         genre: "Sci-Fi",
@@ -507,7 +507,7 @@ isolated function testWithCustomAttribute() {
         seasons: 3,
         "$id": 3296
     };
-    xml?|error result = fromJson(data, {attributePrefix: "$"});
+    xml? result = check fromJson(data, {attributePrefix: "$"});
     string expected =
     "<root series=\"Dark\" id=\"3296\">" +
         "<genre>Sci-Fi</genre>" +
@@ -524,7 +524,7 @@ isolated function testWithCustomAttribute() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testWithAttribute1() {
+isolated function testWithAttribute1() returns error? {
     json data = {"Store": {
         "@id": "AST",
         "name": "Anne",
@@ -534,7 +534,7 @@ isolated function testWithAttribute1() {
         },
         "codes": ["4", "8"]
     }};
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     string expected =
     "<Store id=\"AST\">" +
         "<name>Anne</name>" +
@@ -555,7 +555,7 @@ isolated function testWithAttribute1() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testMultiLevelJsonArray1() {
+isolated function testMultiLevelJsonArray1() returns error? {
     json data = {
         "books": [
             [
@@ -613,7 +613,7 @@ isolated function testMultiLevelJsonArray1() {
             "</item>" +
         "</books1>" +
     "</root>";
-    xml?|error result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -624,10 +624,10 @@ isolated function testMultiLevelJsonArray1() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testJsonKey() {
+isolated function testJsonKey() returns error? {
     json data = {"#content":"text"};
     xml expected = xml `text`;
-    xml|Error? result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testJsonKey result incorrect");
     } else {
@@ -638,14 +638,14 @@ isolated function testJsonKey() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testJsonWithDefaultKey() {
+isolated function testJsonWithDefaultKey() returns error? {
     json data = {"books": {
                         "#content": "book3",
                         item: ["book1", "book2", "book6"]
                     }
                  };
     xml expected = xml `<books>book3<item>book1</item><item>book2</item><item>book6</item></books>`;
-    xml|Error? result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testJsonKey result incorrect");
     } else {
