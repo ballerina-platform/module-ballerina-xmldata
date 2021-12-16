@@ -1,4 +1,4 @@
-# Specification: Ballerina Cache Library
+# Specification: Ballerina XmlData Library
 
 _Owners_: @daneshk @kalaiyarasiganeshalingam @MadhukaHarith92                                       
 _Reviewers_: @daneshk  
