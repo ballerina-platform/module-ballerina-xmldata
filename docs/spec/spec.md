@@ -40,7 +40,7 @@ This package considers JSON, XML, and Ballerina record data structure and create
 ### 2.1 JSON
 
 JSON is a textual format for representing a single or collection of following values: 
- - a simple value (string, number, boolean, null), 
+ - a simple value (string, number, boolean, null) 
  - an array of values
  - an object
 
@@ -78,242 +78,29 @@ The following rules are used during the conversion process:
 
 The following table shows a mapping between the different forms of XML, to a corresponding matching JSON representation by considering the above rules.
 
-<table>
-    <thead>
-        <tr>
-            <th colspan="2">XML</th>
-            <th colspan="2">JSON Representation of XML</th>
-        </tr>
-        <tr>
-            <th>Type</th>
-            <th>Sample</th>
-            <th>Type</th>
-            <th>Sample</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>Empty element</td>
-            <td>
-
-```ballerina
-<e/>
-```
-</td>
-            <td>JSON Key-Value pair and value is ""</td>
-            <td>
-
-```ballerina
-{"e":""}
-```
-</td>
-        </tr>
-        <tr>
-            <td>Text Item</td>
-            <td>
-
-```ballerina
-value
-```
-
-</td>
-        <td>String</td>
-        <td>
-
-```ballerina
-value
-```
-</td>
-        </tr>
-        <tr>
-            <td>Comment</td>
-            <td>
-
-```ballerina
-<!-- value -->
-```
-</td>
-            <td>Empty JSON because it is not considered in this mapping</td>
-            <td>
-
-```ballerina
-{}
-```
-</td>
-        </tr>
-        <tr>
-            <td>PI</td>
-            <td>
-
-```ballerina
-<?doc document="book.doc"?>
-```
-</td>
-         <td>Empty JSON because it is not considered in this mapping</td>
-         <td>
-
-```ballerina
-{}
-```
-</td>
-        </tr>
-        <tr>
-            <td>Empty Sequence</td>
-            <td>
-
-```ballerina
-``
-```
-</td>
-        <td>Empty String</td>
-        <td>
-
-```ballerina
-''
-```
-</td>
-        </tr>
-        <tr>
-            <td>XML Sequence, with ‘element’s having distinct keys</td>
-            <td>
-
-```ballerina
-<key><key1>value1</key1><key2>value2</key2></key>
-```
-</td>
-        <td>JSON Object</td>
-        <td>
-
-```ballerina
-{"key":{"key1":"value1","key2":"value2"}}
-```
-</td>
-</tr>
-<tr>
-        <td>XML Sequence, with ‘element’s having identical key</td>
-        <td>
-
-```ballerina
-<keys><key>value1</key><key>value2</key><key>value3</key><</keys>
-```
-</td>
-        <td>JSON Object which contains JSON array</td>
-        <td>
-
-```ballerina
-{"keys":{"key":["value1","value2","value3"]}}
-```
-</td>
-</tr>
-<tr>
-<td>XML Sequence, containing items of type Element and Text</td>
-<td>
-
-```ballerina
-<key>value1 Value2 <key1>value3</key1><key2>value4</key2></key>
-```
-</td>
-
-<td>JSON Object </td>
-<td>
-
-```ballerina
-{"key":{"#content":"value1 Value2","key1":"value3","key2":"value4"}}
-```
-</td>
-</tr>
-<tr>
-<td>XML with attribute</td>
-<td>
-
-```ballerina
-<foo key="value">5</foo>
-```
-</td>
-<td> JSON Object. Here, attribute has ‘@’ prefix.
-</td>
-<td>
-
-```ballerina
-{"foo": {"@key": "value","#content": "5"}}
-```
-</td>
-</tr>
-<tr>
-<td>XML with attribute and namespace</td>
-<td>
-
-```ballerina
-<foo key="value" xmlns:ns0="http://sample.com/test">5</foo>
-```
-</td>
-<td> JSON Object. Here, attribute and namespace have ‘@’ prefix.
-</td>
-<td>
-
-```ballerina
-{"foo":{"@key":"value","@xmlns:ns0":"http://sample.com/test","#content":"5"}}
-```
-</td>
-</tr>
-</tbody>
-</table>
+|XML Type  | XML Sample | JSON Representation Type | JSON Representation of XML |
+|---|---|---|---|
+|Empty element | `<e/>` | JSON Key-Value pair and value is "" | `{"e":""}` | 
+|Text Item  | `value` |String  | `value` |
+|Comment  | `<!-- value -->` |Empty JSON because it is not considered in this mapping  | `{}` |
+|PI  | `<?doc document="book.doc"?>` |Empty JSON because it is not considered in this mapping  | `{}` |
+|Empty Sequence  | `` |Empty String  | `` |
+|XML Sequence, with ‘element’s having distinct keys  | `<key><key1>value1</key1><key2>value2</key2></key>` | JSON Object  | `{"key":{"key1":"value1","key2":"value2"}}` |
+|XML Sequence, with ‘element’s having identical keys  | `<keys><key>value1</key><key>value2</key><key>value3</key></keys>` | JSON Object which contains JSON array  | `{"keys":{"key":["value1","value2","value3"]}}` |
+|XML Sequence, containing items of type Element and Text  | `<key>value1 Value2 <key1>value3</key1><key2>value4</key2></key>` | JSON Object with text value and that key is ’#content’  | `{"key":{"#content":"value1 Value2","key1":"value3","key2":"value4"}}` |
+|XML with attribute  | `<foo key="value">5</foo>` | JSON Object. Here, attribute has ‘@’ prefix  | `{"foo": {"@key": "value","#content": "5"}}` |
+|XML with attribute and namespace  | `<foo key="value" xmlns:ns0="http://sample.com/test">5</foo>` | JSON Object. Here, attribute and namespace have ‘@’ prefix | `{"foo":{"@key":"value","@xmlns:ns0":"http://sample.com/test","#content":"5"}}` |
 
 ## 3.2 Rules for XML to Record Conversion
 
 This conversion also follows all the rules which will be applied during the XML to the JSON conversion process except the attributes and namespaces rule. Here, attributes and namespaces key will be converted with a prefix as `_` in the record.
 
 The table shows a mapping of XML with attribute and namespace to JSON.
-<table>
-    <thead>
-        <tr>
-            <th colspan="2">XML</th>
-            <th colspan="2">JSON Representation of XML</th>
-        </tr>
-        <tr>
-            <th>Type</th>
-            <th>Sample</th>
-            <th>Type</th>
-            <th>Sample</th>
-        </tr>
-    </thead>
-    <tbody>
-<tr>
-<td>XML with attribute</td>
-<td>
 
-```ballerina
-<foo key="value">5</foo>
-```
-</td>
-<td> JSON Object. Here, attribute has ‘@’ prefix.
-</td>
-<td>
-
-```ballerina
-{"foo": {"_key": "value","#content": "5"}}
-```
-</td>
-</tr>
-<tr>
-<td>XML with attribute and namespace</td>
-<td>
-
-```ballerina
-<foo key="value" xmlns:ns0="http://sample.com/test">5</foo>
-```
-</td>
-<td> JSON Object. Here, attribute and namespace have ‘@’ prefix.
-</td>
-<td>
-
-```ballerina
-{"foo":{"_key":"value","_xmlns:ns0":"http://sample.com/test","#content":"5"}}
-```
-</td>
-</tr>
-</tbody>
-</table>
+|XML Type  | XML Sample | Record Representation Type | Record Representation of XML |
+|---|---|---|---|
+|XML with attribute | `<foo key="value">5</foo>` | JSON Object. Here, attribute has ‘_’ prefix. | `{"foo": {"_key": "value","#content": "5"}}` | 
+|XML with attribute and namespace  | `<foo key="value" xmlns:ns0="http://sample.com/test">5</foo>` |JSON Object. Here, attribute and namespace have ‘_’ prefix.  | `{"foo":{"_key":"value","_xmlns:ns0":"http://sample.com/test","#content":"5"}}` |
 
 ## 3.3 Rules for JSON to XML Conversion
 
@@ -345,128 +132,15 @@ The following rules are used during the conversion process:
 
 The following table shows a mapping between the different forms of XML, to a corresponding matching JSON representation by considering the above rules.
 
-<table>
-    <thead>
-        <tr>
-            <th colspan="2">JSON</th>
-            <th colspan="2">XML Representation of JSON</th>
-        </tr>
-        <tr>
-            <th>Type</th>
-            <th>Sample</th>
-            <th>Type</th>
-            <th>Sample</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>JSON object has single key-value and value is ""</td>
-            <td>
-
-```ballerina
-{"e":""}
-```
-</td>
-            <td>Empty element</td>
-            <td>
-
-```ballerina
-<e/>
-```
-</td>
-        </tr>
-        <tr>
-            <td>Empty JSON</td>
-            <td>
-
-```ballerina
-{}
-```
-</td>
-        <td>Empty XML</td>
-        <td>
-
-```ballerina
-``
-```
-</td>
-        </tr>
-        <tr>
-            <td>JSON Object with distinct keys</td>
-            <td>
-
-```ballerina
-{"key":{"key1":"value1","key2":"value2"}}
-```
-</td>
-        <td>XML Sequence</td>
-        <td>
-
-```ballerina
-<key><key1>value1</key1><key2>value2</key2></key>
-```
-</td>
-</tr>
-<tr>
-        <td>JSON Array</td>
-        <td>
-
-```ballerina
-[
-    {
-        "key": "value1",
-    },
-    value2
-]
-```
-</td>
-        <td>XML Sequence with `root` tag</td>
-        <td>
-
-```ballerina
-<root>
-    <key>value1</key>
-    value2
-</root>
-```
-</td>
-</tr>
-<tr>
-<td> JSON Object with key as "#content"</td>
-<td>
-
-```ballerina
-{"#content":"value1"}
-```
-</td>
-
-<td>String</td>
-<td>
-
-```ballerina
-value1
-```
-</td>
-</tr>
-<tr>
-<td>JSON Object with key prefix as ‘@’</td>
-<td>
-
-```ballerina
-{"foo": {"@key": "value", @xmlns:ns0="http://sample.com/test"}}
-```
-</td>
-<td> XML element with attribute and namespace
-</td>
-<td>
-
-```ballerina
-<foo key="value" xmlns:ns0="http://sample.com/test"></foo>
-```
-</td>
-</tr>
-</tbody>
-</table>
+|JSON Type  | JSON Sample | XML Representation Type | XML Representation of XML |
+|---|---|---|---|
+|JSON object has single key-value and value is "" | `{"e":""}` | Empty element | `<e/>` | 
+|Empty JSON  | `` |Empty XML  | `` |
+|Single value(string, number, boolean, null) | value |Empty XML  | `<root>value<root>` |
+|JSON Object with distinct keys | `{"key1":"value1","key2":"value2"}` |XML Sequence with `root` tag  | `<root><key1>value1</key1><key2>value2</key2></root>` |
+|JSON Array | `[{"key": "value1",},value2]` |XML Sequence with `root` tag  | `<root><key>value1</key>value2</root>` |
+|JSON Object with key as "#content" | `{"#content":"value1"}` | String | `value1` |
+|JSON Object with key prefix as ‘@’ | `{"foo": {"@key": "value", @xmlns:ns0="http://sample.com/test"}}` | XML element with attribute and namespace | `<foo key="value" xmlns:ns0="http://sample.com/test"></foo>` |
 
 ## 4. Operations
 
