@@ -37,3 +37,8 @@ target
 # Ballerina
 velocity.log*
 *Ballerina.lock
+
+# IDEA Files
+.idea/
+*Dependencies.toml
+
