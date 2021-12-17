@@ -80,16 +80,16 @@ The following table shows a mapping between the different forms of XML, to a cor
 
 |XML Type  | XML Sample | JSON Representation Type | JSON Representation of XML |
 |---|---|---|---|
-|Empty element | `<e/>` | JSON Key-Value pair and value is "" | `{"e":""}` | 
-|Text Item  | `value` |String  | `value` |
+|Empty element | `<e/>` | JSON key-Value pair and value is "" | `{"e":""}` | 
+|Text item  | `value` |String  | `value` |
 |Comment  | `<!-- value -->` |Empty JSON because it is not considered in this mapping  | `{}` |
 |PI  | `<?doc document="book.doc"?>` |Empty JSON because it is not considered in this mapping  | `{}` |
-|Empty Sequence  | `` |Empty String  | `` |
-|XML Sequence, with ‘element’s having distinct keys  | `<key><key1>value1</key1><key2>value2</key2></key>` | JSON Object  | `{"key":{"key1":"value1","key2":"value2"}}` |
-|XML Sequence, with ‘element’s having identical keys  | `<keys><key>value1</key><key>value2</key><key>value3</key></keys>` | JSON Object which contains JSON array  | `{"keys":{"key":["value1","value2","value3"]}}` |
-|XML Sequence, containing items of type Element and Text  | `<key>value1 Value2 <key1>value3</key1><key2>value4</key2></key>` | JSON Object with text value and that key is ’#content’  | `{"key":{"#content":"value1 Value2","key1":"value3","key2":"value4"}}` |
-|XML with attribute  | `<foo key="value">5</foo>` | JSON Object. Here, attribute has ‘@’ prefix  | `{"foo": {"@key": "value","#content": "5"}}` |
-|XML with attribute and namespace  | `<foo key="value" xmlns:ns0="http://sample.com/test">5</foo>` | JSON Object. Here, attribute and namespace have ‘@’ prefix | `{"foo":{"@key":"value","@xmlns:ns0":"http://sample.com/test","#content":"5"}}` |
+|Empty sequence  | `` |Empty String  | `` |
+|XML sequence, with ‘element’s having distinct keys  | `<key><key1>value1</key1><key2>value2</key2></key>` | JSON object  | `{"key":{"key1":"value1","key2":"value2"}}` |
+|XML sequence, with ‘element’s having identical keys  | `<keys><key>value1</key><key>value2</key><key>value3</key></keys>` | JSON object which contains JSON array  | `{"keys":{"key":["value1","value2","value3"]}}` |
+|XML sequence, containing items of type Element and Text  | `<key>value1 Value2 <key1>value3</key1><key2>value4</key2></key>` | JSON object with text value and that key is ’#content’  | `{"key":{"#content":"value1 Value2","key1":"value3","key2":"value4"}}` |
+|XML with attribute  | `<foo key="value">5</foo>` | JSON object. Here, attribute has ‘@’ prefix  | `{"foo": {"@key": "value","#content": "5"}}` |
+|XML with attribute and namespace  | `<foo key="value" xmlns:ns0="http://sample.com/test">5</foo>` | JSON object. Here, attribute and namespace have ‘@’ prefix | `{"foo":{"@key":"value","@xmlns:ns0":"http://sample.com/test","#content":"5"}}` |
 
 ## 3.2 Rules for XML to Record Conversion
 
@@ -99,8 +99,8 @@ The table shows a mapping of XML with attribute and namespace to JSON.
 
 |XML Type  | XML Sample | Record Representation Type | Record Representation of XML |
 |---|---|---|---|
-|XML with attribute | `<foo key="value">5</foo>` | JSON Object. Here, attribute has ‘_’ prefix. | `{"foo": {"_key": "value","#content": "5"}}` | 
-|XML with attribute and namespace  | `<foo key="value" xmlns:ns0="http://sample.com/test">5</foo>` |JSON Object. Here, attribute and namespace have ‘_’ prefix.  | `{"foo":{"_key":"value","_xmlns:ns0":"http://sample.com/test","#content":"5"}}` |
+|XML with attribute | `<foo key="value">5</foo>` | JSON object. Here, attribute has ‘_’ prefix. | `{"foo": {"_key": "value","#content": "5"}}` | 
+|XML with attribute and namespace  | `<foo key="value" xmlns:ns0="http://sample.com/test">5</foo>` |JSON object. Here, attribute and namespace have ‘_’ prefix.  | `{"foo":{"_key":"value","_xmlns:ns0":"http://sample.com/test","#content":"5"}}` |
 
 ## 3.3 Rules for JSON to XML Conversion
 
@@ -135,12 +135,14 @@ The following table shows a mapping between the different forms of XML, to a cor
 |JSON Type  | JSON Sample | XML Representation Type | XML Representation of XML |
 |---|---|---|---|
 |JSON object has single key-value and value is "" | `{"e":""}` | Empty element | `<e/>` | 
-|Empty JSON  | `` |Empty XML  | `` |
-|Single value(string, number, boolean, null) | value |Empty XML  | `<root>value<root>` |
-|JSON Object with distinct keys | `{"key1":"value1","key2":"value2"}` |XML Sequence with `root` tag  | `<root><key1>value1</key1><key2>value2</key2></root>` |
-|JSON Array | `[{"key": "value1",},value2]` |XML Sequence with `root` tag  | `<root><key>value1</key>value2</root>` |
-|JSON Object with key as "#content" | `{"#content":"value1"}` | String | `value1` |
-|JSON Object with key prefix as ‘@’ | `{"foo": {"@key": "value", @xmlns:ns0="http://sample.com/test"}}` | XML element with attribute and namespace | `<foo key="value" xmlns:ns0="http://sample.com/test"></foo>` |
+|Empty JSON  | `` | Empty Sequence  | `` |
+|Single value(string, number, boolean) | value | XML element | `<root>value<root>` |
+|Null | value | Empty sequence  | `` |
+|JSON object with single key-value | `{"Store": {"name": "Anne","address": {"street": "Main","city": "94"}}}` |XML sequence | `<Store><name>Anne</name><address><street>Main</street><city>94</city></address></Store>` |
+|JSON object with distinct keys | `{"key1":"value1","key2":"value2"}` |XML sequence with `root` tag  | `<root><key1>value1</key1><key2>value2</key2></root>` |
+|JSON array | `[{"key": "value1",},value2]` |XML sequence with `root` tag  | `<root><key>value1</key>value2</root>` |
+|JSON object with key as "#content" | `{"#content":"value1"}` | String | `value1` |
+|JSON object with key prefix as ‘@’ | `{"foo": {"@key": "value", @xmlns:ns0="http://sample.com/test"}}` | XML element with attribute and namespace | `<foo key="value" xmlns:ns0="http://sample.com/test"></foo>` |
 
 ## 4. Operations
 
