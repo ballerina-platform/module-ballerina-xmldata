@@ -84,7 +84,7 @@ The following table shows a mapping between the different forms of XML, to a cor
 |Text item  | `value`<br> |String  | `value` |
 |Comment  | `<!-- value -->`<br> |Empty JSON <br> because it is not considered <br>in this mapping  | `{}` |
 |PI  | `<?doc document="book.doc"?>`<br> |Empty JSON <br> because it is not considered <br>in this mapping  | `{}` |
-|Empty sequence  | `` <br>|Empty String  | `` |
+|Empty sequence  | `` <br>|Empty  | `` |
 |XML sequence, <br> with ‘element’s having <br> distinct keys  | `<key>`<br>&emsp;&emsp;`<key1>value1</key1>`<br>&emsp;&emsp;`<key2>value2</key2>`<br>`</key>`<br>| JSON object  | `{`<br>&emsp;&emsp;`"key":{`<br>&emsp;&emsp;&emsp;&emsp;`"key1":"value1",`<br>&emsp;&emsp;&emsp;&emsp;`"key2":"value2"`<br>&emsp;&emsp;`}`<br>`}` |
 |XML sequence, <br> with ‘element’s having <br> identical keys  | `<keys>` <br>&emsp;&emsp;`<key>value1</key>`<br>&emsp;&emsp;`<key>value2</key>`<br>&emsp;&emsp;`<key>value3</key>`<br> `</keys>` <br>| JSON object <br> which contains JSON array  | `{`<br>&emsp;&emsp;`"keys":{`<br>&emsp;&emsp;&emsp;&emsp;`"key":["value1","value2","value3"]`<br>&emsp;&emsp;`}`<br>`}` |
 |XML sequence, <br> containing items of type <br> Element and Text  | `<key>`<br>&emsp;&emsp;`value1 Value2 `<br>&emsp;&emsp;`<key1>value3</key1>`<br>&emsp;&emsp;`<key2>value4</key2>`<br>`</key>`<br>| JSON object <br> with text value and <br> that key is ’#content’  | `{`<br>&emsp;&emsp;`"key":{`<br>&emsp;&emsp;&emsp;&emsp;`"#content":"value1 Value2",`<br>&emsp;&emsp;&emsp;&emsp;`"key1":"value3",`<br>&emsp;&emsp;&emsp;&emsp;`"key2":"value4"`<br>&emsp;&emsp;`}`<br>} |
@@ -136,12 +136,12 @@ The following table shows a mapping between the different forms of XML, to a cor
 |---|---|---|---|
 |JSON object has single <br> key-value and value is "" | `{"e":""}` | Empty element | `<e/>`<br> | 
 |Empty JSON  | `` | Empty Sequence  | `` <br>|
-|Single value<br>(string, number, boolean) | value | XML element | `value` <br>|
+|Single value<br>(string, number, boolean) | value | XML text | `value` <br>|
 |Null | value | Empty sequence  | `` <br>|
 |JSON object with <br> single key-value | `{`<br>&emsp;&emsp;`"Store": {`<br>&emsp;&emsp;&emsp;&emsp;`"name": "Anne",`<br>&emsp;&emsp;&emsp;&emsp;`"address": {`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"street": "Main",`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"city": "94"`<br>&emsp;&emsp;&emsp;&emsp;`}`<br>&emsp;&emsp;`}`<br>} |XML sequence | `<Store>`<br>&emsp;&emsp;`<name>Anne</name>`<br>&emsp;&emsp;`<address>`<br>&emsp;&emsp;&emsp;&emsp;`<street>Main</street>`<br>&emsp;&emsp;&emsp;&emsp;`<city>94</city>`<br>&emsp;&emsp;`</address>`<br>`</Store>` <br>|
 |JSON object with <br> distinct keys | `{`<br> &emsp; &emsp;`"key1":"value1",`<br> &emsp; &emsp;`"key2":"value2"`<br>`}` |XML sequence with `root` tag  | `<root>`<br>&emsp;&emsp;`<key1>value1</key1>`<br>&emsp;&emsp;`<key2>value2</key2>`<br>`</root>` |
 |JSON array | `[`<br> &emsp; &emsp;`{`<br>&emsp;&emsp;&emsp;&emsp; `"key": "value1"`<br>&emsp;&emsp;`},`<br>&emsp;&emsp;`value2`<br>`]` |XML sequence with `root` tag  | `<root>`<br>&emsp;&emsp;`<item>`<br>&emsp;&emsp;&emsp;&emsp;`<key>value1</key>`<br>&emsp;&emsp;`</item>`<br>&emsp;&emsp;`<item>value2</item>`<br>`</root>`<br>|
-|JSON object with key <br> as "#content" | `{"#content":"value1"}` | String | `value1` |
+|JSON object with key <br> as "#content" | `{"#content":"value1"}` | XML text | `value1` |
 |JSON object with key <br> prefix as ‘@’ | `{`<br>&emsp;&emsp;`"foo": {`<br>&emsp;&emsp;&emsp;&emsp;`"@key": "value",`<br>&emsp;&emsp;&emsp;&emsp;`"@xmlns:ns0":"<http://sample.com>"`<br>&emsp;&emsp;`}`<br>} | XML element with attribute and namespace | `<foo key="value"` <br> `xmlns:ns0="<http://sample.com>"/>`<br> |
 
 ## 4. Operations
