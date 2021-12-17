@@ -137,7 +137,7 @@ The following table shows a mapping between the different forms of XML, to a cor
 |JSON object has single <br> key-value and value is "" | `{"e":""}` | Empty element | `<e/>`<br> | 
 |Empty JSON  | `` | Empty Sequence  | `` <br>|
 |Single value<br>(string, number, boolean) | value | XML text | `value` <br>|
-|Null | value | Empty sequence  | `` <br>|
+|Null | `null` | Empty sequence  | `` <br>|
 |JSON object with <br> single key-value | `{`<br>&emsp;&emsp;`"Store": {`<br>&emsp;&emsp;&emsp;&emsp;`"name": "Anne",`<br>&emsp;&emsp;&emsp;&emsp;`"address": {`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"street": "Main",`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"city": "94"`<br>&emsp;&emsp;&emsp;&emsp;`}`<br>&emsp;&emsp;`}`<br>} |XML sequence | `<Store>`<br>&emsp;&emsp;`<name>Anne</name>`<br>&emsp;&emsp;`<address>`<br>&emsp;&emsp;&emsp;&emsp;`<street>Main</street>`<br>&emsp;&emsp;&emsp;&emsp;`<city>94</city>`<br>&emsp;&emsp;`</address>`<br>`</Store>` <br>|
 |JSON object with <br> distinct keys | `{`<br> &emsp; &emsp;`"key1":"value1",`<br> &emsp; &emsp;`"key2":"value2"`<br>`}` |XML sequence with `root` tag  | `<root>`<br>&emsp;&emsp;`<key1>value1</key1>`<br>&emsp;&emsp;`<key2>value2</key2>`<br>`</root>` |
 |JSON array | `[`<br> &emsp; &emsp;`{`<br>&emsp;&emsp;&emsp;&emsp; `"key": "value1"`<br>&emsp;&emsp;`},`<br>&emsp;&emsp;`value2`<br>`]` |XML sequence with `root` tag  | `<root>`<br>&emsp;&emsp;`<item>`<br>&emsp;&emsp;&emsp;&emsp;`<key>value1</key>`<br>&emsp;&emsp;`</item>`<br>&emsp;&emsp;`<item>value2</item>`<br>`</root>`<br>|
