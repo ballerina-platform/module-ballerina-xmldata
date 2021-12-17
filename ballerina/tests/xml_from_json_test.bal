@@ -130,11 +130,39 @@ isolated function testNodeNameNull() returns error? {
 }
 isolated function testJsonAsInt() {
     json data = 5;
+    xml expected = xml `5`;
     xml|Error? result = fromJson(data);
-    if result is Error {
-        test:assertTrue(result.toString().includes("failed to parse xml"), msg = "testFromJSON result incorrect");
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonAsInt result incorrect");
     } else {
-        test:assertEquals(result, "");
+        test:assertFail("Result is not mismatch");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testJsonAsString() {
+    json data = "data";
+    xml expected = xml `data`;
+    xml|Error? result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonAsString result incorrect");
+    } else {
+        test:assertFail("Result is not mismatch");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testJsonAsBoolean() {
+    json data = false;
+    xml expected = xml `false`;
+    xml|Error? result = fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonAsString result incorrect");
+    } else {
         test:assertFail("Result is not mismatch");
     }
 }
