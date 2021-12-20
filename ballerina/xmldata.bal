@@ -43,10 +43,7 @@ public type JsonOptions record {
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
-    if (jsonValue is string || jsonValue is boolean || jsonValue is decimal || jsonValue is float ||
-        jsonValue is int) {
-        return xml:createText(jsonValue.toString());
-    }
+
     if !isSingleNode(jsonValue) {
         return getElement("root", check traverseNode(jsonValue, {}, options),
                            check getAttributesMap(jsonValue, options = options));
@@ -69,6 +66,9 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
                                 check getAttributesMap(value, options = options));
             }
         }
+    }
+    if !(jsonValue is null) {
+       return xml:createText(jsonValue.toString());
     }
     return error Error("failed to parse xml");
 }
