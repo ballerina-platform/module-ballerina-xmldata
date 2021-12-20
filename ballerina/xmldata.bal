@@ -65,11 +65,12 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
                                 check getAttributesMap(value, options = options));
             }
         }
+        if jsonValue !is null {
+           return xml:createText(jsonValue.toString());
+        } else {
+           return xml ``;
+        }
     }
-    if jsonValue !is null {
-       return xml:createText(jsonValue.toString());
-    }
-    return xml ``;
 }
 
 isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOptions options = {},
