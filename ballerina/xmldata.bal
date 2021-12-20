@@ -67,7 +67,7 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
             }
         }
     }
-    if !(jsonValue is null) {
+    if jsonValue !is null {
        return xml:createText(jsonValue.toString());
     }
     return error Error("failed to parse xml");

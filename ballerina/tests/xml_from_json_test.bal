@@ -128,10 +128,10 @@ isolated function testNodeNameNull() returns error? {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testJsonAsInt() {
+isolated function testJsonAsInt() returns error? {
     json data = 5;
     xml expected = xml `5`;
-    xml|Error? result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testJsonAsInt result incorrect");
     } else {
@@ -142,10 +142,10 @@ isolated function testJsonAsInt() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testJsonAsString() {
+isolated function testJsonAsString() returns error? {
     json data = "data";
     xml expected = xml `data`;
-    xml|Error? result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testJsonAsString result incorrect");
     } else {
@@ -156,10 +156,10 @@ isolated function testJsonAsString() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testJsonAsBoolean() {
+isolated function testJsonAsBoolean() returns error? {
     json data = false;
     xml expected = xml `false`;
-    xml|Error? result = fromJson(data);
+    xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testJsonAsString result incorrect");
     } else {
