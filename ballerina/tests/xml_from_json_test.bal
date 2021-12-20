@@ -170,14 +170,11 @@ isolated function testJsonAsBoolean() returns error? {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testJsonAsNull() {
+isolated function testJsonAsNull() returns error? {
     json data = null;
     xml expected = xml ``;
-    xml?|Error result = fromJson(data);
-    if !(result is Error) {
-        test:assertEquals(result, expected);
-        test:assertTrue(result is ());
-    }
+    xml? result = check fromJson(data);
+    test:assertEquals(result, expected, msg = "testJsonAsNull result incorrect");
 }
 
 @test:Config {

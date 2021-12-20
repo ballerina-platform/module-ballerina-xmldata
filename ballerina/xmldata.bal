@@ -70,7 +70,7 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
     if jsonValue !is null {
        return xml:createText(jsonValue.toString());
     }
-    return error Error("failed to parse xml");
+    return xml ``;
 }
 
 isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOptions options = {},
