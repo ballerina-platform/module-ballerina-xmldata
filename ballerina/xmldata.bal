@@ -43,7 +43,6 @@ public type JsonOptions record {
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
-
     if !isSingleNode(jsonValue) {
         return getElement("root", check traverseNode(jsonValue, {}, options),
                            check getAttributesMap(jsonValue, options = options));
