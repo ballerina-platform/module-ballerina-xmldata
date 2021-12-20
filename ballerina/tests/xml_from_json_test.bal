@@ -170,6 +170,36 @@ isolated function testJsonAsBoolean() returns error? {
 @test:Config {
     groups: ["fromJson"]
 }
+isolated function testJsonAsDecimal() returns error? {
+    decimal value = 0.5;
+    json data = 0.5;
+    xml expected = xml `0.5`;
+    xml? result = check fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonAsString result incorrect");
+    } else {
+        test:assertFail("Result is not mismatch");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testJsonAsFloat() returns error? {
+    float value = 0.5;
+    json data = 0.5;
+    xml expected = xml `0.5`;
+    xml? result = check fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonAsString result incorrect");
+    } else {
+        test:assertFail("Result is not mismatch");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
 isolated function testJsonAsNull() returns error? {
     json data = null;
     xml expected = xml ``;
