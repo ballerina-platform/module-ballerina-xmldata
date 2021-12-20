@@ -21,8 +21,6 @@ package io.ballerina.stdlib.xmldata.utils;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
-import io.ballerina.runtime.api.values.BMap;
-import io.ballerina.runtime.api.values.BObject;
 
 /**
  * A util class for the XmlData package's native implementation.
@@ -36,9 +34,5 @@ public class XmlDataUtils {
     public static BError getError(String message) {
         return ErrorCreator.createDistinctError(ERROR, ModuleUtils.getModule(),
                 StringUtils.fromString(message));
-    }
-
-    public static BMap<?, ?> getOption(BObject options) {
-        return options.getMapValue(StringUtils.fromString("jsonOptions"));
     }
 }
