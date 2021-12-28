@@ -707,3 +707,67 @@ isolated function testJsonWithDefaultKey() returns error? {
         test:assertFail("testJsonKey result is not xml");
     }
 }
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testWithAttribute2() {
+    json data = {"Store": {
+        "@id": "AST",
+        "name": "Anne",
+        "address": {
+            "@id": "AST",
+            "street": "Main",
+            "city": "94"
+        },
+        "codes": ["4", "8"]
+    }};
+    xml?|error result = fromJson(data);
+    string expected =
+    "<Store id=\"AST\">" +
+        "<name>Anne</name>" +
+        "<address id=\"AST\">" +
+            "<street>Main</street>" +
+            "<city>94</city>" +
+        "</address>" +
+        "<codes>4</codes>" +
+        "<codes>8</codes>" +
+    "</Store>";
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testWithAttribute3() {
+    json data = {"Store": {
+        "#id": "AST",
+        "name": "Anne",
+        "address": {
+            "#id": "AST",
+            "street": "Main",
+            "city": "94"
+        },
+        "codes": ["4", "8"]
+    }};
+    xml?|error result = fromJson(data, {attributePrefix: "#"});
+    string expected =
+    "<Store id=\"AST\">" +
+        "<name>Anne</name>" +
+        "<address id=\"AST\">" +
+            "<street>Main</street>" +
+            "<city>94</city>" +
+        "</address>" +
+        "<codes>4</codes>" +
+        "<codes>8</codes>" +
+    "</Store>";
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}

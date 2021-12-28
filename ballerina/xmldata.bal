@@ -88,7 +88,7 @@ isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOpt
                     xNode += node;
                 } else {
                     xml node = check getElement(k, check traverseNode(v,
-                                                check getNamespacesMap(v, parentNamespaces, options)),
+                                                check getNamespacesMap(v, parentNamespaces, options), options),
                     check getAttributesMap(v, parentNamespaces, options = options));
                     xNode += node;
                 }
