@@ -51,6 +51,6 @@ public function main() returns error? {
 
     // Converts the xml value to a user-defined record type.
     io:println("output as a WorldBank record :");
-    WorldBank w = check xmldata:toRecord(resp, false);
+    WorldBank w = check xmldata:toRecord(resp, preserveNamespaces = false);
     io:println(w);
 }
