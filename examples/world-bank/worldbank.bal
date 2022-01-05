@@ -42,8 +42,12 @@ public function main() returns error? {
 
     // Converts the xml value to a json value.
     io:println("output as a json :");
-    json j = check xmldata:toJson(resp);
-    io:println(j);
+    json j1 = check xmldata:toJson(resp);
+    io:println(j1);
+
+    // Converts the xml value to a json value with a custom attribute prefix.
+    json j2 = check xmldata:toJson(resp, options = {attributePrefix: "$"});
+    io:println(j2);
 
     // Converts the xml value to a user-defined record type.
     io:println("output as a WorldBank record :");

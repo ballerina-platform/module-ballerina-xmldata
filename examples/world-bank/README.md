@@ -10,7 +10,6 @@ First, clone this repository, and then run the following commands to run this ex
     $ cd examples/world-bank
     $ bal run
 
-
 ## Output of the example
 
 As can be seen in the console, first the `xml` value is converted to `json` type. Next, the `xml` value is converted to a `WorldBank` record type as defined below.
