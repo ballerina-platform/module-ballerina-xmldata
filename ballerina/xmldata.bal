@@ -217,6 +217,9 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 
 # Converts an XML to its Record representation.
 # ```ballerina
+# type Person record {
+#     string name;
+# };
 # xml xmlValue = xml `<!-- outer comment -->` + xml `<name>Alex</name>`;
 # Person|xmldata:Error person = xmldata:toRecord(xmlValue);
 # ```
