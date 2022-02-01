@@ -95,11 +95,10 @@ xml e2 = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:
                 <Address xmlns="">
                     <StreetAddress>20, Palm grove, Colombo 3</StreetAddress>
                     <City>Colombo</City>
-                    <Zip>00300</Zip>
+                    <Zip>300</Zip>
                     <Country>LK</Country>
                 </Address>
               </Invoice>`;
-
 
 @test:Config {
     groups: ["toRecord"]
