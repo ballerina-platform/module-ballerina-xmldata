@@ -76,7 +76,6 @@ type Purchase record {
 
 type ItemCode record {
     string _discount;
-    string content;
 };
 
 type Address1 record {
@@ -91,15 +90,16 @@ xml e2 = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:
                 <PurchesedItems>
                     <PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>
                     <PLine><ItemCode>223300</ItemCode><Count>7</Count></PLine>
-                    <PLine><ItemCode>200777</ItemCode><Count>7</Count></PLine>
+                    <PLine><ItemCode discount="22%">200777</ItemCode><Count>7</Count></PLine>
                 </PurchesedItems>
                 <Address xmlns="">
                     <StreetAddress>20, Palm grove, Colombo 3</StreetAddress>
                     <City>Colombo</City>
-                    <Zip>300</Zip>
+                    <Zip>00300</Zip>
                     <Country>LK</Country>
                 </Address>
               </Invoice>`;
+
 
 @test:Config {
     groups: ["toRecord"]
@@ -111,7 +111,10 @@ function testToRecordComplexXmlElement() returns error? {
                 PLine: [
                     {ItemCode: "223345", Count: 10},
                     {ItemCode: "223300", Count: 7},
-                    {ItemCode: "200777", Count: 7}
+                    {
+                        ItemCode: {"_discount": "22%", "#content": "200777"},
+                        Count: 7
+                    }
                 ]
             },
             Address: {
@@ -141,7 +144,10 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() returns error?
                 PLine: [
                     {ItemCode: "223345", Count: 10},
                     {ItemCode: "223300", Count: 7},
-                    {ItemCode: "200777", Count: 7}
+                    {
+                        ItemCode: {"_discount": "22%", "#content": "200777"},
+                        Count: 7
+                    }
                 ]
             },
             Address: {
