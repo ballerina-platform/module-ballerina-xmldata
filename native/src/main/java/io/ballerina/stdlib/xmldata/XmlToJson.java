@@ -138,10 +138,8 @@ public class XmlToJson {
                                          boolean preserveNamespaces, AttributeManager attributeManager, Type type,
                                          String uniqueKey, String namespaceDelimiter) {
         BMap<BString, Object> childrenData = newJsonMap();
-        if (preserveNamespaces) {
-            processAttributes(xmlItem, attributePrefix, childrenData, attributeManager, type, uniqueKey,
-                    namespaceDelimiter);
-        }
+        processAttributes(xmlItem, attributePrefix, childrenData, attributeManager, type, uniqueKey,
+                namespaceDelimiter, preserveNamespaces);
         String uKeyValue = getUniqueKey(xmlItem, preserveNamespaces, uniqueKey);
         String keyValue = getElementKey(xmlItem, preserveNamespaces);
         Object children = convertBXmlSequence(xmlItem.getChildrenSeq(), attributePrefix,
@@ -175,13 +173,14 @@ public class XmlToJson {
 
     private static void processAttributes(BXmlItem xmlItem, String attributePrefix,
                                       BMap<BString, Object> mapData, AttributeManager attributeManager, Type type,
-                                          String uniqueKey, String namespaceDelimiter) {
+                                          String uniqueKey, String namespaceDelimiter, boolean preserveNamespaces) {
         LinkedHashMap<String, String> tempAttributeMap =  new LinkedHashMap<>();
         if (attributeManager.getMap().isEmpty()) {
-            tempAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter);
+            tempAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter, preserveNamespaces);
             attributeManager.initializeMap(tempAttributeMap);
         } else {
-            LinkedHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter);
+            LinkedHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter,
+                    preserveNamespaces);
             LinkedHashMap<String, String> attributeMap = attributeManager.getMap();
             for (Map.Entry<String, String> entrySet : newAttributeMap.entrySet()) {
                 String key = entrySet.getKey();
@@ -353,19 +352,31 @@ public class XmlToJson {
      * @param element XML element to extract attributes and namespaces
      */
     private static LinkedHashMap<String, String> collectAttributesAndNamespaces(BXmlItem element,
-                                                                                String namespaceDelimiter) {
+                                                                                String namespaceDelimiter,
+                                                                                boolean preserveNamespaces) {
         LinkedHashMap<String, String> attributeMap = new LinkedHashMap<>();
         BMap<BString, BString> attributesMap = element.getAttributesMap();
         Map<String, String> nsPrefixMap = getNamespacePrefixes(attributesMap);
 
         for (Map.Entry<BString, BString> entry : attributesMap.entrySet()) {
-            if (isNamespacePrefixEntry(entry)) {
-                addNamespacePrefixAttribute(attributeMap, entry, namespaceDelimiter);
+            if (preserveNamespaces) {
+                if (isNamespacePrefixEntry(entry)) {
+                    addNamespacePrefixAttribute(attributeMap, entry, namespaceDelimiter);
+                } else {
+                    addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
+                }
             } else {
-                addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
+                if (!isNamespacePrefixEntry(entry) && isNonNameSpaceAttribute(entry)) {
+                    addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
+                }
             }
         }
         return attributeMap;
+    }
+
+    private static boolean isNonNameSpaceAttribute(Map.Entry<BString, BString> entry) {
+        // The namespace-related key will contain the pattern as `{link}suffix`
+        return !(entry.getKey().toString().contains("{") && entry.getKey().toString().contains("}"));
     }
 
     private static void addNamespacePrefixAttribute(LinkedHashMap<String, String> attributeMap,

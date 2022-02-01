@@ -70,8 +70,13 @@ type PurchesedItems record {
 };
 
 type Purchase record {
-    string ItemCode;
+    string|ItemCode ItemCode;
     int Count;
+};
+
+type ItemCode record {
+    string _discount;
+    string content;
 };
 
 type Address1 record {
@@ -144,7 +149,8 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() returns error?
                 City: "Colombo",
                 Zip: 300,
                 Country: "LK"
-            }
+            },
+            "_attr": "attr-val"
         }
     };
     Order actual = check toRecord(e2, preserveNamespaces = false);
