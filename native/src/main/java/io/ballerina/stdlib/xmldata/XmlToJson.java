@@ -366,7 +366,7 @@ public class XmlToJson {
                     addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
                 }
             } else {
-                if (!isNamespacePrefixEntry(entry) && isNonNameSpaceAttribute(entry)) {
+                if (isNonNameSpaceAttribute(entry)) {
                     addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
                 }
             }
