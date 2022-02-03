@@ -42,6 +42,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
@@ -376,7 +377,7 @@ public class XmlToJson {
 
     private static boolean isNonNameSpaceAttribute(Map.Entry<BString, BString> entry) {
         // The namespace-related key will contain the pattern as `{link}suffix`
-        return !(entry.getKey().toString().contains("{") && entry.getKey().toString().contains("}"));
+        return !Pattern.matches("\\{.*\\}.*", entry.getKey().toString());
     }
 
     private static void addNamespacePrefixAttribute(LinkedHashMap<String, String> attributeMap,
