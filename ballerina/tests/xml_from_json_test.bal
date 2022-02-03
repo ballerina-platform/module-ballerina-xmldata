@@ -128,13 +128,13 @@ isolated function testNodeNameNull() returns error? {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testJsonAsInt() {
+isolated function testJsonAsInt() returns error? {
     json data = 5;
-    xml|Error? result = fromJson(data);
-    if result is Error {
-        test:assertTrue(result.toString().includes("failed to parse xml"), msg = "testFromJSON result incorrect");
+    xml expected = xml `5`;
+    xml? result = check fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonAsInt result incorrect");
     } else {
-        test:assertEquals(result, "");
         test:assertFail("Result is not mismatch");
     }
 }
@@ -142,14 +142,67 @@ isolated function testJsonAsInt() {
 @test:Config {
     groups: ["fromJson"]
 }
-isolated function testJsonAsNull() {
+isolated function testJsonAsString() returns error? {
+    json data = "data";
+    xml expected = xml `data`;
+    xml? result = check fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonAsString result incorrect");
+    } else {
+        test:assertFail("Result is not mismatch");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testJsonAsBoolean() returns error? {
+    json data = false;
+    xml expected = xml `false`;
+    xml? result = check fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonAsString result incorrect");
+    } else {
+        test:assertFail("Result is not mismatch");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testJsonAsDecimal() returns error? {
+    json data = 0.5;
+    xml expected = xml `0.5`;
+    xml? result = check fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonAsString result incorrect");
+    } else {
+        test:assertFail("Result is not mismatch");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testJsonAsFloat() returns error? {
+    json data = 0.5;
+    xml expected = xml `0.5`;
+    xml? result = check fromJson(data);
+    if result is xml {
+        test:assertEquals(result, expected, msg = "testJsonAsString result incorrect");
+    } else {
+        test:assertFail("Result is not mismatch");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testJsonAsNull() returns error? {
     json data = null;
     xml expected = xml ``;
-    xml?|Error result = fromJson(data);
-    if !(result is Error) {
-        test:assertEquals(result, expected);
-        test:assertTrue(result is ());
-    }
+    xml? result = check fromJson(data);
+    test:assertEquals(result, expected, msg = "testJsonAsNull result incorrect");
 }
 
 @test:Config {

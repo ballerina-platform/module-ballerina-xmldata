@@ -39,7 +39,7 @@ public type JsonOptions record {
 # ```
 #
 # + jsonValue - The JSON source to be converted to XML
-# + options - The `xmldata:xmldata:JsonOptions` record for JSON to XML conversion properties
+# + options - The `xmldata:JsonOptions` record for JSON to XML conversion properties
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
@@ -65,8 +65,12 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
                                 check getAttributesMap(value, options = options));
             }
         }
+        if jsonValue !is null {
+           return xml:createText(jsonValue.toString());
+        } else {
+           return xml ``;
+        }
     }
-    return error Error("failed to parse xml");
 }
 
 isolated function traverseNode(json jNode, map<string> parentNamespaces, JsonOptions options = {},
@@ -213,6 +217,9 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 
 # Converts an XML to its Record representation.
 # ```ballerina
+# type Person record {
+#     string name;
+# };
 # xml xmlValue = xml `<!-- outer comment -->` + xml `<name>Alex</name>`;
 # Person|xmldata:Error person = xmldata:toRecord(xmlValue);
 # ```
