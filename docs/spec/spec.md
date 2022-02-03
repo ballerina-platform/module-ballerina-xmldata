@@ -239,7 +239,7 @@ Output of this is,
 ```ballerina
 {"ns0:bookStore":{"_xmlns_ns0":"http://sample.com/test","_status":"online","#content":"Book"}}
 ```
-Here, `Book` does not have a key. So, JSON data introduces a key as `#content`. In this scenario, a user can't use a Ballerina closed record to get the output.
+Here, `Book` does not have a key. So, JSON data introduces a key as `#content`. but it is not mapped to any field in the Ballerina record. If the user needs to convert these XML values to a Ballerina record, it should be an open record with other fields.
 Since the `#` is used to add API Doc comments in Ballerina, the record can't be initialized with a field name that starts with `#`.
 Hence, the user has to use an open record to overcome this issue.
 
