@@ -367,17 +367,19 @@ public class XmlToJson {
                     addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
                 }
             } else {
-                if (isNonNameSpaceAttribute(entry)) {
-                    addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
-                }
+                preserveNonNamespacesAttributes(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
             }
         }
         return attributeMap;
     }
 
-    private static boolean isNonNameSpaceAttribute(Map.Entry<BString, BString> entry) {
+    private static void preserveNonNamespacesAttributes(LinkedHashMap<String, String> attributeMap,
+                                                   Map<String, String> nsPrefixMap, Map.Entry<BString, BString> entry,
+                                                   String namespaceDelimiter) {
         // The namespace-related key will contain the pattern as `{link}suffix`
-        return !Pattern.matches("\\{.*\\}.*", entry.getKey().toString());
+        if (!Pattern.matches("\\{.*\\}.*", entry.getKey().toString())) {
+            addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
+        }
     }
 
     private static void addNamespacePrefixAttribute(LinkedHashMap<String, String> attributeMap,
