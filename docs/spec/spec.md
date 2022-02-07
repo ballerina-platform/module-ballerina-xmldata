@@ -3,7 +3,7 @@
 _Owners_: @daneshk @kalaiyarasiganeshalingam @MadhukaHarith92                                       
 _Reviewers_: @daneshk  
 _Created_: 2021/12/10  
-_Updated_: 2021/12/15   
+_Updated_: 2022/02/03   
 _Issue_: [#2334](https://github.com/ballerina-platform/ballerina-standard-library/issues/2334)
 
 # Introduction
@@ -227,6 +227,20 @@ The following API returns the record to the given XML structure by configuring t
 ```ballerina
 public isolated function toRecord(xml xmlValue, boolean preserveNamespaces = true, typedesc<record {}> returnType = <>) returns returnType|Error
 ```
+
+The XML value may not have a key to convert JSON data. Hence, Ballerina uses a default key as a `#content` to handle this case.
+
+Let's consider this,
+```ballerina
+xml x3 = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">Book</ns0:bookStore>`;
+record{} result = check xmldata:toRecord(x3);
+```
+Output of this is,
+```ballerina
+{"ns0:bookStore":{"_xmlns_ns0":"http://sample.com/test","_status":"online","#content":"Book"}}
+```
+Here, `Book` does not have a key. So, JSON data introduces a key as `#content`. but it is not mapped to any field in the Ballerina record. If the user needs to convert these XML values to a Ballerina record, it should be an open record with other fields.
+
 #### 4.2.1 Sample
 
 ```ballerina
