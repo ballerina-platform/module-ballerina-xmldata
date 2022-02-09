@@ -7,13 +7,7 @@ Ballerina XmlData Library
   [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/xmldata.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fxmldata)
   [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata)
 
-The `xmlData` library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io/"> Ballerina</a> language.
-
-This package provides functions to perform the conversion between XML and JSON. It provides APIs to convert a natural representation of data in XML into a natural representation of data in JSON and vice-versa.
-
-For more information on all the operations supported by this package, go to the [`XmlData` package](https://docs.central.ballerina.io/ballerina/xmldata/latest).
-
-For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example).
+This library provides APIs to perform conversions between XML and JSON/Ballerina records. It provides APIs to get natural representations of data in XML from JSON and to get JSON or Ballerina records data from natural representations of data in XML.
 
 ## Issues and Projects 
 
@@ -85,3 +79,5 @@ All contributors are encouraged to read the [Ballerina Code of Conduct](https://
 
 * Chat live with us via our [Slack channel](https://ballerina.io/community/slack/).
 * Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.
+* For more information go to the [`xmldata` library](https://lib.ballerina.io/ballerina/xmldata/latest).
+* For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/swan-lake/learn/by-example/).
