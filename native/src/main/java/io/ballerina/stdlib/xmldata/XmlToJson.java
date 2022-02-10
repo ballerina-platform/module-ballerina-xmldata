@@ -362,58 +362,61 @@ public class XmlToJson {
         for (Map.Entry<BString, BString> entry : attributesMap.entrySet()) {
             if (preserveNamespaces) {
                 if (isNamespacePrefixEntry(entry)) {
-                    addNamespacePrefixAttribute(attributeMap, entry, namespaceDelimiter);
+                    addNamespacePrefixAttribute(attributeMap, entry.getKey().getValue(),
+                            entry.getValue().getValue(), namespaceDelimiter);
                 } else {
-                    addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
+                    addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry.getKey().getValue(),
+                            entry.getValue().getValue(), namespaceDelimiter);
                 }
             } else {
-                preserveNonNamespacesAttributes(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
+                preserveNonNamespacesAttributes(attributeMap, nsPrefixMap, entry.getKey().getValue(),
+                        entry.getValue().getValue(), namespaceDelimiter);
             }
         }
         return attributeMap;
     }
 
     private static void preserveNonNamespacesAttributes(LinkedHashMap<String, String> attributeMap,
-                                                   Map<String, String> nsPrefixMap, Map.Entry<BString, BString> entry,
-                                                   String namespaceDelimiter) {
+                                                        Map<String, String> nsPrefixMap,
+                                                        String attributeKey, String attributeValue,
+                                                        String namespaceDelimiter) {
         // The namespace-related key will contain the pattern as `{link}suffix`
-        if (!Pattern.matches("\\{.*\\}.*", entry.getKey().toString())) {
-            addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
+        if (!Pattern.matches("\\{.*\\}.*", attributeKey)) {
+            addAttributePreservingNamespace(attributeMap, nsPrefixMap, attributeKey,
+                    attributeValue, namespaceDelimiter);
         }
     }
 
     private static void addNamespacePrefixAttribute(LinkedHashMap<String, String> attributeMap,
-                                                    Map.Entry<BString, BString> entry, String namespaceDelimiter) {
-        String key = entry.getKey().getValue();
-        String value = entry.getValue().getValue();
-        String prefix = key.substring(NS_PREFIX_BEGIN_INDEX);
+                                                    String attributeKey, String attributeValue,
+                                                    String namespaceDelimiter) {
+        String prefix = attributeKey.substring(NS_PREFIX_BEGIN_INDEX);
         if (prefix.equals(XMLNS)) {
-            attributeMap.put(prefix, value);
+            attributeMap.put(prefix, attributeValue);
         } else {
-            attributeMap.put(XMLNS + namespaceDelimiter + prefix, value);
+            attributeMap.put(XMLNS + namespaceDelimiter + prefix, attributeValue);
         }
     }
 
     private static void addAttributePreservingNamespace(LinkedHashMap<String, String> attributeMap,
                                                         Map<String, String> nsPrefixMap,
-                                                        Map.Entry<BString, BString> entry, String namespaceDelimiter) {
-        String key = entry.getKey().getValue();
-        String value = entry.getValue().getValue();
-        int nsEndIndex = key.lastIndexOf('}');
+                                                        String attributeKey, String attributeValue,
+                                                        String namespaceDelimiter) {
+        int nsEndIndex = attributeKey.lastIndexOf('}');
         if (nsEndIndex > 0) {
-            String ns = key.substring(1, nsEndIndex);
-            String local = key.substring(nsEndIndex + 1);
+            String ns = attributeKey.substring(1, nsEndIndex);
+            String local = attributeKey.substring(nsEndIndex + 1);
             String nsPrefix = nsPrefixMap.get(ns);
             // `!nsPrefix.equals("xmlns")` because attributes does not belong to default namespace.
             if (nsPrefix == null) {
-                attributeMap.put(local, value);
+                attributeMap.put(local, attributeValue);
             } else if (nsPrefix.equals(XMLNS)) {
-                attributeMap.put(XMLNS, value);
+                attributeMap.put(XMLNS, attributeValue);
             } else {
-                attributeMap.put(nsPrefix + namespaceDelimiter + local, value);
+                attributeMap.put(nsPrefix + namespaceDelimiter + local, attributeValue);
             }
         } else {
-            attributeMap.put(key, value);
+            attributeMap.put(attributeKey, attributeValue);
         }
     }
 
