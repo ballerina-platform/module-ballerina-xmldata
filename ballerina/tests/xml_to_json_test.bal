@@ -96,7 +96,10 @@ function testComplexXMLElementToJsonNoPreserveNS() returns error? {
                 PLine: [
                     {ItemCode: "223345", Count: "10"},
                     {ItemCode: "223300", Count: "7"},
-                    {ItemCode: "200777", Count: "7"}
+                    {
+                        ItemCode: {"@discount": "22%", "#content": "200777"},
+                        Count: "7"
+                    }
                 ]
             },
             Address: {
@@ -104,7 +107,8 @@ function testComplexXMLElementToJsonNoPreserveNS() returns error? {
                 City: "Colombo",
                 Zip: "00300",
                 Country: "LK"
-            }
+            },
+            "@attr": "attr-val"
         }
     };
     test:assertEquals(j, expectedOutput, msg = "testComplexXMLElementToJsonNoPreserveNS result incorrect");
@@ -311,7 +315,8 @@ isolated function testComplexXmlWithOutNamespace() returns error? {
             postalCode: "94",
             isOpen: "true",
             address: {"street": "foo", "city": "94", "country": "true"},
-            codes: {"item": ["4", "8", "9"]}
+            codes: {"item": ["4", "8", "9"]},
+            "@status" : "online"
         }
     });
 }

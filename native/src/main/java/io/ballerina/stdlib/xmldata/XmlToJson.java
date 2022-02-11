@@ -42,6 +42,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
@@ -138,10 +139,8 @@ public class XmlToJson {
                                          boolean preserveNamespaces, AttributeManager attributeManager, Type type,
                                          String uniqueKey, String namespaceDelimiter) {
         BMap<BString, Object> childrenData = newJsonMap();
-        if (preserveNamespaces) {
-            processAttributes(xmlItem, attributePrefix, childrenData, attributeManager, type, uniqueKey,
-                    namespaceDelimiter);
-        }
+        processAttributes(xmlItem, attributePrefix, childrenData, attributeManager, type, uniqueKey,
+                namespaceDelimiter, preserveNamespaces);
         String uKeyValue = getUniqueKey(xmlItem, preserveNamespaces, uniqueKey);
         String keyValue = getElementKey(xmlItem, preserveNamespaces);
         Object children = convertBXmlSequence(xmlItem.getChildrenSeq(), attributePrefix,
@@ -175,13 +174,14 @@ public class XmlToJson {
 
     private static void processAttributes(BXmlItem xmlItem, String attributePrefix,
                                       BMap<BString, Object> mapData, AttributeManager attributeManager, Type type,
-                                          String uniqueKey, String namespaceDelimiter) {
+                                          String uniqueKey, String namespaceDelimiter, boolean preserveNamespaces) {
         LinkedHashMap<String, String> tempAttributeMap =  new LinkedHashMap<>();
         if (attributeManager.getMap().isEmpty()) {
-            tempAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter);
+            tempAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter, preserveNamespaces);
             attributeManager.initializeMap(tempAttributeMap);
         } else {
-            LinkedHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter);
+            LinkedHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter,
+                    preserveNamespaces);
             LinkedHashMap<String, String> attributeMap = attributeManager.getMap();
             for (Map.Entry<String, String> entrySet : newAttributeMap.entrySet()) {
                 String key = entrySet.getKey();
@@ -353,53 +353,70 @@ public class XmlToJson {
      * @param element XML element to extract attributes and namespaces
      */
     private static LinkedHashMap<String, String> collectAttributesAndNamespaces(BXmlItem element,
-                                                                                String namespaceDelimiter) {
+                                                                                String namespaceDelimiter,
+                                                                                boolean preserveNamespaces) {
         LinkedHashMap<String, String> attributeMap = new LinkedHashMap<>();
         BMap<BString, BString> attributesMap = element.getAttributesMap();
         Map<String, String> nsPrefixMap = getNamespacePrefixes(attributesMap);
 
         for (Map.Entry<BString, BString> entry : attributesMap.entrySet()) {
-            if (isNamespacePrefixEntry(entry)) {
-                addNamespacePrefixAttribute(attributeMap, entry, namespaceDelimiter);
+            if (preserveNamespaces) {
+                if (isNamespacePrefixEntry(entry)) {
+                    addNamespacePrefixAttribute(attributeMap, entry.getKey().getValue(),
+                            entry.getValue().getValue(), namespaceDelimiter);
+                } else {
+                    addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry.getKey().getValue(),
+                            entry.getValue().getValue(), namespaceDelimiter);
+                }
             } else {
-                addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry, namespaceDelimiter);
+                preserveNonNamespacesAttributes(attributeMap, nsPrefixMap, entry.getKey().getValue(),
+                        entry.getValue().getValue(), namespaceDelimiter);
             }
         }
         return attributeMap;
     }
 
+    private static void preserveNonNamespacesAttributes(LinkedHashMap<String, String> attributeMap,
+                                                        Map<String, String> nsPrefixMap,
+                                                        String attributeKey, String attributeValue,
+                                                        String namespaceDelimiter) {
+        // The namespace-related key will contain the pattern as `{link}suffix`
+        if (!Pattern.matches("\\{.*\\}.*", attributeKey)) {
+            addAttributePreservingNamespace(attributeMap, nsPrefixMap, attributeKey,
+                    attributeValue, namespaceDelimiter);
+        }
+    }
+
     private static void addNamespacePrefixAttribute(LinkedHashMap<String, String> attributeMap,
-                                                    Map.Entry<BString, BString> entry, String namespaceDelimiter) {
-        String key = entry.getKey().getValue();
-        String value = entry.getValue().getValue();
-        String prefix = key.substring(NS_PREFIX_BEGIN_INDEX);
+                                                    String attributeKey, String attributeValue,
+                                                    String namespaceDelimiter) {
+        String prefix = attributeKey.substring(NS_PREFIX_BEGIN_INDEX);
         if (prefix.equals(XMLNS)) {
-            attributeMap.put(prefix, value);
+            attributeMap.put(prefix, attributeValue);
         } else {
-            attributeMap.put(XMLNS + namespaceDelimiter + prefix, value);
+            attributeMap.put(XMLNS + namespaceDelimiter + prefix, attributeValue);
         }
     }
 
     private static void addAttributePreservingNamespace(LinkedHashMap<String, String> attributeMap,
                                                         Map<String, String> nsPrefixMap,
-                                                        Map.Entry<BString, BString> entry, String namespaceDelimiter) {
-        String key = entry.getKey().getValue();
-        String value = entry.getValue().getValue();
-        int nsEndIndex = key.lastIndexOf('}');
+                                                        String attributeKey, String attributeValue,
+                                                        String namespaceDelimiter) {
+        int nsEndIndex = attributeKey.lastIndexOf('}');
         if (nsEndIndex > 0) {
-            String ns = key.substring(1, nsEndIndex);
-            String local = key.substring(nsEndIndex + 1);
+            String ns = attributeKey.substring(1, nsEndIndex);
+            String local = attributeKey.substring(nsEndIndex + 1);
             String nsPrefix = nsPrefixMap.get(ns);
             // `!nsPrefix.equals("xmlns")` because attributes does not belong to default namespace.
             if (nsPrefix == null) {
-                attributeMap.put(local, value);
+                attributeMap.put(local, attributeValue);
             } else if (nsPrefix.equals(XMLNS)) {
-                attributeMap.put(XMLNS, value);
+                attributeMap.put(XMLNS, attributeValue);
             } else {
-                attributeMap.put(nsPrefix + namespaceDelimiter + local, value);
+                attributeMap.put(nsPrefix + namespaceDelimiter + local, attributeValue);
             }
         } else {
-            attributeMap.put(key, value);
+            attributeMap.put(attributeKey, attributeValue);
         }
     }
 
