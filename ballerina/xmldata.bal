@@ -16,8 +16,6 @@
 
 import ballerina/jballerina.java;
 
-//import ballerina/io;
-
 const string XMLNS_NAMESPACE_URI = "http://www.w3.org/2000/xmlns/";
 const string CONTENT = "#content";
 
