@@ -24,7 +24,7 @@ The conforming implementation of the specification is released and included in t
     * 2.1 [Record](#23-record)
 3. [Rules](#3-rules)
     * 3.1 [Rules for XML to JSON Conversion](#31-rules-for-xml-to-json-conversion)
-    * 3.2 [Rules for XML to Record Conversion](#32-rules-for-xml-to-json-conversion)
+    * 3.2 [Rules for XML to Record Conversion](#32-rules-for-xml-to-record-conversion)
     * 3.1 [Rules for JSON to XML Conversion](#33-rules-for-json-to-xml-conversion)
 4. [Operations](#4-operations)
     * 4.1 [XML to JSON Conversion](#41-xml-to-json-conversion)
@@ -234,19 +234,6 @@ The following API returns the record to the given XML structure by configuring t
 ```ballerina
 public isolated function toRecord(xml xmlValue, boolean preserveNamespaces = true, typedesc<record {}> returnType = <>) returns returnType|Error
 ```
-
-The XML value may not have a key to convert JSON data. Hence, Ballerina uses a default key as a `#content` to handle this case.
-
-Let's consider this,
-```ballerina
-xml x3 = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">Book</ns0:bookStore>`;
-record{} result = check xmldata:toRecord(x3);
-```
-Output of this is,
-```ballerina
-{"ns0:bookStore":{"_xmlns_ns0":"http://sample.com/test","_status":"online","#content":"Book"}}
-```
-Here, `Book` does not have a key. So, JSON data introduces a key as `#content`. but it is not mapped to any field in the Ballerina record. If the user needs to convert these XML values to a Ballerina record, it should be an open record with other fields.
 
 #### 4.2.1 Sample
 
