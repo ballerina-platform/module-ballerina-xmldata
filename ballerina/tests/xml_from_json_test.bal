@@ -769,3 +769,87 @@ isolated function testWithAttribute3() {
         test:assertFail("failed to convert json to xml");
     }
 }
+
+type Order record {
+    Invoice Invoice;
+};
+
+type Invoice record {
+    PurchesedItems PurchesedItems;
+    Address1 Address;
+    string _xmlns?;
+    string _xmlns\:ns?;
+    string _attr?;
+    string _ns\:attr?;
+};
+
+type PurchesedItems record {
+    Purchase[] PLine;
+};
+
+type Purchase record {
+    string|ItemCode ItemCode;
+    int Count;
+};
+
+type ItemCode record {
+    string _discount;
+    string \#content;
+};
+
+type Address1 record {
+    string StreetAddress;
+    string City;
+    int Zip;
+    string Country;
+    string _xmlns?;
+};
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testfromjsonwithRecord() {
+    Order data = {
+        Invoice: {
+            PurchesedItems: {
+                PLine: [
+                    {ItemCode: "223345", Count: 10},
+                    {ItemCode: "223300", Count: 7},
+                    {
+                        ItemCode: {_discount: "22%", \#content: "200777"},
+                        Count: 7
+                    }
+                ]
+            },
+            Address: {
+                StreetAddress: "20, Palm grove, Colombo 3",
+                City: "Colombo",
+                Zip: 300,
+                Country: "LK"
+            },
+            "_attr": "attr-val",
+            "_xmlns": "example.com",
+            "_xmlns:ns": "ns.com"
+        }
+    };
+    string expected = "<Invoice xmlns=\"example.com\" xmlns:ns=\"ns.com\" attr=\"attr-val\">" +
+                            "<PurchesedItems>" +
+                                "<PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>" +
+                                "<PLine><ItemCode>223300</ItemCode><Count>7</Count></PLine>" +
+                                "<PLine><ItemCode discount=\"22%\">200777</ItemCode><Count>7</Count></PLine>" +
+                            "</PurchesedItems>" +
+                            "<Address>" +
+                                "<StreetAddress>20, Palm grove, Colombo 3</StreetAddress>" +
+                                "<City>Colombo</City>" +
+                                "<Zip>300</Zip>" +
+                                "<Country>LK</Country>" +
+                            "</Address>" +
+                        "</Invoice>";
+    json jsonData = data.toJson();
+    xml?|error result = fromJson(jsonData, {attributePrefix: "_"});
+    if result is xml {
+        test:assertEquals(result.toString(), expected.toString());
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}

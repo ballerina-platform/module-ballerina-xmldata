@@ -170,9 +170,9 @@ public class XmlToJson {
         return rootNode;
     }
 
-    private static void processAttributes(BXmlItem xmlItem, String attributePrefix,
-                                      BMap<BString, Object> mapData, AttributeManager attributeManager, Type type,
-                                          String uniqueKey, boolean preserveNamespaces) {
+    private static void processAttributes(BXmlItem xmlItem, String attributePrefix, BMap<BString, Object> mapData,
+                                          AttributeManager attributeManager, Type type, String uniqueKey,
+                                          boolean preserveNamespaces) {
         LinkedHashMap<String, String> tempAttributeMap =  new LinkedHashMap<>();
         if (attributeManager.getMap().isEmpty()) {
             tempAttributeMap = collectAttributesAndNamespaces(xmlItem, preserveNamespaces);

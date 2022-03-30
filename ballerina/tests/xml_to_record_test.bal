@@ -52,41 +52,6 @@ isolated function testToRecordWithEscapedString() returns error? {
     test:assertEquals(actual, expected, msg = "testToRecordWithEscapedString result incorrect");
 }
 
-type Order record {
-    Invoice Invoice;
-};
-
-type Invoice record {
-    PurchesedItems PurchesedItems;
-    Address1 Address;
-    string _xmlns?;
-    string _xmlns\:ns?;
-    string _attr?;
-    string _ns\:attr?;
-};
-
-type PurchesedItems record {
-    Purchase[] PLine;
-};
-
-type Purchase record {
-    string|ItemCode ItemCode;
-    int Count;
-};
-
-type ItemCode record {
-    string _discount;
-    string \#content;
-};
-
-type Address1 record {
-    string StreetAddress;
-    string City;
-    int Zip;
-    string Country;
-    string _xmlns?;
-};
-
 xml e2 = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
                 <PurchesedItems>
                     <PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>
