@@ -827,9 +827,9 @@ isolated function testfromjsonwithRecord() {
                 Zip: 300,
                 Country: "LK"
             },
-            "_attr": "attr-val",
-            "_xmlns": "example.com",
-            "_xmlns:ns": "ns.com"
+            _attr: "attr-val",
+            _xmlns: "example.com",
+            _xmlns\:ns: "ns.com"
         }
     };
     string expected = "<Invoice xmlns=\"example.com\" xmlns:ns=\"ns.com\" attr=\"attr-val\">" +
