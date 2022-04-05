@@ -55,8 +55,8 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
                 return xml ``;
             }
             json value = jMap.toArray()[0];
+            _ = check getNamespacesMap(value, namespaces, {}, options);
             if value is json[] {
-                _ = check getNamespacesMap(value, namespaces, {}, options);
                 return getElement("root", check traverseNode(value, namespaces, {}, options, jMap.keys()[0]),
                                 namespaces, check getAttributesMap(value, namespaces, options = options));
             } else {
