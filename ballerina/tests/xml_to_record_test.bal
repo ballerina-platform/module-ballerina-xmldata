@@ -159,7 +159,7 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() returns error?
         }
     };
     Order actual = check toRecord(e2, preserveNamespaces = false);
-    test:assertEquals(actual, expected, 
+    test:assertEquals(actual, expected,
                 msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces result incorrect");
 }
 
@@ -284,6 +284,34 @@ isolated function testToRecordWithMultipleAttributesAndNamespaces() returns Erro
     };
 
     r2 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithMultipleAttributesAndNamespaces result incorrect");
+}
+
+type r3 record {
+    Root3 Root;
+};
+
+type Root3 record {
+    string? _xmlns_ns;
+    string? _ns_x;
+    string? _x;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptinalValues() returns Error? {
+    xml x = xml `<Root xmlns:ns="ns.com" ns:x="y" x="z"/>`;
+
+    r3 expected = {
+        Root: {
+            _xmlns_ns: "ns.com",
+            _ns_x: "y",
+            _x: "z"
+        }
+    };
+
+    r3 actual = check toRecord(x);
     test:assertEquals(actual, expected, msg = "testToRecordWithMultipleAttributesAndNamespaces result incorrect");
 }
 
@@ -563,4 +591,70 @@ isolated function testToRecordNagativeClosedRecord() {
     } else {
         test:assertFail("testToRecordNagative result is not a mismatch");
     }
+}
+
+type emptyChild1 record {
+    foo1 foo;
+};
+
+type foo1 record {
+    int? bar;
+    string car;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptinalField2() returns error? {
+    xml x = xml `<foo><bar>2</bar><car></car></foo>`;
+    emptyChild1 expected = {foo: {bar: 2, car: ""}};
+
+    emptyChild1 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithEmptyChildren result incorrect");
+}
+
+type Root4 record {
+    Root5 Root;
+};
+
+type Root5 record {
+    int[]? A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptionalArrayValues() returns Error? {
+    xml x = xml `<Root><A>2</A><A>3</A><A>4</A></Root>`;
+    Root4 expected = {
+        Root: {
+            A: [2, 3, 4]
+        }
+    };
+
+    Root4 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordSameKeyArray result incorrect");
+}
+
+type Root6 record {
+    Root7 Root;
+};
+
+type Root7 record {
+    decimal[]? A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptionalArrayValues2() returns Error? {
+    xml x = xml `<Root><A>2.3</A><A>3.3</A><A>4.3</A></Root>`;
+    Root6 expected = {
+        Root: {
+            A: [2.3, 3.3, 4.3]
+        }
+    };
+
+    Root6 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordSameKeyArray result incorrect");
 }

@@ -37,6 +37,7 @@ import io.ballerina.runtime.api.values.BXmlSequence;
 import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -104,7 +105,7 @@ public class XmlToJson {
      */
     public static Object convertToJSON(BXml xml, String attributePrefix, boolean preserveNamespaces,
                                        AttributeManager attributeManager, Type type, String uniqueKey,
-                                       String namespaceDelimiter) {
+                                       String namespaceDelimiter) throws Exception {
         if (xml instanceof BXmlItem) {
             return convertElement((BXmlItem) xml, attributePrefix, preserveNamespaces, attributeManager, type,
                     uniqueKey, namespaceDelimiter);
@@ -137,7 +138,7 @@ public class XmlToJson {
      */
     private static Object convertElement(BXmlItem xmlItem, String attributePrefix,
                                          boolean preserveNamespaces, AttributeManager attributeManager, Type type,
-                                         String uniqueKey, String namespaceDelimiter) {
+                                         String uniqueKey, String namespaceDelimiter) throws Exception {
         BMap<BString, Object> childrenData = newJsonMap();
         processAttributes(xmlItem, attributePrefix, childrenData, attributeManager, type, uniqueKey,
                 namespaceDelimiter, preserveNamespaces);
@@ -173,8 +174,9 @@ public class XmlToJson {
     }
 
     private static void processAttributes(BXmlItem xmlItem, String attributePrefix,
-                                      BMap<BString, Object> mapData, AttributeManager attributeManager, Type type,
-                                          String uniqueKey, String namespaceDelimiter, boolean preserveNamespaces) {
+                                          BMap<BString, Object> mapData, AttributeManager attributeManager, Type type,
+                                          String uniqueKey, String namespaceDelimiter, boolean preserveNamespaces)
+            throws Exception {
         LinkedHashMap<String, String> tempAttributeMap =  new LinkedHashMap<>();
         if (attributeManager.getMap().isEmpty()) {
             tempAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter, preserveNamespaces);
@@ -196,14 +198,15 @@ public class XmlToJson {
     }
 
     private static void addAttributes(BMap<BString, Object> rootNode, String attributePrefix,
-                                      LinkedHashMap<String, String> attributeMap, Type type, String uniqueKey) {
+                                      LinkedHashMap<String, String> attributeMap, Type type, String uniqueKey)
+            throws Exception {
         for (Map.Entry<String, String> entry : attributeMap.entrySet()) {
             putAsFieldTypes(rootNode, attributePrefix + entry.getKey(), entry.getValue(), type, uniqueKey);
         }
     }
 
     private static void putAsFieldTypes(BMap<BString, Object> map, String key, String value, Type type,
-                                        String uniqueKey) {
+                                        String uniqueKey) throws Exception {
         if (type != null) {
             String[] keys = {};
             if (!uniqueKey.equals("")) {
@@ -222,19 +225,43 @@ public class XmlToJson {
                     }
                 }
             }
-            if (type instanceof ArrayType) {
-                valueType = ((ArrayType) type).getElementType().getName();
-            } else {
-                valueType = type.getName();
-            }
+            valueType = type.toString();
             switch (valueType) {
                 case "int":
-                    map.put(fromString(key), Long.parseLong(value));
+                case "int?":
+                case "int[]":
+                case "int[]?":
+                    try {
+                        map.put(fromString(key), Long.parseLong(value));
+                    } catch (Exception e) {
+                        getError(valueType, value);
+                    }
                     break;
                 case "float":
-                    map.put(fromString(key), Double.parseDouble(value));
+                case "float?":
+                case "float[]":
+                case "float[]?":
+                    try {
+                        map.put(fromString(key), Double.parseDouble(value));
+                    } catch (Exception e) {
+                        getError(valueType, value);
+                    }
+                    break;
+                case "decimal":
+                case "decimal?":
+                case "decimal[]":
+                case "decimal[]?":
+                    try {
+                        map.put(fromString(key),
+                                ValueCreator.createDecimalValue(BigDecimal.valueOf(Double.parseDouble(value))));
+                    } catch (Exception e) {
+                        getError(valueType, value);
+                    }
                     break;
                 case "boolean":
+                case "boolean?":
+                case "boolean[]":
+                case "boolean[]?":
                     map.put(fromString(key), Boolean.parseBoolean(value));
                     break;
                 default:
@@ -243,6 +270,10 @@ public class XmlToJson {
         } else {
             map.put(fromString(key), fromString(value));
         }
+    }
+
+    private static void getError(String valueType, String value) throws Exception {
+        throw new Exception("Error occurred when converting value:" + value + " to " + valueType);
     }
 
     private static void putAsBStrings(BMap<BString, Object> map, String key, Object value) {
@@ -259,7 +290,7 @@ public class XmlToJson {
      */
     private static Object convertBXmlSequence(BXmlSequence xmlSequence, String attributePrefix,
                                               boolean preserveNamespaces, AttributeManager attributeManager,
-                                              Type type, String uniqueKey, String namespaceDelimiter) {
+                                              Type type, String uniqueKey, String namespaceDelimiter) throws Exception {
         List<BXml> sequence = xmlSequence.getChildrenList();
         List<BXml> newSequence = new ArrayList<>();
         for (BXml value: sequence) {
@@ -277,7 +308,8 @@ public class XmlToJson {
 
     private static Object convertHeterogeneousSequence(String attributePrefix, boolean preserveNamespaces,
                                                        List<BXml> sequence, AttributeManager attributeManager,
-                                                       Type type, String uniqueKey, String namespaceDelimiter) {
+                                                       Type type, String uniqueKey, String namespaceDelimiter)
+            throws Exception {
         if (sequence.size() == 1) {
             return convertToJSON(sequence.get(0), attributePrefix, preserveNamespaces, attributeManager, type,
                     uniqueKey, namespaceDelimiter);
