@@ -186,13 +186,10 @@ public class XmlToJson {
             for (Map.Entry<String, String> entrySet : newAttributeMap.entrySet()) {
                 String key = entrySet.getKey();
                 String value = entrySet.getValue();
-                if (attributeMap.get(key) == null || !attributeMap.get(key).equals(value)) {
-                    setValue(attributeManager, tempAttributeMap, key, value);
-                }
-                if (key.startsWith(XMLNS) &&
+                if (isStartWithXMLNS(key) &&
                         (attributeMap.get(key) == null || !attributeMap.get(key).equals(value))) {
                     setValue(attributeManager, tempAttributeMap, key, value);
-                } else if (!key.startsWith(XMLNS)) {
+                } else if (!isStartWithXMLNS(key)) {
                     setValue(attributeManager, tempAttributeMap, key, value);
                 }
             }
@@ -204,6 +201,10 @@ public class XmlToJson {
                                  String key, String value) {
         attributeManager.setValue(key, value);
         tempAttributeMap.put(key, value);
+    }
+
+    private static boolean isStartWithXMLNS(String key) {
+        return key.startsWith(XMLNS);
     }
 
     private static void addAttributes(BMap<BString, Object> rootNode, String attributePrefix,
