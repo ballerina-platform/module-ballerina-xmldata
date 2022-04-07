@@ -43,11 +43,13 @@ public type JsonOptions record {
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
-    map<string> namespaces = {};
+    map<string> allNamespaces = {};
+    map<string> namespacesOfElem = {};
     if !isSingleNode(jsonValue) {
-        _ = check getNamespacesMap(jsonValue, namespaces, {}, options);
-        return getElement("root", check traverseNode(jsonValue, namespaces, {}, options), namespaces,
-                            check getAttributesMap(jsonValue, namespaces, options = options));
+        namespacesOfElem= check getNamespacesMap(jsonValue, {}, options);
+        addNamespaces(allNamespaces, namespacesOfElem);
+        return getElement("root", check traverseNode(jsonValue, allNamespaces, {}, options), allNamespaces,
+                            check getAttributesMap(jsonValue, allNamespaces, options = options));
     } else {
         map<json>|error jMap = jsonValue.ensureType();
         if jMap is map<json> {
@@ -55,18 +57,20 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
                 return xml ``;
             }
             json value = jMap.toArray()[0];
-            _ = check getNamespacesMap(value, namespaces, {}, options);
+            namespacesOfElem= check getNamespacesMap(value, {}, options);
+            addNamespaces(allNamespaces, namespacesOfElem);
             if value is json[] {
-                return getElement("root", check traverseNode(value, namespaces, {}, options, jMap.keys()[0]),
-                                namespaces, check getAttributesMap(value, namespaces, options = options));
+                return getElement("root", check traverseNode(value, allNamespaces, {}, options, jMap.keys()[0]),
+                                allNamespaces, check getAttributesMap(value, allNamespaces, options = options));
             } else {
                 string key = jMap.keys()[0];
                 if key == CONTENT {
                     return xml:createText(value.toString());
                 }
-                _ = check getNamespacesMap(value, namespaces, {}, options);
-                return getElement(jMap.keys()[0], check traverseNode(value, namespaces, {}, options), namespaces,
-                                check getAttributesMap(value, namespaces, options = options));
+                namespacesOfElem= check getNamespacesMap(value, {}, options);
+                addNamespaces(allNamespaces, namespacesOfElem);
+                return getElement(jMap.keys()[0], check traverseNode(value, allNamespaces, {}, options), allNamespaces,
+                                check getAttributesMap(value, allNamespaces, options = options));
             }
         }
         if jsonValue !is null {
@@ -77,10 +81,11 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
     }
 }
 
-isolated function traverseNode(json jNode, map<string> namespaces, map<string> parentNamespaces,
+isolated function traverseNode(json jNode, map<string> allNamespaces, map<string> parentNamespaces,
                                JsonOptions options = {}, string? key = ()) returns xml|Error {
     string arrayEntryTag = options.arrayEntryTag == "" ? "item" : options.arrayEntryTag;
     string attributePrefix = options.attributePrefix == "" ? "@" : options.attributePrefix;
+    map<string> namespacesOfElem = {};
     xml xNode = xml ``;
     if jNode is map<json> {
         foreach [string, json] [k, v] in jNode.entries() {
@@ -88,17 +93,17 @@ isolated function traverseNode(json jNode, map<string> namespaces, map<string> p
                 if k == CONTENT {
                     xNode += xml:createText(v.toString());
                 } else if v is json[] {
-                    xml node = check traverseNode(v, namespaces,
-                                                  check getNamespacesMap(v, namespaces, parentNamespaces, options),
-                                                  options, k);
+                    namespacesOfElem = check getNamespacesMap(v, parentNamespaces, options);
+                    addNamespaces(allNamespaces, namespacesOfElem);
+                    xml node = check traverseNode(v, allNamespaces, namespacesOfElem, options, k);
                     xNode += node;
                 } else {
-                    xml node = check getElement(
-                                        k, check traverseNode(v, namespaces,
-                                        check getNamespacesMap(v, namespaces, parentNamespaces, options), options),
-                                        namespaces,
-                                        check getAttributesMap(v, namespaces, parentNamespaces, options = options)
-                                    );
+                    namespacesOfElem = check getNamespacesMap(v, parentNamespaces, options);
+                    addNamespaces(allNamespaces, namespacesOfElem);
+                    xml node = check getElement(k, check traverseNode(v, allNamespaces, namespacesOfElem, options),
+                                                allNamespaces,
+                                                check getAttributesMap(v, allNamespaces, parentNamespaces,
+                                                        options = options));
                     xNode += node;
                 }
             }
@@ -111,9 +116,11 @@ isolated function traverseNode(json jNode, map<string> namespaces, map<string> p
             } else {
                 arrayEntryTagKey = arrayEntryTag;
             }
-            xml item = check getElement(arrayEntryTagKey, check traverseNode(i, namespaces,
-                                        check getNamespacesMap(i, namespaces, parentNamespaces, options)), namespaces,
-                                        check getAttributesMap(i, namespaces, parentNamespaces, options = options));
+            namespacesOfElem = check getNamespacesMap(i, parentNamespaces, options);
+            addNamespaces(allNamespaces, namespacesOfElem);
+            xml item = check getElement(arrayEntryTagKey, check traverseNode(i, allNamespaces, namespacesOfElem),
+                                        allNamespaces,
+                                        check getAttributesMap(i, allNamespaces, parentNamespaces, options = options));
             xNode += item;
         }
     } else {
@@ -193,7 +200,7 @@ isolated function getAttributesMap(json jTree, map<string> namespaces, map<strin
     return attributes;
 }
 
-isolated function getNamespacesMap(json jTree, map<string> allNamespaces, map<string> parentNamespaces = {},
+isolated function getNamespacesMap(json jTree, map<string> parentNamespaces = {},
                                     JsonOptions options = {}) returns map<string>|Error {
     string attributePrefix = options.attributePrefix == "" ? "@" : options.attributePrefix;
     map<string> namespaces = parentNamespaces.clone();
@@ -207,12 +214,17 @@ isolated function getNamespacesMap(json jTree, map<string> allNamespaces, map<st
                 if k.startsWith(attributePrefix + "xmlns") {
                     string prefix = k.substring(<int>k.indexOf(":") + 1);
                     namespaces[string `{${XMLNS_NAMESPACE_URI}}${prefix}`] = v.toString();
-                    allNamespaces[string `{${XMLNS_NAMESPACE_URI}}${prefix}`] = v.toString();
                 }
             }
         }
     }
     return namespaces;
+}
+
+isolated function addNamespaces(map<string> allNamespaces, map<string> namespaces) {
+    foreach [string, string] namespace in namespaces.entries() {
+        allNamespaces[namespace[0]] = namespace[1];
+    }
 }
 
 # Provides configurations for converting XML to JSON.
