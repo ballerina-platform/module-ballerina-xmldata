@@ -564,3 +564,58 @@ isolated function testToRecordNagativeClosedRecord() {
         test:assertFail("testToRecordNagative result is not a mismatch");
     }
 }
+
+type Root8 record {
+    FuelEvents s\:FuelEvents;
+};
+
+type FuelEvents record {
+    FuelEvent[] s\:FuelEvent;
+    string _xmlns_s;
+};
+
+type FuelEvent record {
+    int s\:odometerReading;
+    float s\:gallons;
+    float s\:gasPrice;
+    string _employeeId;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithSameAttribute() returns Error? {
+    xml x = xml `<s:FuelEvents xmlns:s="http://www.so2w.org">
+                     <s:FuelEvent employeeId="2312">
+                         <s:odometerReading>230</s:odometerReading>
+                         <s:gallons>18.561</s:gallons>
+                         <s:gasPrice>4.56</s:gasPrice>
+                     </s:FuelEvent>
+                     <s:FuelEvent employeeId="2312">
+                         <s:odometerReading>500</s:odometerReading>
+                         <s:gallons>19.345</s:gallons>
+                         <s:gasPrice>4.89</s:gasPrice>
+                     </s:FuelEvent>
+                 </s:FuelEvents>`;
+    Root8 expected = {
+        s\:FuelEvents: {
+            s\:FuelEvent: [{
+                    _employeeId: "2312",
+                    s\:odometerReading: 230,
+                    s\:gallons: 18.561,
+                    s\:gasPrice: 4.56
+                },
+                {
+                    _employeeId: "2312",
+                    s\:odometerReading: 500,
+                    s\:gallons: 19.345,
+                    s\:gasPrice: 4.89
+                }
+            ],
+            _xmlns_s: "http://www.so2w.org"
+        }
+    };
+
+    Root8 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithSameAttribute result incorrect");
+}

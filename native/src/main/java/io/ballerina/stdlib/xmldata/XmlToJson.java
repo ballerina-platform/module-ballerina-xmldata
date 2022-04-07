@@ -187,12 +187,23 @@ public class XmlToJson {
                 String key = entrySet.getKey();
                 String value = entrySet.getValue();
                 if (attributeMap.get(key) == null || !attributeMap.get(key).equals(value)) {
-                    attributeManager.setValue(key, value);
-                    tempAttributeMap.put(key, value);
+                    setValue(attributeManager, tempAttributeMap, key, value);
+                }
+                if (key.startsWith(XMLNS) &&
+                        (attributeMap.get(key) == null || !attributeMap.get(key).equals(value))) {
+                    setValue(attributeManager, tempAttributeMap, key, value);
+                } else if (!key.startsWith(XMLNS)) {
+                    setValue(attributeManager, tempAttributeMap, key, value);
                 }
             }
         }
         addAttributes(mapData, attributePrefix, tempAttributeMap, type, uniqueKey);
+    }
+
+    private static void setValue(AttributeManager attributeManager, LinkedHashMap<String, String> tempAttributeMap,
+                                 String key, String value) {
+        attributeManager.setValue(key, value);
+        tempAttributeMap.put(key, value);
     }
 
     private static void addAttributes(BMap<BString, Object> rootNode, String attributePrefix,
