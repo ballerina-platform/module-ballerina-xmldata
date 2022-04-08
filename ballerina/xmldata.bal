@@ -44,10 +44,8 @@ public type JsonOptions record {
 # successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
     map<string> allNamespaces = {};
-    map<string> namespacesOfElem = {};
     if !isSingleNode(jsonValue) {
-        namespacesOfElem= check getNamespacesMap(jsonValue, {}, options);
-        addNamespaces(allNamespaces, namespacesOfElem);
+        addNamespaces(allNamespaces, check getNamespacesMap(jsonValue, {}, options));
         return getElement("root", check traverseNode(jsonValue, allNamespaces, {}, options), allNamespaces,
                             check getAttributesMap(jsonValue, allNamespaces, options = options));
     } else {
@@ -57,8 +55,7 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
                 return xml ``;
             }
             json value = jMap.toArray()[0];
-            namespacesOfElem= check getNamespacesMap(value, {}, options);
-            addNamespaces(allNamespaces, namespacesOfElem);
+            addNamespaces(allNamespaces, check getNamespacesMap(value, {}, options));
             if value is json[] {
                 return getElement("root", check traverseNode(value, allNamespaces, {}, options, jMap.keys()[0]),
                                 allNamespaces, check getAttributesMap(value, allNamespaces, options = options));
@@ -67,8 +64,7 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
                 if key == CONTENT {
                     return xml:createText(value.toString());
                 }
-                namespacesOfElem= check getNamespacesMap(value, {}, options);
-                addNamespaces(allNamespaces, namespacesOfElem);
+                addNamespaces(allNamespaces, check getNamespacesMap(value, {}, options));
                 return getElement(jMap.keys()[0], check traverseNode(value, allNamespaces, {}, options), allNamespaces,
                                 check getAttributesMap(value, allNamespaces, options = options));
             }
