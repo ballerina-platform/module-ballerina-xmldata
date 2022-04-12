@@ -64,7 +64,6 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
                 if key == CONTENT {
                     return xml:createText(value.toString());
                 }
-                addNamespaces(allNamespaces, check getNamespacesMap(value, {}, options));
                 return getElement(jMap.keys()[0], check traverseNode(value, allNamespaces, {}, options), allNamespaces,
                                 check getAttributesMap(value, allNamespaces, options = options));
             }
@@ -88,19 +87,19 @@ isolated function traverseNode(json jNode, map<string> allNamespaces, map<string
             if !k.startsWith(attributePrefix) {
                 if k == CONTENT {
                     xNode += xml:createText(v.toString());
-                } else if v is json[] {
-                    namespacesOfElem = check getNamespacesMap(v, parentNamespaces, options);
-                    addNamespaces(allNamespaces, namespacesOfElem);
-                    xml node = check traverseNode(v, allNamespaces, namespacesOfElem, options, k);
-                    xNode += node;
                 } else {
                     namespacesOfElem = check getNamespacesMap(v, parentNamespaces, options);
                     addNamespaces(allNamespaces, namespacesOfElem);
-                    xml node = check getElement(k, check traverseNode(v, allNamespaces, namespacesOfElem, options),
-                                                allNamespaces,
-                                                check getAttributesMap(v, allNamespaces, parentNamespaces,
-                                                        options = options));
-                    xNode += node;
+                    if v is json[] {
+                        xml node = check traverseNode(v, allNamespaces, namespacesOfElem, options, k);
+                        xNode += node;
+                    } else {
+                        xml node = check getElement(k, check traverseNode(v, allNamespaces, namespacesOfElem, options),
+                                                    allNamespaces,
+                                                    check getAttributesMap(v, allNamespaces, parentNamespaces,
+                                                            options = options));
+                        xNode += node;
+                    }
                 }
             }
         }
@@ -179,13 +178,13 @@ isolated function getAttributesMap(json jTree, map<string> namespaces, map<strin
                 }
                 int? index = k.indexOf(":");
                 if index is int {
-                    string surfix = k.substring(index + 1);
+                    string suffix = k.substring(index + 1);
                     if k.startsWith(attributePrefix + "xmlns") {
-                        attributes[string `{${XMLNS_NAMESPACE_URI}}${surfix}`] = v.toString();
+                        attributes[string `{${XMLNS_NAMESPACE_URI}}${suffix}`] = v.toString();
                     } else {
                         string prefix = k.substring(1, index);
                         string namespaceUrl = namespaces.get(string `{${XMLNS_NAMESPACE_URI}}${prefix}`);
-                        attributes[string `{${namespaceUrl}}${surfix}`] = v.toString();
+                        attributes[string `{${namespaceUrl}}${suffix}`] = v.toString();
                     }
                 } else {
                     attributes[k.substring(1)] = v.toString();
