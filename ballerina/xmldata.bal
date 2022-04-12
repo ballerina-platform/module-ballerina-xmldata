@@ -43,13 +43,9 @@ public type JsonOptions record {
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
-    JsonOptions newOptions = {
-        arrayEntryTag: options.arrayEntryTag == "" ? "item" : options.arrayEntryTag,
-        attributePrefix: options.attributePrefix == "" ? "@" : options.attributePrefix
-    };
     if !isSingleNode(jsonValue) {
-        return getElement("root", check traverseNode(jsonValue, {}, newOptions), newOptions,
-                           check getAttributesMap(jsonValue, newOptions));
+        return getElement("root", check traverseNode(jsonValue, {}, options), options,
+                           check getAttributesMap(jsonValue, options));
     } else {
         map<json>|error jMap = jsonValue.ensureType();
         if jMap is map<json> {
@@ -58,15 +54,15 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
             }
             json value = jMap.toArray()[0];
             if value is json[] {
-                return getElement("root", check traverseNode(value, {}, newOptions, jMap.keys()[0]), newOptions,
-                                check getAttributesMap(value, newOptions));
+                return getElement("root", check traverseNode(value, {}, options, jMap.keys()[0]), options,
+                                check getAttributesMap(value, options));
             } else {
                 string key = jMap.keys()[0];
                 if key == CONTENT {
                     return xml:createText(value.toString());
                 }
-                return getElement(jMap.keys()[0], check traverseNode(value, {}, newOptions), newOptions,
-                                check getAttributesMap(value, newOptions));
+                return getElement(jMap.keys()[0], check traverseNode(value, {}, options), options,
+                                check getAttributesMap(value, options));
             }
         }
         if jsonValue !is null {
