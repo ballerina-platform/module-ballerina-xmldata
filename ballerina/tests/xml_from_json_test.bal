@@ -770,6 +770,147 @@ isolated function testWithAttribute3() {
     }
 }
 
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testWithAttribute4() {
+    json j = {
+        "soapenv:Envelope": {
+            "soapenv:Header": {
+                "applicationInfo": {
+                    "applicationId": "testID123"
+                },
+                "tokenPassport": {
+                    "account": "testvalueaccount",
+                    "consumerKey": "testvalueconsumerKey",
+                    "token": "testvaluetoken",
+                    "nonce": "testvaluenonce",
+                    "timestamp": "testvaluetimestamp",
+                    "signature": {
+                        "#content": "Value123",
+                        "@algorithm": "HMA_SHA256"
+                    }
+                }
+            },
+            "soapenv:Body": {
+                "urn:get": {
+                    "urn:baseRef": {
+                        "internalId": "valueID",
+                        "type": "vendor",
+                         "@xsi:type": "urn1:RecordRef"
+                    }
+                }
+            },
+            "@xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+            "@xmlns:urn": "urn:messages_2020_2.platform.webservices.netsuite.com",
+            "@xmlns:urn1": "urn:core_2020_2.platform.webservices.netsuite.com",
+            "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance"
+        }
+    };
+    string expected = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                        "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
+                        "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\" " +
+                        "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+                            "<soapenv:Header>" +
+                                "<applicationInfo>" +
+                                    "<applicationId>testID123</applicationId>" +
+                                "</applicationInfo>" +
+                                "<tokenPassport>" +
+                                    "<account>testvalueaccount</account>" +
+                                    "<consumerKey>testvalueconsumerKey</consumerKey>" +
+                                    "<token>testvaluetoken</token>" +
+                                    "<nonce>testvaluenonce</nonce>" +
+                                    "<timestamp>testvaluetimestamp</timestamp>" +
+                                    "<signature algorithm=\"HMA_SHA256\">Value123</signature>" +
+                                "</tokenPassport>" +
+                            "</soapenv:Header>" +
+                            "<soapenv:Body>" +
+                                "<urn:get>" +
+                                    "<urn:baseRef xsi:type=\"urn1:RecordRef\">" +
+                                        "<internalId>valueID</internalId>" +
+                                        "<type>vendor</type>" +
+                                    "</urn:baseRef>" +
+                                "</urn:get>" +
+                            "</soapenv:Body>" +
+                        "</soapenv:Envelope>";
+    xml|Error? x = fromJson(j);
+    if x is xml {
+        test:assertEquals(x.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testWithAttribute5() {
+    json j = {
+        "soapenv:Envelope": {
+            "soapenv:Header": {
+                "applicationInfo": {
+                    "applicationId": "testID123"
+                },
+                "tokenPassport": {
+                    "account": "testvalueaccount",
+                    "consumerKey": "testvalueconsumerKey",
+                    "token": "testvaluetoken",
+                    "nonce": "testvaluenonce",
+                    "timestamp": "testvaluetimestamp",
+                    "signature": {
+                        "#content": "Value123",
+                        "@algorithm": "HMA_SHA256"
+                    }
+                }
+            },
+            "soapenv:Body": {
+                "urn:get": {
+                    "urn:baseRef": {
+                        "internalId": "valueID",
+                        "type": "vendor",
+                         "@xsi:type": "urn1:RecordRef"
+                    }
+                },
+                "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance"
+            },
+            "@xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+            "@xmlns:urn": "urn:messages_2020_2.platform.webservices.netsuite.com",
+            "@xmlns:urn1": "urn:core_2020_2.platform.webservices.netsuite.com"
+        }
+    };
+    string expected = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                        "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
+                        "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\">" +
+                            "<soapenv:Header>" +
+                                "<applicationInfo>" +
+                                    "<applicationId>testID123</applicationId>" +
+                                "</applicationInfo>" +
+                                "<tokenPassport>" +
+                                    "<account>testvalueaccount</account>" +
+                                    "<consumerKey>testvalueconsumerKey</consumerKey>" +
+                                    "<token>testvaluetoken</token>" +
+                                    "<nonce>testvaluenonce</nonce>" +
+                                    "<timestamp>testvaluetimestamp</timestamp>" +
+                                    "<signature algorithm=\"HMA_SHA256\">Value123</signature>" +
+                                "</tokenPassport>" +
+                            "</soapenv:Header>" +
+                            "<soapenv:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+                                "<urn:get>" +
+                                    "<urn:baseRef xsi:type=\"urn1:RecordRef\">" +
+                                        "<internalId>valueID</internalId>" +
+                                        "<type>vendor</type>" +
+                                    "</urn:baseRef>" +
+                                "</urn:get>" +
+                            "</soapenv:Body>" +
+                        "</soapenv:Envelope>";
+    xml|Error? x = fromJson(j);
+    if x is xml {
+        test:assertEquals(x.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
 type Order record {
     Invoice Invoice;
 };
@@ -849,6 +990,61 @@ isolated function testfromjsonwithRecord() {
     xml?|error result = fromJson(jsonData, {attributePrefix: "_"});
     if result is xml {
         test:assertEquals(result.toString(), expected.toString());
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+type TemplateGetOperation record {
+   record{
+       record{} 'soapenv\:Header;
+       record{
+           record{
+               record{
+                   string 'urn1\:name;
+               } 'urn\:baseRef;
+           } 'urn\:get;
+       } 'soapenv\:Body;
+       string _xmlns\:soapenv = "http://schemas.xmlsoap.org/soap/envelope/";
+       string _xmlns\:urn = "urn:messages_2020_2.platform.webservices.netsuite.com";
+       string _xmlns\:urn1 = "urn:core_2020_2.platform.webservices.netsuite.com";
+   } 'soapenv\:Envelope;
+};
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testfromjsonwithRecord1() {
+    TemplateGetOperation gettemp = {
+       'soapenv\:Envelope : {
+           'soapenv\:Header: {"Authorization" : 35},
+           'soapenv\:Body: {
+               urn\:get: {
+                   'urn\:baseRef: {
+                       'urn1\:name: "details"
+                   }
+               }
+           }
+       }
+    };
+    json jsonData = gettemp.toJson();
+    string expected = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                      "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
+                      "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\">" +
+                        "<soapenv:Header>" +
+    	                    "<Authorization>35</Authorization>" +
+                        "</soapenv:Header>" +
+                        "<soapenv:Body>"  +
+                            "<urn:get>" +
+                                "<urn:baseRef>" +
+                                    "<urn1:name>details</urn1:name>" +
+                                "</urn:baseRef>" +
+                            "</urn:get>" +
+                        "</soapenv:Body>" +
+                      "</soapenv:Envelope>";
+    xml?|error result = fromJson(jsonData, {attributePrefix: "_"});
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
     } else {
         test:assertFail("failed to convert json to xml");
     }
