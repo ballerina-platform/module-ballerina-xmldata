@@ -40,7 +40,6 @@ import io.ballerina.runtime.api.values.BXmlSequence;
 import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
-import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -67,10 +66,12 @@ public class XmlToJson {
     private static final String CONTENT = "#content";
     private static final String EMPTY_STRING = "";
     private static final ArrayType JSON_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
+    private static final ArrayType MAP_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_MAP);
     private static final ArrayType DECIMAL_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
     private static final ArrayType BOOLEAN_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
     private static final ArrayType FLOAT_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
     private static final ArrayType LONG_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
+    private static final ArrayType STRING_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING);
     public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_NS_URI_PREFIX.length();
     private static final String COLON = ":";
     private static final String UNDERSCORE = "_";
@@ -125,14 +126,14 @@ public class XmlToJson {
             Object seq = convertBXmlSequence(xmlSequence, attributePrefix, preserveNamespaces, attributeManager, type,
                     uniqueKey);
             if (seq == null) {
-                return newJsonList();
+                return newJsonList(type);
             }
             return seq;
         } else if (xml.getNodeType().equals(XmlNodeType.TEXT)) {
             return JsonUtils.parse(DOUBLE_QUOTES + xml.stringValue(null).replace(DOUBLE_QUOTES,
                     "\\\"") + DOUBLE_QUOTES);
         } else {
-            return newJsonMap();
+            return getMap(type);
         }
     }
 
@@ -147,14 +148,14 @@ public class XmlToJson {
     private static Object convertElement(BXmlItem xmlItem, String attributePrefix,
                                          boolean preserveNamespaces, AttributeManager attributeManager, Type type,
                                          List<String> uniqueKey) throws Exception {
-        BMap<BString, Object> childrenData = newJsonMap();
+        BMap<BString, Object> childrenData = getMap(type);
         List<String> uKeyValue = getUniqueKey(xmlItem, preserveNamespaces, uniqueKey);
         processAttributes(xmlItem, attributePrefix, childrenData, attributeManager, type, uniqueKey,
                 preserveNamespaces);
         String keyValue = getElementKey(xmlItem, preserveNamespaces);
         Object children = convertBXmlSequence(xmlItem.getChildrenSeq(), attributePrefix,
                 preserveNamespaces, attributeManager, type, uKeyValue);
-        BMap<BString, Object> rootNode = newJsonMap();
+        BMap<BString, Object> rootNode = getMap(type);
         if (childrenData.size() > 0) {
             if (children instanceof BMap) {
                 BMap<BString, Object> data = (BMap<BString, Object>) children;
@@ -360,14 +361,14 @@ public class XmlToJson {
             return convertToJSON(sequence.get(0), attributePrefix, preserveNamespaces, attributeManager, type,
                                  uniqueKey);
         }
-        BMap<BString, Object> mapJson = newJsonMap();
+        BMap<BString, Object> mapJson = getMap(type);
         for (BXml bxml : sequence) {
             if (isCommentOrPi(bxml)) {
                 continue;
             } else if (bxml.getNodeType() == XmlNodeType.TEXT) {
                 if (mapJson.containsKey(fromString(CONTENT))) {
                     if (mapJson.get(fromString(CONTENT)) instanceof BString) {
-                        BArray jsonList = newJsonList();
+                        BArray jsonList = newJsonList(type);
                         jsonList.append(mapJson.get(fromString(CONTENT)));
                         jsonList.append(fromString(bxml.toString().trim()));
                         mapJson.put(fromString(CONTENT), jsonList);
@@ -391,40 +392,23 @@ public class XmlToJson {
                     ((BArray) value).append(result);
                     mapJson.put(elementName, value);
                 } else {
-                    if (type == null) {
-                        BArray jsonList = newJsonList();
-                        jsonList.append(value);
-                        jsonList.append(result);
-                        mapJson.put(elementName, jsonList);
+                    BArray arr;
+                    if (value instanceof Long) {
+                        arr = ValueCreator.createArrayValue(LONG_ARRAY_TYPE);
+                    } else if (value instanceof Boolean) {
+                        arr = ValueCreator.createArrayValue(BOOLEAN_ARRAY_TYPE);
+                    } else if (value instanceof Double) {
+                        arr = ValueCreator.createArrayValue(FLOAT_ARRAY_TYPE);
+                    } else if (value.getClass().getCanonicalName().contains("DecimalValue")) {
+                        arr = ValueCreator.createArrayValue(DECIMAL_ARRAY_TYPE);
+                    } else if (value instanceof BString) {
+                        arr = ValueCreator.createArrayValue(STRING_ARRAY_TYPE);
                     } else {
-                        BArray arr = null;
-                        if (value instanceof Long) {
-                            arr = ValueCreator.createArrayValue(LONG_ARRAY_TYPE);
-                            arr.append(value);
-                            arr.append(result);
-                        } else if (value instanceof Boolean) {
-                            arr = ValueCreator.createArrayValue(BOOLEAN_ARRAY_TYPE);
-                            arr.append(value);
-                            arr.append(result);
-                        } else if (value instanceof Double) {
-                            arr = ValueCreator.createArrayValue(FLOAT_ARRAY_TYPE);
-                            arr.append(value);
-                            arr.append(result);
-                        } else if (value.getClass().getCanonicalName().contains("DecimalValue")) {
-                            arr = ValueCreator.createArrayValue(DECIMAL_ARRAY_TYPE);
-                            arr.append(value);
-                            arr.append(result);
-                        } else {
-                            PrintStream asd = System.out;
-                            asd.println("@@@@@@@@@@@@");
-                            asd.println();
-                            asd.println(result.getClass());
-                            arr = newJsonList();
-                            arr.append(value);
-                            arr.append(result);
-                        }
-                        mapJson.put(elementName, arr);
+                        arr = newJsonList(type);
                     }
+                    arr.append(value);
+                    arr.append(result);
+                    mapJson.put(elementName, arr);
                 }
             }
         }
@@ -447,12 +431,18 @@ public class XmlToJson {
         return bxml.getNodeType() == XmlNodeType.COMMENT || bxml.getNodeType() == XmlNodeType.PI;
     }
 
-    private static BArray newJsonList() {
-        return ValueCreator.createArrayValue(JSON_ARRAY_TYPE);
+    private static BArray newJsonList(Type type) {
+        if (type == null) {
+            return ValueCreator.createArrayValue(JSON_ARRAY_TYPE);
+        }
+        return ValueCreator.createArrayValue(MAP_ARRAY_TYPE);
     }
 
-    private static BMap<BString, Object> newJsonMap() {
-        return ValueCreator.createMapValue(JSON_MAP_TYPE);
+    private static BMap<BString, Object> getMap(Type type) {
+        if (type == null) {
+            return ValueCreator.createMapValue(TypeCreator.createMapType(JSON_MAP_TYPE));
+        }
+        return ValueCreator.createRecordValue((RecordType) type);
     }
 
     /**

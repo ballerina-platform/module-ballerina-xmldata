@@ -18,14 +18,10 @@
 
 package io.ballerina.stdlib.xmldata;
 
-import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
-import org.ballerinalang.langlib.value.CloneWithType;
-
-import java.util.Map;
 
 import static io.ballerina.stdlib.xmldata.XmlToJson.toJson;
 
@@ -43,37 +39,9 @@ public class XmlToRecord {
                 return XmlDataUtils.getError("xml type mismatch with record type: " +
                         ((BError) jsonObject).getErrorMessage());
             }
-
-            Object record = CloneWithType.convert(type.getDescribingType(), jsonObject);
-            if (record instanceof BError) {
-                return XmlDataUtils.getError("xml type mismatch with record type: " +
-                        ((Map) ((BError) record).getDetails()).get(StringUtils.fromString("message")).toString());
-            }
-            return record;
+            return jsonObject;
         } catch (Exception e) {
             return XmlDataUtils.getError("failed to convert xml to record type: " + e.getMessage());
         }
     }
-
-//    private static void addField(Object jsonObject, Type type) {
-//        String fieldName = type.getName();
-//        Map<String, Field> fields = null;
-//        if (type instanceof RecordType) {
-//            fields = ((RecordType) type).getFields();
-//        } else if (type instanceof ArrayType) {
-//            fields = ((RecordType) ((ArrayType) type).getElementType()).getFields();
-//        }
-//
-//        for (Map.Entry<String, Field> entry : fields.entrySet()) {
-//            Type fieldType = entry.getValue().getFieldType();
-//            if (fieldType instanceof RecordType) {
-//                XmlToJson.getFields(entry.getValue().getFieldType());
-//            } else if (fieldType instanceof ArrayType) {
-//                XmlToJson.getFields(entry.getValue().getFieldType());
-//            } else if (fieldType instanceof UnionType || fieldType.getTag() == TypeTags.UNION_TAG) {
-//                UnionType bUnionType = (UnionType) fieldType;
-//
-//            }
-//        }
-//    }
 }
