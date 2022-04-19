@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.constants.TypeConstants;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.XmlNodeType;
@@ -341,7 +342,7 @@ public class XmlToJson {
     }
 
     private static BMap<BString, Object> newJsonMap() {
-        return ValueCreator.createMapValue(JSON_MAP_TYPE);
+        return ValueCreator.createMapValue(TypeCreator.createMapType(JSON_MAP_TYPE));
     }
 
     /**
