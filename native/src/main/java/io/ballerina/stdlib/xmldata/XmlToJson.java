@@ -19,12 +19,15 @@
 package io.ballerina.stdlib.xmldata;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.constants.TypeConstants;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.types.XmlNodeType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -37,6 +40,7 @@ import io.ballerina.runtime.api.values.BXmlSequence;
 import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
+import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -63,6 +67,10 @@ public class XmlToJson {
     private static final String CONTENT = "#content";
     private static final String EMPTY_STRING = "";
     private static final ArrayType JSON_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
+    private static final ArrayType DECIMAL_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
+    private static final ArrayType BOOLEAN_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
+    private static final ArrayType FLOAT_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
+    private static final ArrayType LONG_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
     public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_NS_URI_PREFIX.length();
     private static final String COLON = ":";
     private static final String UNDERSCORE = "_";
@@ -80,7 +88,7 @@ public class XmlToJson {
                     .getValue();
             boolean preserveNamespaces = ((Boolean) options.get(StringUtils.fromString(Constants.OPTIONS_PRESERVE_NS)));
             return convertToJSON(xml, attributePrefix, preserveNamespaces, new AttributeManager(),
-                    null, "", COLON);
+                    null, new ArrayList<String>());
         } catch (Exception e) {
             return XmlDataUtils.getError(e.getMessage());
         }
@@ -88,8 +96,8 @@ public class XmlToJson {
 
     public static Object toJson(BXml xml, boolean preserveNamespaces, Type type) {
         try {
-            return convertToJSON(xml, UNDERSCORE, preserveNamespaces, new AttributeManager(),
-                    type, "", UNDERSCORE);
+            return convertToJSON(xml, UNDERSCORE, preserveNamespaces, new AttributeManager(), type,
+                    new ArrayList<String>());
         } catch (Exception e) {
             return XmlDataUtils.getError(e.getMessage());
         }
@@ -104,18 +112,18 @@ public class XmlToJson {
      * @return JSON representation of the given xml object
      */
     public static Object convertToJSON(BXml xml, String attributePrefix, boolean preserveNamespaces,
-                                       AttributeManager attributeManager, Type type, String uniqueKey,
-                                       String namespaceDelimiter) throws Exception {
+                                       AttributeManager attributeManager, Type type,
+                                       List<String> uniqueKey) throws Exception {
         if (xml instanceof BXmlItem) {
             return convertElement((BXmlItem) xml, attributePrefix, preserveNamespaces, attributeManager, type,
-                    uniqueKey, namespaceDelimiter);
+                    uniqueKey);
         } else if (xml instanceof BXmlSequence) {
             BXmlSequence xmlSequence = (BXmlSequence) xml;
             if (xmlSequence.isEmpty()) {
                 return StringUtils.fromString(EMPTY_STRING);
             }
             Object seq = convertBXmlSequence(xmlSequence, attributePrefix, preserveNamespaces, attributeManager, type,
-                    uniqueKey, namespaceDelimiter);
+                    uniqueKey);
             if (seq == null) {
                 return newJsonList();
             }
@@ -138,14 +146,14 @@ public class XmlToJson {
      */
     private static Object convertElement(BXmlItem xmlItem, String attributePrefix,
                                          boolean preserveNamespaces, AttributeManager attributeManager, Type type,
-                                         String uniqueKey, String namespaceDelimiter) throws Exception {
+                                         List<String> uniqueKey) throws Exception {
         BMap<BString, Object> childrenData = newJsonMap();
+        List<String> uKeyValue = getUniqueKey(xmlItem, preserveNamespaces, uniqueKey);
         processAttributes(xmlItem, attributePrefix, childrenData, attributeManager, type, uniqueKey,
-                namespaceDelimiter, preserveNamespaces);
-        String uKeyValue = getUniqueKey(xmlItem, preserveNamespaces, uniqueKey);
+                preserveNamespaces);
         String keyValue = getElementKey(xmlItem, preserveNamespaces);
         Object children = convertBXmlSequence(xmlItem.getChildrenSeq(), attributePrefix,
-                preserveNamespaces, attributeManager, type, uKeyValue, namespaceDelimiter);
+                preserveNamespaces, attributeManager, type, uKeyValue);
         BMap<BString, Object> rootNode = newJsonMap();
         if (childrenData.size() > 0) {
             if (children instanceof BMap) {
@@ -154,16 +162,22 @@ public class XmlToJson {
                     data.put(entry.getKey(), entry.getValue());
                 }
                 putAsBStrings(rootNode, keyValue, data);
+                uniqueKey.remove(uniqueKey.size() - 1);
             } else if (children == null) {
                 putAsBStrings(rootNode, keyValue, childrenData);
+                uniqueKey.remove(uniqueKey.size() - 1);
             } else if (children instanceof BString) {
+                uniqueKey.add(CONTENT);
                 putAsFieldTypes(childrenData, CONTENT, children.toString().trim(), type, uKeyValue);
+                uniqueKey.remove(CONTENT);
                 putAsBStrings(rootNode, keyValue, childrenData);
+                uniqueKey.remove(uniqueKey.size() - 1);
                 return rootNode;
             }
         } else {
             if (children instanceof BMap) {
                 putAsBStrings(rootNode, keyValue, children);
+                uniqueKey.remove(uniqueKey.size() - 1);
             } else if (children == null) {
                 putAsFieldTypes(rootNode, keyValue, EMPTY_STRING, type, uKeyValue);
             } else if (children instanceof BString) {
@@ -173,17 +187,15 @@ public class XmlToJson {
         return rootNode;
     }
 
-    private static void processAttributes(BXmlItem xmlItem, String attributePrefix,
-                                          BMap<BString, Object> mapData, AttributeManager attributeManager, Type type,
-                                          String uniqueKey, String namespaceDelimiter, boolean preserveNamespaces)
-            throws Exception {
+    private static void processAttributes(BXmlItem xmlItem, String attributePrefix, BMap<BString, Object> mapData,
+                                          AttributeManager attributeManager, Type type, List<String> uniqueKey,
+                                          boolean preserveNamespaces) throws Exception {
         LinkedHashMap<String, String> tempAttributeMap =  new LinkedHashMap<>();
         if (attributeManager.getMap().isEmpty()) {
-            tempAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter, preserveNamespaces);
+            tempAttributeMap = collectAttributesAndNamespaces(xmlItem, preserveNamespaces);
             attributeManager.initializeMap(tempAttributeMap);
         } else {
-            LinkedHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem, namespaceDelimiter,
-                    preserveNamespaces);
+            LinkedHashMap<String, String> newAttributeMap = collectAttributesAndNamespaces(xmlItem, preserveNamespaces);
             LinkedHashMap<String, String> attributeMap = attributeManager.getMap();
             for (Map.Entry<String, String> entrySet : newAttributeMap.entrySet()) {
                 String key = entrySet.getKey();
@@ -198,86 +210,121 @@ public class XmlToJson {
     }
 
     private static void addAttributes(BMap<BString, Object> rootNode, String attributePrefix,
-                                      LinkedHashMap<String, String> attributeMap, Type type, String uniqueKey)
-            throws Exception {
+                                      LinkedHashMap<String, String> attributeMap, Type type,
+                                      List<String> uniqueKey) throws Exception {
         for (Map.Entry<String, String> entry : attributeMap.entrySet()) {
-            putAsFieldTypes(rootNode, attributePrefix + entry.getKey(), entry.getValue(), type, uniqueKey);
+            String key = attributePrefix + entry.getKey();
+            uniqueKey.add(key);
+            putAsFieldTypes(rootNode, key, entry.getValue(), type, uniqueKey);
         }
     }
 
     private static void putAsFieldTypes(BMap<BString, Object> map, String key, String value, Type type,
-                                        String uniqueKey) throws Exception {
+                                        List<String> uniqueKey) throws Exception {
         if (type != null) {
-            String[] keys = {};
-            if (!uniqueKey.equals("")) {
-                keys = uniqueKey.split("\\.");
-            }
-            String valueType;
-
-            for (String k : keys) {
-                if (type instanceof RecordType) {
-                    if (((RecordType) type).getFields().get(k) != null) {
-                        type = ((RecordType) type).getFields().get(k).getFieldType();
-                    }
-                } else if (type instanceof ArrayType) {
-                    if (((RecordType) ((ArrayType) type).getElementType()).getFields().get(k) != null) {
-                        type = ((RecordType) ((ArrayType) type).getElementType()).getFields().get(k).getFieldType();
+            Type fieldType = getFieldType(type, uniqueKey);
+            uniqueKey.remove(key);
+            if (fieldType instanceof UnionType || fieldType.getTag() == TypeTags.UNION_TAG) {
+                UnionType bUnionType = (UnionType) fieldType;
+                for (Type memberType : bUnionType.getMemberTypes()) {
+                    try {
+                        if (convertToRecordType(map, memberType.toString(), key, value)) {
+                            break;
+                        }
+                    } catch (Exception e) {
+                        continue;
                     }
                 }
-            }
-            valueType = type.toString();
-            switch (valueType) {
-                case "int":
-                case "int?":
-                case "int[]":
-                case "int[]?":
-                    try {
-                        map.put(fromString(key), Long.parseLong(value));
-                    } catch (Exception e) {
-                        getError(valueType, value);
-                    }
-                    break;
-                case "float":
-                case "float?":
-                case "float[]":
-                case "float[]?":
-                    try {
-                        map.put(fromString(key), Double.parseDouble(value));
-                    } catch (Exception e) {
-                        getError(valueType, value);
-                    }
-                    break;
-                case "decimal":
-                case "decimal?":
-                case "decimal[]":
-                case "decimal[]?":
-                    try {
-                        map.put(fromString(key),
-                                ValueCreator.createDecimalValue(BigDecimal.valueOf(Double.parseDouble(value))));
-                    } catch (Exception e) {
-                        getError(valueType, value);
-                    }
-                    break;
-                case "boolean":
-                case "boolean?":
-                case "boolean[]":
-                case "boolean[]?":
-                    map.put(fromString(key), Boolean.parseBoolean(value));
-                    break;
-                default:
-                    map.put(fromString(key), fromString(value));
+            } else {
+                convertToRecordType(map, fieldType.toString(), key, value);
             }
         } else {
             map.put(fromString(key), fromString(value));
         }
     }
 
-    private static void getError(String valueType, String value) throws Exception {
-        throw new Exception("Error occurred when converting value:" + value + " to " + valueType);
+    public static Type getFieldType(Type type, List<String> uniqueKey) {
+        if (type.toString().contains("record {| anydata...; |}")) {
+            return type;
+        }
+        Map<String, Field> fields = getFields(type);
+        int i = 0;
+        while (i < uniqueKey.size() - 1) {
+            String key = uniqueKey.get(i);
+            Type fieldType = fields.get(key).getFieldType();
+            if (fieldType instanceof UnionType || fieldType.getTag() == TypeTags.UNION_TAG) {
+                UnionType bUnionType = (UnionType) fieldType;
+                for (Type memberType : bUnionType.getMemberTypes()) {
+                    fields = getFields(memberType);
+                    if (fields != null && fields.get(key) != null) {
+                        break;
+                    }
+                }
+            } else {
+                fields = getFields(fields.get(key).getFieldType());
+            }
+            i++;
+        }
+        if (fields.containsKey(uniqueKey.get(i))) {
+            return fields.get(uniqueKey.get(i)).getFieldType();
+        }
+        return type;
+    }
+
+    public static Map<String, Field> getFields(Type type) {
+        Map<String, Field> fields = null;
+        if (type instanceof RecordType) {
+            fields = ((RecordType) type).getFields();
+        } else if (type instanceof ArrayType) {
+            fields = ((RecordType) ((ArrayType) type).getElementType()).getFields();
+        }
+        return fields;
     }
 
     private static void putAsBStrings(BMap<BString, Object> map, String key, Object value) {
         map.put(fromString(key), value);
+    }
+
+    private static boolean convertToRecordType(BMap<BString, Object> map, String valueType, String key, String value)
+            throws Exception {
+        try {
+            switch (valueType) {
+                case "int":
+                case "int?":
+                case "int[]":
+                case "int[]?":
+                    map.put(fromString(key), Long.parseLong(value));
+                    return true;
+                case "float":
+                case "float?":
+                case "float[]":
+                case "float[]?":
+                    map.put(fromString(key), Double.parseDouble(value));
+                    return true;
+                case "decimal":
+                case "decimal?":
+                case "decimal[]":
+                case "decimal[]?":
+                    map.put(fromString(key), ValueCreator.createDecimalValue(
+                            BigDecimal.valueOf(Double.parseDouble(value))));
+                    return true;
+                case "boolean":
+                case "boolean?":
+                case "boolean[]":
+                case "boolean[]?":
+                    map.put(fromString(key), Boolean.parseBoolean(value));
+                    return true;
+                case "string":
+                case "string?":
+                case "string[]":
+                case "string[]?":
+                default:
+                    map.put(fromString(key), fromString(value));
+                    return true;
+            }
+        } catch (NumberFormatException e) {
+            throw new Exception("Error occurred when converting value:" + value + " to " + valueType);
+        }
     }
 
     /**
@@ -290,7 +337,7 @@ public class XmlToJson {
      */
     private static Object convertBXmlSequence(BXmlSequence xmlSequence, String attributePrefix,
                                               boolean preserveNamespaces, AttributeManager attributeManager,
-                                              Type type, String uniqueKey, String namespaceDelimiter) throws Exception {
+                                              Type type, List<String> uniqueKey) throws Exception {
         List<BXml> sequence = xmlSequence.getChildrenList();
         List<BXml> newSequence = new ArrayList<>();
         for (BXml value: sequence) {
@@ -303,16 +350,15 @@ public class XmlToJson {
             return null;
         }
         return convertHeterogeneousSequence(attributePrefix, preserveNamespaces, newSequence, attributeManager, type,
-                uniqueKey, namespaceDelimiter);
+                                            uniqueKey);
     }
 
     private static Object convertHeterogeneousSequence(String attributePrefix, boolean preserveNamespaces,
                                                        List<BXml> sequence, AttributeManager attributeManager,
-                                                       Type type, String uniqueKey, String namespaceDelimiter)
-            throws Exception {
+                                                       Type type, List<String> uniqueKey) throws Exception {
         if (sequence.size() == 1) {
             return convertToJSON(sequence.get(0), attributePrefix, preserveNamespaces, attributeManager, type,
-                    uniqueKey, namespaceDelimiter);
+                                 uniqueKey);
         }
         BMap<BString, Object> mapJson = newJsonMap();
         for (BXml bxml : sequence) {
@@ -336,7 +382,7 @@ public class XmlToJson {
             } else {
                 BString elementName = fromString(getElementKey((BXmlItem) bxml, preserveNamespaces));
                 Object result = convertToJSON(bxml, attributePrefix, preserveNamespaces, attributeManager,
-                        type, uniqueKey, namespaceDelimiter);
+                        type, uniqueKey);
                 result = validateResult(result, elementName);
                 Object value = mapJson.get(elementName);
                 if (value == null) {
@@ -345,10 +391,40 @@ public class XmlToJson {
                     ((BArray) value).append(result);
                     mapJson.put(elementName, value);
                 } else {
-                    BArray jsonList = newJsonList();
-                    jsonList.append(value);
-                    jsonList.append(result);
-                    mapJson.put(elementName, jsonList);
+                    if (type == null) {
+                        BArray jsonList = newJsonList();
+                        jsonList.append(value);
+                        jsonList.append(result);
+                        mapJson.put(elementName, jsonList);
+                    } else {
+                        BArray arr = null;
+                        if (value instanceof Long) {
+                            arr = ValueCreator.createArrayValue(LONG_ARRAY_TYPE);
+                            arr.append(value);
+                            arr.append(result);
+                        } else if (value instanceof Boolean) {
+                            arr = ValueCreator.createArrayValue(BOOLEAN_ARRAY_TYPE);
+                            arr.append(value);
+                            arr.append(result);
+                        } else if (value instanceof Double) {
+                            arr = ValueCreator.createArrayValue(FLOAT_ARRAY_TYPE);
+                            arr.append(value);
+                            arr.append(result);
+                        } else if (value.getClass().getCanonicalName().contains("DecimalValue")) {
+                            arr = ValueCreator.createArrayValue(DECIMAL_ARRAY_TYPE);
+                            arr.append(value);
+                            arr.append(result);
+                        } else {
+                            PrintStream asd = System.out;
+                            asd.println("@@@@@@@@@@@@");
+                            asd.println();
+                            asd.println(result.getClass());
+                            arr = newJsonList();
+                            arr.append(value);
+                            arr.append(result);
+                        }
+                        mapJson.put(elementName, arr);
+                    }
                 }
             }
         }
@@ -385,7 +461,6 @@ public class XmlToJson {
      * @param element XML element to extract attributes and namespaces
      */
     private static LinkedHashMap<String, String> collectAttributesAndNamespaces(BXmlItem element,
-                                                                                String namespaceDelimiter,
                                                                                 boolean preserveNamespaces) {
         LinkedHashMap<String, String> attributeMap = new LinkedHashMap<>();
         BMap<BString, BString> attributesMap = element.getAttributesMap();
@@ -395,14 +470,14 @@ public class XmlToJson {
             if (preserveNamespaces) {
                 if (isNamespacePrefixEntry(entry)) {
                     addNamespacePrefixAttribute(attributeMap, entry.getKey().getValue(),
-                            entry.getValue().getValue(), namespaceDelimiter);
+                            entry.getValue().getValue());
                 } else {
                     addAttributePreservingNamespace(attributeMap, nsPrefixMap, entry.getKey().getValue(),
-                            entry.getValue().getValue(), namespaceDelimiter);
+                            entry.getValue().getValue());
                 }
             } else {
                 preserveNonNamespacesAttributes(attributeMap, nsPrefixMap, entry.getKey().getValue(),
-                        entry.getValue().getValue(), namespaceDelimiter);
+                        entry.getValue().getValue());
             }
         }
         return attributeMap;
@@ -410,30 +485,26 @@ public class XmlToJson {
 
     private static void preserveNonNamespacesAttributes(LinkedHashMap<String, String> attributeMap,
                                                         Map<String, String> nsPrefixMap,
-                                                        String attributeKey, String attributeValue,
-                                                        String namespaceDelimiter) {
+                                                        String attributeKey, String attributeValue) {
         // The namespace-related key will contain the pattern as `{link}suffix`
         if (!Pattern.matches("\\{.*\\}.*", attributeKey)) {
-            addAttributePreservingNamespace(attributeMap, nsPrefixMap, attributeKey,
-                    attributeValue, namespaceDelimiter);
+            addAttributePreservingNamespace(attributeMap, nsPrefixMap, attributeKey, attributeValue);
         }
     }
 
     private static void addNamespacePrefixAttribute(LinkedHashMap<String, String> attributeMap,
-                                                    String attributeKey, String attributeValue,
-                                                    String namespaceDelimiter) {
+                                                    String attributeKey, String attributeValue) {
         String prefix = attributeKey.substring(NS_PREFIX_BEGIN_INDEX);
         if (prefix.equals(XMLNS)) {
             attributeMap.put(prefix, attributeValue);
         } else {
-            attributeMap.put(XMLNS + namespaceDelimiter + prefix, attributeValue);
+            attributeMap.put(XMLNS + COLON + prefix, attributeValue);
         }
     }
 
     private static void addAttributePreservingNamespace(LinkedHashMap<String, String> attributeMap,
                                                         Map<String, String> nsPrefixMap,
-                                                        String attributeKey, String attributeValue,
-                                                        String namespaceDelimiter) {
+                                                        String attributeKey, String attributeValue) {
         int nsEndIndex = attributeKey.lastIndexOf('}');
         if (nsEndIndex > 0) {
             String ns = attributeKey.substring(1, nsEndIndex);
@@ -445,7 +516,7 @@ public class XmlToJson {
             } else if (nsPrefix.equals(XMLNS)) {
                 attributeMap.put(XMLNS, attributeValue);
             } else {
-                attributeMap.put(nsPrefix + namespaceDelimiter + local, attributeValue);
+                attributeMap.put(nsPrefix + COLON + local, attributeValue);
             }
         } else {
             attributeMap.put(attributeKey, attributeValue);
@@ -490,12 +561,8 @@ public class XmlToJson {
         return elementKey.toString();
     }
 
-    private static String getUniqueKey(BXmlItem xmlItem, boolean preserveNamespaces, String uniqueKey) {
+    private static List<String> getUniqueKey(BXmlItem xmlItem, boolean preserveNamespaces, List<String> uniqueKey) {
         StringBuilder elementKey = new StringBuilder();
-        StringBuilder key = new StringBuilder();
-        if (!uniqueKey.equals("")) {
-            key.append(uniqueKey).append(".");
-        }
         QName qName = xmlItem.getQName();
         if (preserveNamespaces) {
             String prefix = qName.getPrefix();
@@ -504,7 +571,8 @@ public class XmlToJson {
             }
         }
         elementKey.append(qName.getLocalPart());
-        return key.append(elementKey).toString();
+        uniqueKey.add(elementKey.toString());
+        return uniqueKey;
     }
 
     private XmlToJson() {
