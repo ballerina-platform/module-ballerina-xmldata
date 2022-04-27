@@ -77,7 +77,7 @@ public class XmlToJson {
             String attributePrefix = ((BString) options.get(StringUtils.fromString(Constants.OPTIONS_ATTRIBUTE_PREFIX)))
                     .getValue();
             boolean preserveNamespaces = ((Boolean) options.get(StringUtils.fromString(Constants.OPTIONS_PRESERVE_NS)));
-            return convertToJSON(xml, attributePrefix, preserveNamespaces,null, "", null);
+            return convertToJSON(xml, attributePrefix, preserveNamespaces, null, "", null);
         } catch (Exception e) {
             return XmlDataUtils.getError(e.getMessage());
         }
