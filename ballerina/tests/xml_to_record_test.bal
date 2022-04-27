@@ -52,40 +52,6 @@ isolated function testToRecordWithEscapedString() returns error? {
     test:assertEquals(actual, expected, msg = "testToRecordWithEscapedString result incorrect");
 }
 
-type Order record {
-    Invoice Invoice;
-};
-
-type Invoice record {
-    PurchesedItems PurchesedItems;
-    Address1 Address;
-    string _xmlns?;
-    string _xmlns_ns?;
-    string _attr?;
-    string _ns_attr?;
-};
-
-type PurchesedItems record {
-    Purchase[] PLine;
-};
-
-type Purchase record {
-    string|ItemCode ItemCode;
-    int Count;
-};
-
-type ItemCode record {
-    string _discount;
-};
-
-type Address1 record {
-    string StreetAddress;
-    string City;
-    int Zip;
-    string Country;
-    string _xmlns?;
-};
-
 xml e2 = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
                 <PurchesedItems>
                     <PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>
@@ -111,7 +77,7 @@ function testToRecordComplexXmlElement() returns error? {
                     {ItemCode: "223345", Count: 10},
                     {ItemCode: "223300", Count: 7},
                     {
-                        ItemCode: {"_discount": "22%", "#content": "200777"},
+                        ItemCode: {_discount: "22%", \#content: "200777"},
                         Count: 7
                     }
                 ]
@@ -124,9 +90,9 @@ function testToRecordComplexXmlElement() returns error? {
                 _xmlns: ""
             },
             _xmlns: "example.com",
-            _xmlns_ns: "ns.com",
+            _xmlns\:ns: "ns.com",
             _attr: "attr-val",
-            _ns_attr: "ns-attr-val"
+            _ns\:attr: "ns-attr-val"
         }
     };
     Order actual = check toRecord(e2);
@@ -144,7 +110,7 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() returns error?
                     {ItemCode: "223345", Count: 10},
                     {ItemCode: "223300", Count: 7},
                     {
-                        ItemCode: {"_discount": "22%", "#content": "200777"},
+                        ItemCode: {_discount: "22%", \#content: "200777"},
                         Count: 7
                     }
                 ]
@@ -264,8 +230,8 @@ type r2 record {
 };
 
 type Root2 record {
-    string _xmlns_ns;
-    string _ns_x;
+    string _xmlns\:ns;
+    string _ns\:x;
     string _x;
 };
 
@@ -277,8 +243,8 @@ isolated function testToRecordWithMultipleAttributesAndNamespaces() returns Erro
 
     r2 expected = {
         Root: {
-            _xmlns_ns: "ns.com",
-            _ns_x: "y",
+            _xmlns\:ns: "ns.com",
+            _ns\:x: "y",
             _x: "z"
         }
     };
@@ -476,7 +442,7 @@ type BookStore2 record {
     Address3 address;
     Codes codes;
     string _status;
-    string _xmlns_ns0;
+    string _xmlns\:ns0;
 };
 
 @test:Config {
@@ -515,7 +481,7 @@ isolated function testToRecordWithNamespaces() returns error? {
             codes: {
                 item: [4, 8, 9]
             },
-            _xmlns_ns0: "http://sample.com/test",
+            _xmlns\:ns0: "http://sample.com/test",
             _status: "online"
         }
     };
@@ -571,7 +537,7 @@ type Root8 record {
 
 type FuelEvents record {
     FuelEvent[] s\:FuelEvent;
-    string _xmlns_s;
+    string _xmlns\:s;
 };
 
 type FuelEvent record {
@@ -612,7 +578,7 @@ isolated function testToRecordWithSameAttribute() returns Error? {
                     s\:gasPrice: 4.89
                 }
             ],
-            _xmlns_s: "http://www.so2w.org"
+            _xmlns\:s: "http://www.so2w.org"
         }
     };
 
