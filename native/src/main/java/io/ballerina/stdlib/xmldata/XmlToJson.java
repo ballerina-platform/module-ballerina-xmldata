@@ -346,7 +346,7 @@ public class XmlToJson {
     }
 
     private static BMap<BString, Object> newJsonMap() {
-        return ValueCreator.createMapValue(JSON_MAP_TYPE);
+        return ValueCreator.createMapValue(TypeCreator.createMapType(JSON_MAP_TYPE));
     }
 
     /**
