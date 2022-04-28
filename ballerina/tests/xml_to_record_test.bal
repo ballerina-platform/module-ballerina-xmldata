@@ -32,7 +32,7 @@ isolated function testToRecord() returns error? {
         name: "Supun"
     };
 
-    record{} actual = check toRecord(x3);
+    record {} actual = check toRecord(x3);
     test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
 }
 
@@ -125,7 +125,7 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() returns error?
         }
     };
     Order actual = check toRecord(e2, preserveNamespaces = false);
-    test:assertEquals(actual, expected, 
+    test:assertEquals(actual, expected,
                 msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces result incorrect");
 }
 
@@ -565,7 +565,8 @@ isolated function testToRecordWithSameAttribute() returns Error? {
                  </s:FuelEvents>`;
     Root8 expected = {
         s\:FuelEvents: {
-            s\:FuelEvent: [{
+            s\:FuelEvent: [
+                {
                     _employeeId: "2312",
                     s\:odometerReading: 230,
                     s\:gallons: 18.561,

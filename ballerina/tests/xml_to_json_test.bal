@@ -316,7 +316,7 @@ isolated function testComplexXmlWithOutNamespace() returns error? {
             isOpen: "true",
             address: {"street": "foo", "city": "94", "country": "true"},
             codes: {"item": ["4", "8", "9"]},
-            "@status" : "online"
+            "@status": "online"
         }
     });
 }
@@ -526,7 +526,7 @@ isolated function testXMLMultipleTextNode() returns error? {
                     content
                   </e>`;
     json j = check toJson(x1);
-    test:assertEquals(j, {e:{"#content":["some","content"],a:"textual"}}, msg = "testToJson result incorrect");
+    test:assertEquals(j, {e: {"#content": ["some", "content"], a: "textual"}}, msg = "testToJson result incorrect");
 }
 
 @test:Config {
@@ -556,8 +556,12 @@ isolated function testComplexXmlWithNamespace1() returns error? {
             "ns0:storeName": "foo",
             "ns0:postalCode": "94",
             "ns0:isOpen": "true",
-            "ns0:address": {"ns0:street": "foo", "ns0:city": "94", "ns0:country": "true",
-                            "@xmlns:ns0":"http://sample.com/test1"},
+            "ns0:address": {
+                "ns0:street": "foo",
+                "ns0:city": "94",
+                "ns0:country": "true",
+                "@xmlns:ns0": "http://sample.com/test1"
+            },
             "ns0:codes": {"ns0:item": ["4", "8", "9"]},
             "@xmlns:ns0": "http://sample.com/test",
             "@status": "online"
@@ -592,8 +596,13 @@ isolated function testComplexXmlWithNamespace2() returns error? {
             "ns0:storeName": "foo",
             "ns0:postalCode": "94",
             "ns0:isOpen": "true",
-            "ns0:address": {"ns0:street": "foo", "ns0:city": "94", "ns0:country": "true",
-                            "@xmlns:ns0":"http://sample.com/test1", "@status": "online"},
+            "ns0:address": {
+                "ns0:street": "foo",
+                "ns0:city": "94",
+                "ns0:country": "true",
+                "@xmlns:ns0": "http://sample.com/test1",
+                "@status": "online"
+            },
             "ns0:codes": {"ns0:item": ["4", "8", "9"]},
             "@xmlns:ns0": "http://sample.com/test",
             "@status": "online"
@@ -662,8 +671,13 @@ isolated function testComplexXmlWithNamespace4() returns error? {
             "storeName": "foo",
             "postalCode": "94",
             "isOpen": "true",
-            "address": {"street": "foo", "city": "94", "country": "true",
-                            "@xmlns:ns0":"http://sample.com/test1", "@status": "online"},
+            "address": {
+                "street": "foo",
+                "city": "94",
+                "country": "true",
+                "@xmlns:ns0": "http://sample.com/test1",
+                "@status": "online"
+            },
             "codes": {"item": ["4", "8", "9"]},
             "@xmlns:ns0": "http://sample.com/test",
             "@status": "online"
