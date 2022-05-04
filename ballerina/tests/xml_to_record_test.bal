@@ -258,9 +258,9 @@ type r3 record {
 };
 
 type Root3 record {
-    string? _xmlns\:ns;
-    string? _ns\:x;
-    string? _x;
+    string _xmlns\:ns;
+    string _ns\:x;
+    string _x;
 };
 
 @test:Config {
@@ -533,10 +533,9 @@ isolated function testToRecordNagativeOpenRecord() {
 
     Employee2|Error actual = toRecord(x3);
     if actual is Error {
-        test:assertEquals(actual.toString(), actual.message());
-        //.includes("missing required field 'age' of type 'int' in record 'xmldata:Employee2'"));
+        test:assertTrue(actual.toString().includes("missing required field 'age' of type 'int' in record 'xmldata:Employee2'"));
     } else {
-        test:assertFail(actual.toString());
+        test:assertFail("testToRecordNagativeOpenRecord result is not a mismatch");
     }
 }
 
@@ -556,7 +555,7 @@ isolated function testToRecordNagativeClosedRecord() {
     if actual is error {
         test:assertTrue(actual.toString().includes("field 'age' cannot be added to the closed record 'xmldata:Employee3'"));
     } else {
-        test:assertFail(actual.toString());
+        test:assertFail("testToRecordNagative result is not a mismatch");
     }
 }
 
@@ -565,7 +564,7 @@ type emptyChild1 record {
 };
 
 type foo1 record {
-    int? bar;
+    int bar;
     string car;
 };
 
@@ -585,7 +584,7 @@ type Root4 record {
 };
 
 type Root5 record {
-    int[]? A;
+    int[] A;
 };
 
 @test:Config {
@@ -608,7 +607,7 @@ type Root6 record {
 };
 
 type Root7 record {
-    decimal[]? A;
+    decimal[] A;
 };
 
 @test:Config {
@@ -773,35 +772,35 @@ type Root21 record {
     float[]|int[] A;
 };
 
-@test:Config {
-    groups: ["toRecord"]
-}
-isolated function testToRecordWithUnionArrayValues9() returns Error? {
-    xml x = xml `<Root><A>2.4</A><A>2.4</A><A>2.4</A></Root>`;
-    Root20 expected = {
-        Root: {
-            A: [2.4f, 2.4f, 2.4f]
-        }
-    };
-
-    Root20 actual = check toRecord(x);
-    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues9 result incorrect");
-}
-
-@test:Config {
-    groups: ["toRecord"]
-}
-isolated function testToRecordWithOptionalArrayValues10() returns Error? {
-    xml x = xml `<Root><A>2</A><A>2</A><A>2</A></Root>`;
-    Root20 expected = {
-        Root: {
-            A: [2.0, 2.0, 2.0]
-        }
-    };
-
-    Root20 actual = check toRecord(x);
-    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues10 result incorrect");
-}
+//@test:Config {
+//    groups: ["toRecord"]
+//}
+//isolated function testToRecordWithUnionArrayValues9() returns Error? {
+//    xml x = xml `<Root><A>2.4</A><A>2.4</A><A>2.4</A></Root>`;
+//    Root20 expected = {
+//        Root: {
+//            A: [2.4f, 2.4f, 2.4f]
+//        }
+//    };
+//
+//    Root20 actual = check toRecord(x);
+//    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues9 result incorrect");
+//}
+//
+//@test:Config {
+//    groups: ["toRecord"]
+//}
+//isolated function testToRecordWithOptionalArrayValues10() returns Error? {
+//    xml x = xml `<Root><A>2</A><A>2</A><A>2</A></Root>`;
+//    Root20 expected = {
+//        Root: {
+//            A: [2.0, 2.0, 2.0]
+//        }
+//    };
+//
+//    Root20 actual = check toRecord(x);
+//    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues10 result incorrect");
+//}
 
 type Root24 record {
     Root25 Root;
@@ -811,17 +810,61 @@ type Root25 record {
     int[]|float[] A;
 };
 
+//@test:Config {
+//    groups: ["toRecord"]
+//}
+//isolated function testToRecordWithUnionArrayValues12() returns Error? {
+//    xml x = xml `<Root><A>2</A><A>2</A><A>2</A></Root>`;
+//    Root24 expected = {
+//        Root: {
+//            A: [<int>2, <int>2, <int>2]
+//        }
+//    };
+//
+//    Root24 actual = check toRecord(x);
+//    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues12 result incorrect");
+//}
+
+type Root26 record {
+    Root27 Root;
+};
+
+type Root27 record {
+    int A?;
+    int B;
+};
+
 @test:Config {
     groups: ["toRecord"]
 }
-isolated function testToRecordWithUnionArrayValues12() returns Error? {
-    xml x = xml `<Root><A>2</A><A>2</A><A>2</A></Root>`;
-    Root24 expected = {
-        Root: {
-            A: [<int>2, <int>2, <int>2]
-        }
+isolated function testToRecordWithOptinalField12() returns Error? {
+    xml x = xml `<Root><B>2</B></Root>`;
+    Root26 expected = {
+        Root: {B: 2}
     };
 
-    Root24 actual = check toRecord(x);
-    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues12 result incorrect");
+    Root26 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues12 result incorrect");
+}
+
+type Root28 record {
+    Root29 Root;
+};
+
+type Root29 record {
+    int A?;
+    int[] B;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField13() returns Error? {
+    xml x = xml `<Root><B>2</B></Root>`;
+    Root28 expected = {
+        Root: {B: [2]}
+    };
+
+    Root28 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues12 result incorrect");
 }

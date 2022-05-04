@@ -75,5 +75,11 @@ release {
 }
 
 task build {
+    dependsOn(':xmldata-native:build')
+    dependsOn(':xmldata-compiler-plugin:build')
     dependsOn('xmldata-ballerina:build')
+    dependsOn(':xmldata-compiler-plugin-tests:build')
 }
+
+publishToMavenLocal.dependsOn build
+publish.dependsOn build

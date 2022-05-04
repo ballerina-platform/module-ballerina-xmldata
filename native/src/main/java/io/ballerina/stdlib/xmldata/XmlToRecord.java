@@ -18,10 +18,14 @@
 
 package io.ballerina.stdlib.xmldata;
 
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
+import org.ballerinalang.langlib.value.CloneWithType;
+
+import java.util.Map;
 
 import static io.ballerina.stdlib.xmldata.XmlToJson.toJson;
 
@@ -38,6 +42,11 @@ public class XmlToRecord {
             if (jsonObject instanceof BError) {
                 return XmlDataUtils.getError("xml type mismatch with record type: " +
                         ((BError) jsonObject).getErrorMessage());
+            }
+            jsonObject = CloneWithType.cloneWithType(jsonObject, type);
+            if (jsonObject instanceof BError) {
+                return XmlDataUtils.getError("xml type mismatch with record type: " +
+                        ((Map) ((BError) jsonObject).getDetails()).get(StringUtils.fromString("message")).toString());
             }
             return jsonObject;
         } catch (Exception e) {
