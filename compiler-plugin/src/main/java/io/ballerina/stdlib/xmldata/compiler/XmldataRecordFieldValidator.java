@@ -38,6 +38,12 @@ import java.util.List;
 public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnalysisContext> {
 
     private final List<RecordFieldNode> recordNodes = new ArrayList<>();
+    private static final String STRING = "string";
+    private static final String DECIMAL = "decimal";
+    private static final String FLOAT = "float";
+    private static final String BOOLEAN = "boolean";
+    private static final String INT = "int";
+    private static final String QUESTION_MARK = "?";
 
     @Override
     public void perform(SyntaxNodeAnalysisContext ctx) {
@@ -68,12 +74,12 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
         }
     }
 
-    private void checkRecordField (String recordName, SyntaxNodeAnalysisContext ctx) {
+    private void checkRecordField(String recordName, SyntaxNodeAnalysisContext ctx) {
         for (RecordFieldNode recordNode: this.recordNodes) {
             String name = recordNode.parent().parent().children().get(1).toString().trim();
             String typeName = recordNode.typeName().toString().trim();
             if (name.equals(recordName.trim())) {
-                if (typeName.contains("?")) {
+                if (typeName.contains(QUESTION_MARK)) {
                     DiagnosticInfo diagnosticInfo = new DiagnosticInfo(DiagnosticsCodes.XMLDATA_101.getCode(),
                             DiagnosticsCodes.XMLDATA_101.getMessage(), DiagnosticsCodes.XMLDATA_101.getSeverity());
                     ctx.reportDiagnostic(
@@ -81,7 +87,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
                     if (typeName.contains("|")) {
                         String[] types = typeName.split("\\|");
                         for (String type: types) {
-                            if (type.trim().contains("?")) {
+                            if (type.trim().contains(QUESTION_MARK)) {
                                 if (isNonPrimitiveOptionalType(type)) {
                                     checkRecordField(type.substring(0, type.length() - 1), ctx);
                                 }
@@ -102,12 +108,13 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
     }
 
     private boolean isNonPrimitiveType(String typeName) {
-        return !(typeName.equals("string") || typeName.equals("int") || typeName.equals("decimal") ||
-                typeName.equals("float") || typeName.equals("boolean"));
+        return !(typeName.equals(STRING) || typeName.equals(INT) || typeName.equals(DECIMAL) ||
+                typeName.equals(FLOAT) || typeName.equals(BOOLEAN));
     }
 
     private boolean isNonPrimitiveOptionalType(String typeName) {
-        return !(typeName.equals("string?") || typeName.equals("int?") || typeName.equals("decimal?") ||
-                typeName.equals("float?") || typeName.equals("boolean?"));
+        return !(typeName.equals(STRING + QUESTION_MARK) || typeName.equals(INT + QUESTION_MARK) ||
+                typeName.equals(DECIMAL + QUESTION_MARK) || typeName.equals(FLOAT + QUESTION_MARK) ||
+                typeName.equals(BOOLEAN + QUESTION_MARK));
     }
 }
