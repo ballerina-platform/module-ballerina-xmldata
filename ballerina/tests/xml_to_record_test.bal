@@ -32,7 +32,7 @@ isolated function testToRecord() returns error? {
         name: "Supun"
     };
 
-    record{} actual = check toRecord(x3);
+    record {} actual = check toRecord(x3);
     test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
 }
 
@@ -671,7 +671,6 @@ isolated function testToRecordWithUnionArrayValues4() returns Error? {
     test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues4 result incorrect");
 }
 
-
 type Root12 record {
     Root13 Root;
 };
@@ -842,7 +841,6 @@ isolated function testToRecordWithOptinalField12() returns Error? {
     Root26 expected = {
         Root: {B: 2}
     };
-
     Root26 actual = check toRecord(x);
     test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues12 result incorrect");
 }
@@ -866,5 +864,312 @@ isolated function testToRecordWithArrayField13() returns Error? {
     };
 
     Root28 actual = check toRecord(x);
-    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues12 result incorrect");
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues13 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField14() returns Error? {
+    xml x = xml `<Root><B></B></Root>`;
+    Root28 expected = {
+        Root: {B: []}
+    };
+
+    Root28 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues14 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField15() returns Error? {
+    xml x = xml `<Root><B>2</B><B></B></Root>`;
+    Root28 expected = {
+        Root: {B: [2]}
+    };
+
+    Root28 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues15 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField16() returns Error? {
+    xml x = xml `<Root><B></B><B>2</B></Root>`;
+    Root28 expected = {
+        Root: {B: [2]}
+    };
+
+    Root28 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues16 result incorrect");
+}
+
+public type ListOfContinentsByNameResponse record {
+    ArrayOftContinent ListOfContinentsByNameResult;
+};
+
+public type ArrayOftContinent record {
+    tContinent[] tContinent?;
+};
+
+public type tContinent record {
+    string sCode;
+    string sName;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField17() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+              <m:sCode>AF</m:sCode>
+              <m:sName>Africa</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AN</m:sCode>
+              <m:sName>Antarctica</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AS</m:sCode>
+              <m:sName>Asia</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>EU</m:sCode>
+              <m:sName>Europe</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>OC</m:sCode>
+              <m:sName>Ocenania</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AM</m:sCode>
+              <m:sName>The Americas</m:sName>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    ListOfContinentsByNameResponse expected = {
+        "ListOfContinentsByNameResult": {
+            "tContinent": [
+                {"sCode": "AF", "sName": "Africa"},
+                {"sCode": "AN", "sName": "Antarctica"},
+                {"sCode": "AS", "sName": "Asia"},
+                {"sCode": "EU", "sName": "Europe"},
+                {"sCode": "OC", "sName": "Ocenania"},
+                {"sCode": "AM", "sName": "The Americas"}
+            ]
+        }
+    };
+    ListOfContinentsByNameResponse actual = check toRecord(responsePayload/*/*/*, false);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField17 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField18() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+              <m:sCode>AF</m:sCode>
+              <m:sName>Africa</m:sName>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    ListOfContinentsByNameResponse expected = {
+        "ListOfContinentsByNameResult": {
+            "tContinent": [
+                {"sCode": "AF", "sName": "Africa"}
+            ]
+        }
+    };
+    ListOfContinentsByNameResponse actual = check toRecord(responsePayload/*/*/*, false);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField18 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField19() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    ListOfContinentsByNameResponse expected = {
+        "ListOfContinentsByNameResult": {
+            "tContinent": []
+        }
+    };
+    ListOfContinentsByNameResponse actual = check toRecord(responsePayload/*/*/*, false);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField19 result incorrect");
+}
+
+public type SoapEnvelope record {
+    Envelope1 soap\:Envelope;
+};
+
+public type Envelope1 record {
+    Body1 soap\:Body;
+    string _xmlns\:soap;
+};
+
+public type Body1 record {
+    ListOfContinentsByNameResponse1 m\:ListOfContinentsByNameResponse;
+};
+
+public type ListOfContinentsByNameResponse1 record {
+    ListOfContinentsByNameResult1 m\:ListOfContinentsByNameResult;
+    string _xmlns\:m;
+};
+
+public type ListOfContinentsByNameResult1 record {
+    Continent[] m\:tContinent;
+};
+
+public type Continent record {
+    string m\:sCode;
+    string m\:sName;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField20() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+              <m:sCode>AF</m:sCode>
+              <m:sName>Africa</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AN</m:sCode>
+              <m:sName>Antarctica</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AS</m:sCode>
+              <m:sName>Asia</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>EU</m:sCode>
+              <m:sName>Europe</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>OC</m:sCode>
+              <m:sName>Ocenania</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AM</m:sCode>
+              <m:sName>The Americas</m:sName>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    SoapEnvelope expected = {
+        soap\:Envelope: {
+            soap\:Body: {
+                m\:ListOfContinentsByNameResponse: {
+                    m\:ListOfContinentsByNameResult: {
+                        m\:tContinent: [
+                            {m\:sCode: "AF", m\:sName: "Africa"},
+                            {m\:sCode: "AN", m\:sName: "Antarctica"},
+                            {m\:sCode: "AS", m\:sName: "Asia"},
+                            {m\:sCode: "EU", m\:sName: "Europe"},
+                            {m\:sCode: "OC", m\:sName: "Ocenania"},
+                            {m\:sCode: "AM", m\:sName: "The Americas"}
+                        ]
+                    },
+                    _xmlns\:m: "http://www.oorsprong.org/websamples.countryinfo"
+                }
+            },
+            _xmlns\:soap: "http://schemas.xmlsoap.org/soap/envelope/"
+        }
+    };
+    SoapEnvelope actual = check toRecord(responsePayload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField20 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField21() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+              <m:sCode>AF</m:sCode>
+              <m:sName>Africa</m:sName>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    SoapEnvelope expected = {
+        soap\:Envelope: {
+            soap\:Body: {
+                m\:ListOfContinentsByNameResponse: {
+                    m\:ListOfContinentsByNameResult: {
+                        m\:tContinent: [
+                            {m\:sCode: "AF", m\:sName: "Africa"}
+                        ]
+                    },
+                    _xmlns\:m: "http://www.oorsprong.org/websamples.countryinfo"
+                }
+            },
+            _xmlns\:soap: "http://schemas.xmlsoap.org/soap/envelope/"
+        }
+    };
+    SoapEnvelope actual = check toRecord(responsePayload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField21 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField22() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    SoapEnvelope expected = {
+        soap\:Envelope: {
+            soap\:Body: {
+                m\:ListOfContinentsByNameResponse: {
+                    m\:ListOfContinentsByNameResult: {
+                        m\:tContinent: []
+                    },
+                    _xmlns\:m: "http://www.oorsprong.org/websamples.countryinfo"
+                }
+            },
+            _xmlns\:soap: "http://schemas.xmlsoap.org/soap/envelope/"
+        }
+    };
+    SoapEnvelope actual = check toRecord(responsePayload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField22 result incorrect");
 }

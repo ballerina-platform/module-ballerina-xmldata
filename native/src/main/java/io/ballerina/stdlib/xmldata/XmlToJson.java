@@ -155,6 +155,12 @@ public class XmlToJson {
         Object children = convertBXmlSequence(xmlItem.getChildrenSeq(), attributePrefix,
                 preserveNamespaces, attributeManager, type, uKeyValue);
         BMap<BString, Object> rootNode = getMap();
+        if (type != null) {
+            Type fieldType = getFieldType(type, uKeyValue);
+            if ((fieldType != null ? fieldType.getTag() : 0) == 32 && !(children instanceof BArray)) {
+                children = convertToArray(fieldType, children);
+            }
+        }
         if (childrenData.size() > 0) {
             if (children instanceof BMap) {
                 BMap<BString, Object> data = (BMap<BString, Object>) children;
@@ -163,7 +169,7 @@ public class XmlToJson {
                 }
                 putAsBStrings(rootNode, keyValue, data);
                 uniqueKey.remove(uniqueKey.size() - 1);
-            } else if (children == null) {
+            }  else if (children == null || children instanceof BArray) {
                 putAsBStrings(rootNode, keyValue, childrenData);
                 uniqueKey.remove(uniqueKey.size() - 1);
             } else if (children instanceof BString) {
@@ -180,6 +186,9 @@ public class XmlToJson {
                 uniqueKey.remove(uniqueKey.size() - 1);
             } else if (children == null) {
                 putAsFieldTypes(rootNode, keyValue, EMPTY_STRING, type, uKeyValue);
+            } else if (children instanceof BArray) {
+                putAsBStrings(rootNode, keyValue, children);
+                uniqueKey.remove(uniqueKey.size() - 1);
             } else if (children instanceof BString) {
                 putAsFieldTypes(rootNode, keyValue, children.toString().trim(), type, uKeyValue);
             }
@@ -228,9 +237,8 @@ public class XmlToJson {
                 UnionType bUnionType = (UnionType) fieldType;
                 for (Type memberType : bUnionType.getMemberTypes()) {
                     try {
-                        if (convertToRecordType(map, memberType, key, value)) {
-                            break;
-                        }
+                        convertToRecordType(map, memberType, key, value);
+                        break;
                     } catch (Exception e) {
                         continue;
                     }
@@ -253,17 +261,21 @@ public class XmlToJson {
         while (i < uniqueKey.size() - 1) {
             key = uniqueKey.get(i);
             isFieldNull(fields, type, key);
-            Type fieldType = fields.get(key).getFieldType();
-            if (fieldType instanceof UnionType || fieldType.getTag() == TypeTags.UNION_TAG) {
-                UnionType bUnionType = (UnionType) fieldType;
-                for (Type memberType : bUnionType.getMemberTypes()) {
-                    fields = getFields(memberType);
-                    if (fields != null && fields.get(key) != null) {
-                        break;
+            if (fields.containsKey(key)) {
+                Type fieldType = fields.get(key).getFieldType();
+                if (fieldType instanceof UnionType || fieldType.getTag() == TypeTags.UNION_TAG) {
+                    UnionType bUnionType = (UnionType) fieldType;
+                    for (Type memberType : bUnionType.getMemberTypes()) {
+                        fields = getFields(memberType);
+                        if (fields != null && fields.get(key) != null) {
+                            break;
+                        }
                     }
+                } else {
+                    fields = getFields(fields.get(key).getFieldType());
                 }
             } else {
-                fields = getFields(fields.get(key).getFieldType());
+                return getType(type, key);
             }
             i++;
         }
@@ -271,22 +283,27 @@ public class XmlToJson {
         isFieldNull(fields, type, key);
         if (fields.containsKey(key)) {
             return fields.get(key).getFieldType();
-        } else if (!type.isPureType()) {
-            return type;
         } else {
-            getError(key, type);
+            return getType(type, key);
         }
-        return null;
+    }
+
+    private static Type getType(Type type, String key) throws Exception {
+        if (type instanceof RecordType) {
+            if (!((RecordType) type).isSealed()) {
+                return type;
+            } else {
+                throw new Exception("field '" + key + "' cannot be added to the closed record '" + type + "'");
+            }
+        } else {
+            throw new Exception("field '" + key + "' cannot be added to the record '" + type + "'");
+        }
     }
 
     private static void isFieldNull(Map<String, Field> fields, Type type, String key) throws Exception {
         if (fields == null && type.isPureType()) {
-            getError(key, type);
+            throw new Exception("field '" + key + "' cannot be added to the closed record '" + type + "'");
         }
-    }
-
-    private static void getError(String key, Type type) throws Exception {
-        throw new Exception("field '" + key + "' cannot be added to the closed record '" + type.toString() + "'");
     }
 
     private static Map<String, Field> getFields(Type type) {
@@ -303,63 +320,79 @@ public class XmlToJson {
         map.put(fromString(key), value);
     }
 
-    private static boolean convertToRecordType(BMap<BString, Object> map, Type valueType, String key, String value)
+    private static void convertToRecordType(BMap<BString, Object> map, Type valueType, String key, String value)
             throws Exception {
         try {
             switch (valueType.getTag()) {
                 case 1:
                     map.put(fromString(key), Long.parseLong(value));
-                    return true;
+                    break;
                 case 3:
                     map.put(fromString(key), Double.parseDouble(value));
-                    return true;
+                    break;
                 case 4:
                     map.put(fromString(key), ValueCreator.createDecimalValue(
                             BigDecimal.valueOf(Double.parseDouble(value))));
-                    return true;
+                    break;
                 case 6:
                     map.put(fromString(key), Boolean.parseBoolean(value));
-                    return true;
+                    break;
                 case 32:
-                    Type elementType = ((ArrayType) valueType).getElementType();
-                    BArray arr;
-                    switch (elementType.getTag()) {
-                        case 1:
-                            arr = ValueCreator.createArrayValue(LONG_ARRAY_TYPE);
-                            arr.append(Long.parseLong(value));
-                            map.put(fromString(key), arr);
-                            return true;
-                        case 3:
-                            arr = ValueCreator.createArrayValue(FLOAT_ARRAY_TYPE);
-                            arr.append(Double.parseDouble(value));
-                            map.put(fromString(key), arr);
-                            return true;
-                        case 4:
-                            arr = ValueCreator.createArrayValue(DECIMAL_ARRAY_TYPE);
-                            arr.append(ValueCreator.createDecimalValue(
-                                    BigDecimal.valueOf(Double.parseDouble(value))));
-                            map.put(fromString(key), arr);
-                            return true;
-                        case 6:
-                            arr = ValueCreator.createArrayValue(BOOLEAN_ARRAY_TYPE);
-                            arr.append(Boolean.parseBoolean(value));
-                            map.put(fromString(key), arr);
-                            return true;
-                        case 5:
-                            arr = ValueCreator.createArrayValue(STRING_ARRAY_TYPE);
-                            arr.append(fromString(value));
-                            map.put(fromString(key), arr);
-                            return true;
-                        default:
-                            arr = newJsonList();
-                            arr.append(fromString(value));
-                            map.put(fromString(key), arr);
-                            return true;
-                    }
+                    BArray array = convertToArray(valueType, value);
+                    map.put(fromString(key), array);
+                    break;
                 case 5:
                 default:
                     map.put(fromString(key), fromString(value));
-                    return true;
+                    break;
+            }
+        } catch (NumberFormatException e) {
+            throw new Exception("Error occurred when converting value:" + value + " to " + valueType);
+        }
+    }
+
+    private static BArray convertToArray(Type valueType, Object value) throws Exception {
+        Type elementType = ((ArrayType) valueType).getElementType();
+        BArray arr;
+        try {
+            switch (elementType.getTag()) {
+                case 1:
+                    arr = ValueCreator.createArrayValue(LONG_ARRAY_TYPE);
+                    if (value != null) {
+                        arr.append(Long.parseLong(value.toString()));
+                    }
+                    return arr;
+                case 3:
+                    arr = ValueCreator.createArrayValue(FLOAT_ARRAY_TYPE);
+                    if (value != null) {
+                        arr.append(Double.parseDouble(value.toString()));
+                    }
+                    return arr;
+                case 4:
+                    arr = ValueCreator.createArrayValue(DECIMAL_ARRAY_TYPE);
+                    if (value != null) {
+                        arr.append(ValueCreator.createDecimalValue(
+                                BigDecimal.valueOf(Double.parseDouble(value.toString()))));
+                    }
+                    return arr;
+                case 6:
+                    arr = ValueCreator.createArrayValue(BOOLEAN_ARRAY_TYPE);
+                    if (value != null) {
+                        arr.append(Boolean.parseBoolean(value.toString()));
+                    }
+                    return arr;
+                case 5:
+                    arr = ValueCreator.createArrayValue(STRING_ARRAY_TYPE);
+                    if (value != null) {
+                        arr.append(fromString(value.toString()));
+                    }
+                    return arr;
+                default:
+                    arr = newJsonList();
+                    if (value != null) {
+                        arr.append(value);
+                    }
+                    return arr;
             }
         } catch (NumberFormatException e) {
             throw new Exception("Error occurred when converting value:" + value + " to " + valueType);
@@ -380,7 +413,7 @@ public class XmlToJson {
         List<BXml> sequence = xmlSequence.getChildrenList();
         List<BXml> newSequence = new ArrayList<>();
         for (BXml value: sequence) {
-            String textValue = value.getTextValue();
+            String textValue = value.toString();
             if (textValue.isEmpty() || !textValue.trim().isEmpty()) {
                 newSequence.add(value);
             }
@@ -428,7 +461,10 @@ public class XmlToJson {
                     mapJson.put(elementName, result);
                 } else if (value instanceof BArray) {
                     if (result instanceof BArray) {
-                        ((BArray) value).append(((BArray) result).get(0));
+                        BArray array = (BArray) result;
+                        if (!array.isEmpty()) {
+                            ((BArray) value).append(array.get(0));
+                        }
                     } else {
                         ((BArray) value).append(result);
                     }
