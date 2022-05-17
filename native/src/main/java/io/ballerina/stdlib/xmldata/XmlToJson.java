@@ -169,24 +169,21 @@ public class XmlToJson {
     }
 
     private static Type getFieldType(String fieldName, Type type) {
-        if (type != null) {
-            if (type instanceof RecordType) {
-                if (((RecordType) type).getFields().get(fieldName) != null) {
-                    type = ((RecordType) type).getFields().get(fieldName).getFieldType();
-                }
-            } else if (type instanceof ArrayType) {
-                Type filedType = ((ArrayType) type).getElementType();
-                if (filedType instanceof RecordType) {
-                    Map<String, Field> fileds = ((RecordType) filedType).getFields();
-                    if (fileds.get(fieldName) != null) {
-                        return fileds.get(fieldName).getFieldType();
-                    }
-                }
-                return filedType;
+        if (type instanceof RecordType) {
+            if (((RecordType) type).getFields().get(fieldName) != null) {
+                type = ((RecordType) type).getFields().get(fieldName).getFieldType();
             }
-            return type;
+        } else if (type instanceof ArrayType) {
+            Type filedType = ((ArrayType) type).getElementType();
+            if (filedType instanceof RecordType) {
+                Map<String, Field> fileds = ((RecordType) filedType).getFields();
+                if (fileds.get(fieldName) != null) {
+                    return fileds.get(fieldName).getFieldType();
+                }
+            }
+            return filedType;
         }
-        return null;
+        return type;
     }
 
     private static void processAttributes(BMap<BString, BString> attributeMap, String attributePrefix,
