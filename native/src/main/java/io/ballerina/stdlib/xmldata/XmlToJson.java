@@ -170,7 +170,7 @@ public class XmlToJson {
 
     private static Type getFieldType(String fieldName, Type type) {
         if (type != null) {
-            if (type.toString().contains("record {| anydata...; |}")) {
+            if (type.getName().contains("record {| anydata...; |}")) {
                 return type;
             }
             if (type instanceof RecordType) {
