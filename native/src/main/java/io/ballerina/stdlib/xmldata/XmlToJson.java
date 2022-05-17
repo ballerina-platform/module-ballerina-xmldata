@@ -184,7 +184,6 @@ public class XmlToJson {
                     if (fileds.get(fieldName) != null) {
                         return fileds.get(fieldName).getFieldType();
                     }
-                    return filedType;
                 }
                 return filedType;
             }
