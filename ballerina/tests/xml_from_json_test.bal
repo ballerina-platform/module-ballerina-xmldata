@@ -578,15 +578,17 @@ isolated function testWithCustomAttribute() returns error? {
     groups: ["fromJson"]
 }
 isolated function testWithAttribute1() returns error? {
-    json data = {"Store": {
-        "@id": "AST",
-        "name": "Anne",
-        "address": {
-            "street": "Main",
-            "city": "94"
-        },
-        "codes": ["4", "8"]
-    }};
+    json data = {
+        "Store": {
+            "@id": "AST",
+            "name": "Anne",
+            "address": {
+                "street": "Main",
+                "city": "94"
+            },
+            "codes": ["4", "8"]
+        }
+    };
     xml? result = check fromJson(data);
     string expected =
     "<Store id=\"AST\">" +
@@ -636,8 +638,8 @@ isolated function testMultiLevelJsonArray1() returns error? {
                     "bookName": "book1",
                     "bookId": 101
                 }
-          ]
-      ]
+            ]
+        ]
     };
     string expected =
     "<root>" +
@@ -678,7 +680,7 @@ isolated function testMultiLevelJsonArray1() returns error? {
     groups: ["fromJson"]
 }
 isolated function testJsonKey() returns error? {
-    json data = {"#content":"text"};
+    json data = {"#content": "text"};
     xml expected = xml `text`;
     xml? result = check fromJson(data);
     if result is xml {
@@ -692,11 +694,12 @@ isolated function testJsonKey() returns error? {
     groups: ["fromJson"]
 }
 isolated function testJsonWithDefaultKey() returns error? {
-    json data = {"books": {
-                        "#content": "book3",
-                        item: ["book1", "book2", "book6"]
-                    }
-                 };
+    json data = {
+        "books": {
+            "#content": "book3",
+            item: ["book1", "book2", "book6"]
+        }
+    };
     xml expected = xml `<books>book3<item>book1</item><item>book2</item><item>book6</item></books>`;
     xml? result = check fromJson(data);
     if result is xml {
@@ -710,16 +713,18 @@ isolated function testJsonWithDefaultKey() returns error? {
     groups: ["fromJson"]
 }
 isolated function testWithAttribute2() {
-    json data = {"Store": {
-        "@id": "AST",
-        "name": "Anne",
-        "address": {
+    json data = {
+        "Store": {
             "@id": "AST",
-            "street": "Main",
-            "city": "94"
-        },
-        "codes": ["4", "8"]
-    }};
+            "name": "Anne",
+            "address": {
+                "@id": "AST",
+                "street": "Main",
+                "city": "94"
+            },
+            "codes": ["4", "8"]
+        }
+    };
     xml?|error result = fromJson(data);
     string expected =
     "<Store id=\"AST\">" +
@@ -742,16 +747,18 @@ isolated function testWithAttribute2() {
     groups: ["fromJson"]
 }
 isolated function testWithAttribute3() {
-    json data = {"Store": {
-        "#id": "AST",
-        "name": "Anne",
-        "address": {
+    json data = {
+        "Store": {
             "#id": "AST",
-            "street": "Main",
-            "city": "94"
-        },
-        "codes": ["4", "8"]
-    }};
+            "name": "Anne",
+            "address": {
+                "#id": "AST",
+                "street": "Main",
+                "city": "94"
+            },
+            "codes": ["4", "8"]
+        }
+    };
     xml?|error result = fromJson(data, {attributePrefix: "#"});
     string expected =
     "<Store id=\"AST\">" +
@@ -797,7 +804,7 @@ isolated function testWithAttribute4() {
                     "urn:baseRef": {
                         "internalId": "valueID",
                         "type": "vendor",
-                         "@xsi:type": "urn1:RecordRef"
+                        "@xsi:type": "urn1:RecordRef"
                     }
                 }
             },
@@ -868,7 +875,7 @@ isolated function testWithAttribute5() {
                     "urn:baseRef": {
                         "internalId": "valueID",
                         "type": "vendor",
-                         "@xsi:type": "urn1:RecordRef"
+                        "@xsi:type": "urn1:RecordRef"
                     }
                 },
                 "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance"
@@ -996,19 +1003,19 @@ isolated function testfromjsonwithRecord() {
 }
 
 type TemplateGetOperation record {
-   record{
-       record{} 'soapenv\:Header;
-       record{
-           record{
-               record{
-                   string 'urn1\:name;
-               } 'urn\:baseRef;
-           } 'urn\:get;
-       } 'soapenv\:Body;
-       string _xmlns\:soapenv = "http://schemas.xmlsoap.org/soap/envelope/";
-       string _xmlns\:urn = "urn:messages_2020_2.platform.webservices.netsuite.com";
-       string _xmlns\:urn1 = "urn:core_2020_2.platform.webservices.netsuite.com";
-   } 'soapenv\:Envelope;
+    record {
+        record {} 'soapenv\:Header;
+        record {
+            record {
+                record {
+                    string 'urn1\:name;
+                } 'urn\:baseRef;
+            } 'urn\:get;
+        } 'soapenv\:Body;
+        string _xmlns\:soapenv = "http://schemas.xmlsoap.org/soap/envelope/";
+        string _xmlns\:urn = "urn:messages_2020_2.platform.webservices.netsuite.com";
+        string _xmlns\:urn1 = "urn:core_2020_2.platform.webservices.netsuite.com";
+    } 'soapenv\:Envelope;
 };
 
 @test:Config {
@@ -1016,32 +1023,32 @@ type TemplateGetOperation record {
 }
 isolated function testfromjsonwithRecord1() {
     TemplateGetOperation gettemp = {
-       'soapenv\:Envelope : {
-           'soapenv\:Header: {"Authorization" : 35},
-           'soapenv\:Body: {
-               urn\:get: {
-                   'urn\:baseRef: {
-                       'urn1\:name: "details"
-                   }
-               }
-           }
-       }
+        'soapenv\:Envelope: {
+            'soapenv\:Header: {"Authorization": 35},
+            'soapenv\:Body: {
+                urn\:get: {
+                    'urn\:baseRef: {
+                        'urn1\:name: "details"
+                    }
+                }
+            }
+        }
     };
     json jsonData = gettemp.toJson();
     string expected = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
-                      "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
-                      "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\">" +
+                    "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
+                    "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\">" +
                         "<soapenv:Header>" +
-    	                    "<Authorization>35</Authorization>" +
+                        "<Authorization>35</Authorization>" +
                         "</soapenv:Header>" +
-                        "<soapenv:Body>"  +
+                        "<soapenv:Body>" +
                             "<urn:get>" +
                                 "<urn:baseRef>" +
                                     "<urn1:name>details</urn1:name>" +
                                 "</urn:baseRef>" +
                             "</urn:get>" +
                         "</soapenv:Body>" +
-                      "</soapenv:Envelope>";
+                    "</soapenv:Envelope>";
     xml?|error result = fromJson(jsonData, {attributePrefix: "_"});
     if result is xml {
         test:assertEquals(result.toString(), expected);
