@@ -30,7 +30,6 @@ public type JsonOptions record {
 };
 
 # Converts a JSON object to an XML representation.
-# Note: At the moment, the () value will not be returned by this.
 # ```ballerina
 # json data = {
 #     name: "John",
@@ -42,7 +41,8 @@ public type JsonOptions record {
 # + jsonValue - The JSON source to be converted to XML
 # + options - The `xmldata:JsonOptions` record for JSON to XML conversion properties
 # + return - XML representation of the given JSON if the JSON is
-# successfully converted or else an `xmldata:Error`
+# successfully converted or else an `xmldata:Error`.
+# Note: At the moment, the () value will not be returned by this.
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
     map<string> allNamespaces = {};
     if !isSingleNode(jsonValue) {
