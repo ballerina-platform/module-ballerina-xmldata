@@ -42,7 +42,7 @@ public type JsonOptions record {
 # + options - The `xmldata:JsonOptions` record for JSON to XML conversion properties
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`.
-# Note: At the moment, the () value will not be returned by this.
+# Note: At the moment, the () value will not be returned by this
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
     map<string> allNamespaces = {};
     if !isSingleNode(jsonValue) {
