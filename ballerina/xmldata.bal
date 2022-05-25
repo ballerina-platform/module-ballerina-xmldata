@@ -30,6 +30,7 @@ public type JsonOptions record {
 };
 
 # Converts a JSON object to an XML representation.
+# Note: At the moment, the () value will not be returned by this.
 # ```ballerina
 # json data = {
 #     name: "John",
