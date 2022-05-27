@@ -1,4 +1,4 @@
-# Proposal: Introduce API to convert the Ballerina record to XML
+# Proposal: Introduce a new config in the `fromJson` API to add the root element tag name
 
 _Owners_: @daneshk @kalaiyarasiganeshalingam  
 _Reviewers_: @daneshk  
