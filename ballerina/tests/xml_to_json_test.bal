@@ -316,7 +316,7 @@ isolated function testComplexXmlWithOutNamespace() returns error? {
             isOpen: "true",
             address: {"street": "foo", "city": "94", "country": "true"},
             codes: {"item": ["4", "8", "9"]},
-            "@status" : "online"
+            "@status": "online"
         }
     });
 }
@@ -526,5 +526,161 @@ isolated function testXMLMultipleTextNode() returns error? {
                     content
                   </e>`;
     json j = check toJson(x1);
-    test:assertEquals(j, {e:{"#content":["some","content"],a:"textual"}}, msg = "testToJson result incorrect");
+    test:assertEquals(j, {e: {"#content": ["some", "content"], a: "textual"}}, msg = "testToJson result incorrect");
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testComplexXmlWithNamespace1() returns error? {
+    xml x1 = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">
+                    <ns0:storeName>foo</ns0:storeName>
+                    <ns0:postalCode>94</ns0:postalCode>
+                    <ns0:isOpen>true</ns0:isOpen>
+                    <ns0:address xmlns:ns0="http://sample.com/test1">
+                      <ns0:street>foo</ns0:street>
+                      <ns0:city>94</ns0:city>
+                      <ns0:country>true</ns0:country>
+                    </ns0:address>
+                    <ns0:codes xmlns:ns0="http://sample.com/test">
+                      <ns0:item>4</ns0:item>
+                      <ns0:item>8</ns0:item>
+                      <ns0:item>9</ns0:item>
+                    </ns0:codes>
+                  </ns0:bookStore>
+                  <!-- some comment -->
+                  <?doc document="book.doc"?>`;
+    json j = check toJson(x1);
+    test:assertEquals(j, {
+        "ns0:bookStore": {
+            "ns0:storeName": "foo",
+            "ns0:postalCode": "94",
+            "ns0:isOpen": "true",
+            "ns0:address": {
+                "ns0:street": "foo",
+                "ns0:city": "94",
+                "ns0:country": "true",
+                "@xmlns:ns0": "http://sample.com/test1"
+            },
+            "ns0:codes": {"ns0:item": ["4", "8", "9"]},
+            "@xmlns:ns0": "http://sample.com/test",
+            "@status": "online"
+        }
+    });
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testComplexXmlWithNamespace2() returns error? {
+    xml x1 = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">
+                    <ns0:storeName>foo</ns0:storeName>
+                    <ns0:postalCode>94</ns0:postalCode>
+                    <ns0:isOpen>true</ns0:isOpen>
+                    <ns0:address xmlns:ns0="http://sample.com/test1" status="online">
+                      <ns0:street>foo</ns0:street>
+                      <ns0:city>94</ns0:city>
+                      <ns0:country>true</ns0:country>
+                    </ns0:address>
+                    <ns0:codes xmlns:ns0="http://sample.com/test">
+                      <ns0:item>4</ns0:item>
+                      <ns0:item>8</ns0:item>
+                      <ns0:item>9</ns0:item>
+                    </ns0:codes>
+                  </ns0:bookStore>
+                  <!-- some comment -->
+                  <?doc document="book.doc"?>`;
+    json j = check toJson(x1);
+    test:assertEquals(j, {
+        "ns0:bookStore": {
+            "ns0:storeName": "foo",
+            "ns0:postalCode": "94",
+            "ns0:isOpen": "true",
+            "ns0:address": {
+                "ns0:street": "foo",
+                "ns0:city": "94",
+                "ns0:country": "true",
+                "@xmlns:ns0": "http://sample.com/test1",
+                "@status": "online"
+            },
+            "ns0:codes": {"ns0:item": ["4", "8", "9"]},
+            "@xmlns:ns0": "http://sample.com/test",
+            "@status": "online"
+        }
+    });
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testComplexXmlWithNamespace3() returns error? {
+    xml x1 = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">
+                    <ns0:storeName>foo</ns0:storeName>
+                    <ns0:postalCode>94</ns0:postalCode>
+                    <ns0:isOpen>true</ns0:isOpen>
+                    <ns0:address xmlns:ns0="http://sample.com/test1" status="online">
+                      <ns0:street>foo</ns0:street>
+                      <ns0:city>94</ns0:city>
+                      <ns0:country>true</ns0:country>
+                    </ns0:address>
+                    <ns0:codes xmlns:ns0="http://sample.com/test">
+                      <ns0:item>4</ns0:item>
+                      <ns0:item>8</ns0:item>
+                      <ns0:item>9</ns0:item>
+                    </ns0:codes>
+                  </ns0:bookStore>
+                  <!-- some comment -->
+                  <?doc document="book.doc"?>`;
+    json j = check toJson(x1, {preserveNamespaces: false});
+    test:assertEquals(j, {
+        "bookStore": {
+            "storeName": "foo",
+            "postalCode": "94",
+            "isOpen": "true",
+            "address": {"street": "foo", "city": "94", "country": "true", "@status": "online"},
+            "codes": {"item": ["4", "8", "9"]},
+            "@status": "online"
+        }
+    });
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+isolated function testComplexXmlWithNamespace4() returns error? {
+    xml x1 = xml `<bookStore status="online" xmlns:ns0="http://sample.com/test">
+                    <storeName>foo</storeName>
+                    <postalCode>94</postalCode>
+                    <isOpen>true</isOpen>
+                    <address xmlns:ns0="http://sample.com/test1" status="online">
+                      <street>foo</street>
+                      <city>94</city>
+                      <country>true</country>
+                    </address>
+                    <codes xmlns:ns0="http://sample.com/test">
+                      <item>4</item>
+                      <item>8</item>
+                      <item>9</item>
+                    </codes>
+                  </bookStore>
+                  <!-- some comment -->
+                  <?doc document="book.doc"?>`;
+    json j = check toJson(x1);
+    test:assertEquals(j, {
+        "bookStore": {
+            "storeName": "foo",
+            "postalCode": "94",
+            "isOpen": "true",
+            "address": {
+                "street": "foo",
+                "city": "94",
+                "country": "true",
+                "@xmlns:ns0": "http://sample.com/test1",
+                "@status": "online"
+            },
+            "codes": {"item": ["4", "8", "9"]},
+            "@xmlns:ns0": "http://sample.com/test",
+            "@status": "online"
+        }
+    });
 }
