@@ -125,7 +125,7 @@ function testToRecordComplexXmlElementWithoutPreserveNamespaces() returns error?
         }
     };
     Order actual = check toRecord(e2, preserveNamespaces = false);
-    test:assertEquals(actual, expected, 
+    test:assertEquals(actual, expected,
                 msg = "testToRecordComplexXmlElementWithoutPreserveNamespaces result incorrect");
 }
 
@@ -771,35 +771,35 @@ type Root21 record {
     float[]|int[] A;
 };
 
-//@test:Config {
-//    groups: ["toRecord"]
-//}
-//isolated function testToRecordWithUnionArrayValues9() returns Error? {
-//    xml x = xml `<Root><A>2.4</A><A>2.4</A><A>2.4</A></Root>`;
-//    Root20 expected = {
-//        Root: {
-//            A: [2.4f, 2.4f, 2.4f]
-//        }
-//    };
-//
-//    Root20 actual = check toRecord(x);
-//    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues9 result incorrect");
-//}
-//
-//@test:Config {
-//    groups: ["toRecord"]
-//}
-//isolated function testToRecordWithOptionalArrayValues10() returns Error? {
-//    xml x = xml `<Root><A>2</A><A>2</A><A>2</A></Root>`;
-//    Root20 expected = {
-//        Root: {
-//            A: [2.0, 2.0, 2.0]
-//        }
-//    };
-//
-//    Root20 actual = check toRecord(x);
-//    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues10 result incorrect");
-//}
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithUnionArrayValues9() returns Error? {
+    xml x = xml `<Root><A>2.4</A><A>2.4</A><A>2.4</A></Root>`;
+    Root20 expected = {
+        Root: {
+            A: [2.4f, 2.4f, 2.4f]
+        }
+    };
+
+    Root20 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues9 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptionalArrayValues10() returns Error? {
+    xml x = xml `<Root><A>2</A><A>2</A><A>2</A></Root>`;
+    Root20 expected = {
+        Root: {
+            A: [2.0, 2.0, 2.0]
+        }
+    };
+
+    Root20 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues10 result incorrect");
+}
 
 type Root24 record {
     Root25 Root;
@@ -809,20 +809,20 @@ type Root25 record {
     int[]|float[] A;
 };
 
-//@test:Config {
-//    groups: ["toRecord"]
-//}
-//isolated function testToRecordWithUnionArrayValues12() returns Error? {
-//    xml x = xml `<Root><A>2</A><A>2</A><A>2</A></Root>`;
-//    Root24 expected = {
-//        Root: {
-//            A: [<int>2, <int>2, <int>2]
-//        }
-//    };
-//
-//    Root24 actual = check toRecord(x);
-//    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues12 result incorrect");
-//}
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithUnionArrayValues12() returns Error? {
+    xml x = xml `<Root><A>2</A><A>2</A><A>2</A></Root>`;
+    Root24 expected = {
+        Root: {
+            A: [<int>2, <int>2, <int>2]
+        }
+    };
+
+    Root24 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues12 result incorrect");
+}
 
 type Root26 record {
     Root27 Root;
@@ -1174,7 +1174,7 @@ isolated function testToRecordWithArrayField22() returns Error? {
     test:assertEquals(actual, expected, msg = "testToRecordWithArrayField22 result incorrect");
 }
 
-type Root8 record {
+type Root30 record {
     FuelEvents s\:FuelEvents;
 };
 
@@ -1206,7 +1206,7 @@ isolated function testToRecordWithSameAttribute() returns Error? {
                          <s:gasPrice>4.89</s:gasPrice>
                      </s:FuelEvent>
                  </s:FuelEvents>`;
-    Root8 expected = {
+    Root30 expected = {
         s\:FuelEvents: {
             s\:FuelEvent: [
                 {
@@ -1226,6 +1226,6 @@ isolated function testToRecordWithSameAttribute() returns Error? {
         }
     };
 
-    Root8 actual = check toRecord(x);
+    Root30 actual = check toRecord(x);
     test:assertEquals(actual, expected, msg = "testToRecordWithSameAttribute result incorrect");
 }

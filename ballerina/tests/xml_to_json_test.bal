@@ -221,7 +221,7 @@ isolated function testFromXMLWithXmlSequence() returns error? {
 @test:Config {
     groups: ["toJson"]
 }
-isolated function testComplexXmlWithoutNamespace() returns error? {
+isolated function testComplexXmlWithOutNamespace1() returns error? {
     xml x1 = xml `<bookStore status="online">
                     <storeName>foo</storeName>
                     <postalCode>94</postalCode>
