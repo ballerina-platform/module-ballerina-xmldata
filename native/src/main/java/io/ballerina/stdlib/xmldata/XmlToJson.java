@@ -219,7 +219,7 @@ public class XmlToJson {
             for (Map.Entry<BString, BString> entry : attributeMap.entrySet()) {
                 BString value = entry.getValue();
                 if (!isNamespacePrefixEntry(entry) ||
-                        isBelongingToElement(parentAttributeMap, entry.getKey(), value)) {
+                        !isBelongingToElement(parentAttributeMap, entry.getKey(), value)) {
                     String key = attributePrefix + getKey(entry, nsPrefixMap, preserveNamespaces);
                     putAsFieldTypes(mapData, key, value.getValue(), getFieldType(key, type));
                 }
@@ -228,8 +228,8 @@ public class XmlToJson {
             for (Map.Entry<BString, BString> entry : attributeMap.entrySet()) {
                 String key = getKey(entry, nsPrefixMap, preserveNamespaces);
                 if (key != null) {
-                    putAsFieldTypes(mapData, attributePrefix + key, entry.getValue().getValue(),
-                            getFieldType(key, type));
+                    key = attributePrefix + key;
+                    putAsFieldTypes(mapData, key, entry.getValue().getValue(), getFieldType(key, type));
                 }
             }
         }
@@ -237,8 +237,7 @@ public class XmlToJson {
 
     private static boolean isBelongingToElement(BMap<BString, BString> parentAttributeMap, BString key,
                                                        BString value) {
-        return !(parentAttributeMap.containsKey(key) &&
-                parentAttributeMap.get(key).getValue().equals(value.getValue()));
+        return parentAttributeMap.containsKey(key) && parentAttributeMap.get(key).getValue().equals(value.getValue());
     }
 
     private static void putAsFieldTypes(BMap<BString, Object> map, String key, String value, Type type)
