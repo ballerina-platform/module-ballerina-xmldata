@@ -68,7 +68,6 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
                     } else {
                         checkRecordField(words[0], ctx);
                     }
-
                 }
             }
         }
