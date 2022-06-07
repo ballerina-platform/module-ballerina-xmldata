@@ -162,9 +162,12 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 ```
 
 The `XmlOptions` is used to configure the attribute and namespace prefix and add or eliminate the namespace in the JSON data.
-The default value of the configuration is:
-- Attribute and namespace prefix is `@`
-- Preserving the namespaces is `true`
+```ballerina
+public type XmlOptions record {
+    string attributePrefix = "@";
+    boolean preserveNamespaces = true;
+};
+```
 
 #### 4.1.1 Sample
 
@@ -307,7 +310,15 @@ The following API returns the JSON data to the given XML structure by configurin
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error
 ```
 
-The `JsonOptions` is used to configure the attribute prefix for the JSON and array entry tag for XML. Array entry tag is used to create a tag when JSON array is in without keys.
+The `JsonOptions` is used to configure the attribute prefix for the JSON and root and array entry tags for XML. 
+Array entry tag is used to create a tag when JSON array is in without keys.
+```ballerina
+public type JsonOptions record {
+    string attributePrefix = "@";
+    string arrayEntryTag = "item";
+    string rootTag = "root";
+};
+```
 
 ### 4.3.1 Sample1
 
