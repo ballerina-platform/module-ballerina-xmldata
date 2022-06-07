@@ -3,7 +3,7 @@
 _Owners_: @daneshk @kalaiyarasiganeshalingam @MadhukaHarith92                                       
 _Reviewers_: @daneshk  
 _Created_: 2021/12/10  
-_Updated_: 2022/02/08  
+_Updated_: 2022/06/07  
 _Edition_: Swan Lake  
 _Issue_: [#2334](https://github.com/ballerina-platform/ballerina-standard-library/issues/2334)
 
@@ -141,15 +141,15 @@ The following table shows a mapping between the different forms of XML, to a cor
 
 |JSON Type  | JSON Sample | XML Representation Type | XML Representation of XML |
 |---|---|---|---|
-|JSON object has single <br> key-value and value is "" | `{"e":""}` | Empty element | `<e/>`<br> | 
+|JSON object has single <br> key-value and value is "" | `{"e":""}` | Empty element | `<root><e/></root>`<br> | 
 |Empty JSON  | `` | Empty Sequence  | `` <br>|
 |Single value<br>(string, number, boolean) | value | XML text | `value` <br>|
 |Null | `null` | Empty sequence  | `` <br>|
-|JSON object with <br> single key-value | `{`<br>&emsp;&emsp;`"Store": {`<br>&emsp;&emsp;&emsp;&emsp;`"name": "Anne",`<br>&emsp;&emsp;&emsp;&emsp;`"address": {`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"street": "Main",`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"city": "94"`<br>&emsp;&emsp;&emsp;&emsp;`}`<br>&emsp;&emsp;`}`<br>} |XML sequence | `<Store>`<br>&emsp;&emsp;`<name>Anne</name>`<br>&emsp;&emsp;`<address>`<br>&emsp;&emsp;&emsp;&emsp;`<street>Main</street>`<br>&emsp;&emsp;&emsp;&emsp;`<city>94</city>`<br>&emsp;&emsp;`</address>`<br>`</Store>` <br>|
+|JSON object with <br> single key-value | `{`<br>&emsp;&emsp;`"Store": {`<br>&emsp;&emsp;&emsp;&emsp;`"name": "Anne",`<br>&emsp;&emsp;&emsp;&emsp;`"address": {`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"street": "Main",`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"city": "94"`<br>&emsp;&emsp;&emsp;&emsp;`}`<br>&emsp;&emsp;`}`<br>} |XML sequence | `<root>`<br>&emsp;&emsp;`<Store>`<br>&emsp;&emsp;&emsp;&emsp;`<name>Anne</name>`<br>&emsp;&emsp;&emsp;&emsp;`<address>`<br>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`<street>Main</street>`<br>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`<city>94</city>`<br>&emsp;&emsp;&emsp;&emsp;`</address>`<br>&emsp;&emsp;`</Store>`<br>`</root>` <br>|
 |JSON object with <br> distinct keys | `{`<br> &emsp; &emsp;`"key1":"value1",`<br> &emsp; &emsp;`"key2":"value2"`<br>`}` |XML sequence with `root` tag  | `<root>`<br>&emsp;&emsp;`<key1>value1</key1>`<br>&emsp;&emsp;`<key2>value2</key2>`<br>`</root>` |
 |JSON array | `[`<br> &emsp; &emsp;`{`<br>&emsp;&emsp;&emsp;&emsp; `"key": "value1"`<br>&emsp;&emsp;`},`<br>&emsp;&emsp;`value2`<br>`]` |XML sequence with `root` tag  | `<root>`<br>&emsp;&emsp;`<item>`<br>&emsp;&emsp;&emsp;&emsp;`<key>value1</key>`<br>&emsp;&emsp;`</item>`<br>&emsp;&emsp;`<item>value2</item>`<br>`</root>`<br>|
 |JSON object with key <br> as "#content" | `{"#content":"value1"}` | XML text | `value1` |
-|JSON object with key <br> prefix as ‘@’ | `{`<br>&emsp;&emsp;`"foo": {`<br>&emsp;&emsp;&emsp;&emsp;`"@key": "value",`<br>&emsp;&emsp;&emsp;&emsp;`"@xmlns:ns0":"<http://sample.com>"`<br>&emsp;&emsp;`}`<br>} | XML element with attribute and namespace | `<foo key="value"` <br> `xmlns:ns0="<http://sample.com>"/>`<br> |
+|JSON object with key <br> prefix as ‘@’ | `{`<br>&emsp;&emsp;`"foo": {`<br>&emsp;&emsp;&emsp;&emsp;`"@key": "value",`<br>&emsp;&emsp;&emsp;&emsp;`"@xmlns:ns0":"<http://sample.com>"`<br>&emsp;&emsp;`}`<br>} | XML element with attribute and namespace | `<root>`<br>&emsp;&emsp;`<foo key="value"` <br> `xmlns:ns0="<http://sample.com>"/>`<br>`</root>`<br> |
 
 ## 4. Operations
 
@@ -162,9 +162,12 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 ```
 
 The `XmlOptions` is used to configure the attribute and namespace prefix and add or eliminate the namespace in the JSON data.
-The default value of the configuration is:
-- Attribute and namespace prefix is `@`
-- Preserving the namespaces is `true`
+```ballerina
+public type XmlOptions record {
+    string attributePrefix = "@";
+    boolean preserveNamespaces = true;
+};
+```
 
 #### 4.1.1 Sample
 
@@ -307,7 +310,15 @@ The following API returns the JSON data to the given XML structure by configurin
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error
 ```
 
-The `JsonOptions` is used to configure the attribute prefix for the JSON and array entry tag for XML. Array entry tag is used to create a tag when JSON array is in without keys.
+The `JsonOptions` is used to configure the attribute prefix for the JSON and root and array entry tags for XML. 
+Array entry tag is used to create a tag when JSON array is in without keys.
+```ballerina
+public type JsonOptions record {
+    string attributePrefix = "@";
+    string arrayEntryTag = "item";
+    string rootTag = "root";
+};
+```
 
 ### 4.3.1 Sample1
 

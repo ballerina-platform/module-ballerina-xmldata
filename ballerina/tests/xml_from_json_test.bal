@@ -21,7 +21,7 @@ import ballerina/test;
 }
 isolated function testJsonDataSize() returns error? {
     json data = {id: 30};
-    xml expected = xml `<id>30</id>`;
+    xml expected = xml `<root><id>30</id></root>`;
     xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testFromJSON result incorrect");
@@ -212,7 +212,7 @@ isolated function testSingleElement() returns error? {
     json data = {
         name: "Alex"
     };
-    xml expected = xml `<name>Alex</name>`;
+    xml expected = xml `<root><name>Alex</name></root>`;
     xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected);
@@ -591,15 +591,17 @@ isolated function testWithAttribute1() returns error? {
     };
     xml? result = check fromJson(data);
     string expected =
-    "<Store id=\"AST\">" +
-        "<name>Anne</name>" +
-        "<address>" +
-            "<street>Main</street>" +
-            "<city>94</city>" +
-        "</address>" +
-        "<codes>4</codes>" +
-        "<codes>8</codes>" +
-    "</Store>";
+    "<root>" +
+        "<Store id=\"AST\">" +
+            "<name>Anne</name>" +
+            "<address>" +
+                "<street>Main</street>" +
+                "<city>94</city>" +
+            "</address>" +
+            "<codes>4</codes>" +
+            "<codes>8</codes>" +
+        "</Store>" +
+    "</root>";
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -700,7 +702,7 @@ isolated function testJsonWithDefaultKey() returns error? {
             item: ["book1", "book2", "book6"]
         }
     };
-    xml expected = xml `<books>book3<item>book1</item><item>book2</item><item>book6</item></books>`;
+    xml expected = xml `<root><books>book3<item>book1</item><item>book2</item><item>book6</item></books></root>`;
     xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testJsonKey result incorrect");
@@ -727,15 +729,17 @@ isolated function testWithAttribute2() {
     };
     xml?|error result = fromJson(data);
     string expected =
-    "<Store id=\"AST\">" +
-        "<name>Anne</name>" +
-        "<address id=\"AST\">" +
-            "<street>Main</street>" +
-            "<city>94</city>" +
-        "</address>" +
-        "<codes>4</codes>" +
-        "<codes>8</codes>" +
-    "</Store>";
+    "<root>" +
+        "<Store id=\"AST\">" +
+            "<name>Anne</name>" +
+            "<address id=\"AST\">" +
+                "<street>Main</street>" +
+                "<city>94</city>" +
+            "</address>" +
+            "<codes>4</codes>" +
+            "<codes>8</codes>" +
+        "</Store>" +
+    "</root>";
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -761,15 +765,17 @@ isolated function testWithAttribute3() {
     };
     xml?|error result = fromJson(data, {attributePrefix: "#"});
     string expected =
-    "<Store id=\"AST\">" +
-        "<name>Anne</name>" +
-        "<address id=\"AST\">" +
-            "<street>Main</street>" +
-            "<city>94</city>" +
-        "</address>" +
-        "<codes>4</codes>" +
-        "<codes>8</codes>" +
-    "</Store>";
+    "<root>" +
+        "<Store id=\"AST\">" +
+            "<name>Anne</name>" +
+            "<address id=\"AST\">" +
+                "<street>Main</street>" +
+                "<city>94</city>" +
+            "</address>" +
+            "<codes>4</codes>" +
+            "<codes>8</codes>" +
+        "</Store>" +
+    "</root>";
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -814,32 +820,35 @@ isolated function testWithAttribute4() {
             "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance"
         }
     };
-    string expected = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
-                        "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
-                        "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\" " +
-                        "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
-                            "<soapenv:Header>" +
-                                "<applicationInfo>" +
-                                    "<applicationId>testID123</applicationId>" +
-                                "</applicationInfo>" +
-                                "<tokenPassport>" +
-                                    "<account>testvalueaccount</account>" +
-                                    "<consumerKey>testvalueconsumerKey</consumerKey>" +
-                                    "<token>testvaluetoken</token>" +
-                                    "<nonce>testvaluenonce</nonce>" +
-                                    "<timestamp>testvaluetimestamp</timestamp>" +
-                                    "<signature algorithm=\"HMA_SHA256\">Value123</signature>" +
-                                "</tokenPassport>" +
-                            "</soapenv:Header>" +
-                            "<soapenv:Body>" +
-                                "<urn:get>" +
-                                    "<urn:baseRef xsi:type=\"urn1:RecordRef\">" +
-                                        "<internalId>valueID</internalId>" +
-                                        "<type>vendor</type>" +
-                                    "</urn:baseRef>" +
-                                "</urn:get>" +
-                            "</soapenv:Body>" +
-                        "</soapenv:Envelope>";
+    string expected =
+    "<root>" +
+        "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+        "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
+        "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\" " +
+        "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+            "<soapenv:Header>" +
+                "<applicationInfo>" +
+                    "<applicationId>testID123</applicationId>" +
+                "</applicationInfo>" +
+                "<tokenPassport>" +
+                    "<account>testvalueaccount</account>" +
+                    "<consumerKey>testvalueconsumerKey</consumerKey>" +
+                    "<token>testvaluetoken</token>" +
+                    "<nonce>testvaluenonce</nonce>" +
+                    "<timestamp>testvaluetimestamp</timestamp>" +
+                    "<signature algorithm=\"HMA_SHA256\">Value123</signature>" +
+                "</tokenPassport>" +
+            "</soapenv:Header>" +
+            "<soapenv:Body>" +
+                "<urn:get>" +
+                    "<urn:baseRef xsi:type=\"urn1:RecordRef\">" +
+                        "<internalId>valueID</internalId>" +
+                        "<type>vendor</type>" +
+                    "</urn:baseRef>" +
+                "</urn:get>" +
+            "</soapenv:Body>" +
+        "</soapenv:Envelope>" +
+    "</root>";
     xml|Error? x = fromJson(j);
     if x is xml {
         test:assertEquals(x.toString(), expected);
@@ -885,31 +894,34 @@ isolated function testWithAttribute5() {
             "@xmlns:urn1": "urn:core_2020_2.platform.webservices.netsuite.com"
         }
     };
-    string expected = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
-                        "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
-                        "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\">" +
-                            "<soapenv:Header>" +
-                                "<applicationInfo>" +
-                                    "<applicationId>testID123</applicationId>" +
-                                "</applicationInfo>" +
-                                "<tokenPassport>" +
-                                    "<account>testvalueaccount</account>" +
-                                    "<consumerKey>testvalueconsumerKey</consumerKey>" +
-                                    "<token>testvaluetoken</token>" +
-                                    "<nonce>testvaluenonce</nonce>" +
-                                    "<timestamp>testvaluetimestamp</timestamp>" +
-                                    "<signature algorithm=\"HMA_SHA256\">Value123</signature>" +
-                                "</tokenPassport>" +
-                            "</soapenv:Header>" +
-                            "<soapenv:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
-                                "<urn:get>" +
-                                    "<urn:baseRef xsi:type=\"urn1:RecordRef\">" +
-                                        "<internalId>valueID</internalId>" +
-                                        "<type>vendor</type>" +
-                                    "</urn:baseRef>" +
-                                "</urn:get>" +
-                            "</soapenv:Body>" +
-                        "</soapenv:Envelope>";
+    string expected =
+    "<root>" +
+        "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+        "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
+        "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\">" +
+            "<soapenv:Header>" +
+                "<applicationInfo>" +
+                    "<applicationId>testID123</applicationId>" +
+                "</applicationInfo>" +
+                "<tokenPassport>" +
+                    "<account>testvalueaccount</account>" +
+                    "<consumerKey>testvalueconsumerKey</consumerKey>" +
+                    "<token>testvaluetoken</token>" +
+                    "<nonce>testvaluenonce</nonce>" +
+                    "<timestamp>testvaluetimestamp</timestamp>" +
+                    "<signature algorithm=\"HMA_SHA256\">Value123</signature>" +
+                "</tokenPassport>" +
+            "</soapenv:Header>" +
+            "<soapenv:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" +
+                "<urn:get>" +
+                    "<urn:baseRef xsi:type=\"urn1:RecordRef\">" +
+                        "<internalId>valueID</internalId>" +
+                        "<type>vendor</type>" +
+                    "</urn:baseRef>" +
+                "</urn:get>" +
+            "</soapenv:Body>" +
+        "</soapenv:Envelope>" +
+    "</root>";
     xml|Error? x = fromJson(j);
     if x is xml {
         test:assertEquals(x.toString(), expected);
@@ -980,19 +992,22 @@ isolated function testfromjsonwithRecord() {
             _xmlns\:ns: "ns.com"
         }
     };
-    string expected = "<Invoice xmlns=\"example.com\" xmlns:ns=\"ns.com\" attr=\"attr-val\">" +
-                            "<PurchesedItems>" +
-                                "<PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>" +
-                                "<PLine><ItemCode>223300</ItemCode><Count>7</Count></PLine>" +
-                                "<PLine><ItemCode discount=\"22%\">200777</ItemCode><Count>7</Count></PLine>" +
-                            "</PurchesedItems>" +
-                            "<Address>" +
-                                "<StreetAddress>20, Palm grove, Colombo 3</StreetAddress>" +
-                                "<City>Colombo</City>" +
-                                "<Zip>300</Zip>" +
-                                "<Country>LK</Country>" +
-                            "</Address>" +
-                        "</Invoice>";
+    string expected =
+    "<root>" +
+        "<Invoice xmlns=\"example.com\" xmlns:ns=\"ns.com\" attr=\"attr-val\">" +
+            "<PurchesedItems>" +
+                "<PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>" +
+                "<PLine><ItemCode>223300</ItemCode><Count>7</Count></PLine>" +
+                "<PLine><ItemCode discount=\"22%\">200777</ItemCode><Count>7</Count></PLine>" +
+            "</PurchesedItems>" +
+            "<Address>" +
+                "<StreetAddress>20, Palm grove, Colombo 3</StreetAddress>" +
+                "<City>Colombo</City>" +
+                "<Zip>300</Zip>" +
+                "<Country>LK</Country>" +
+            "</Address>" +
+        "</Invoice>" +
+    "</root>";
     json jsonData = data.toJson();
     xml?|error result = fromJson(jsonData, {attributePrefix: "_"});
     if result is xml {
@@ -1035,21 +1050,60 @@ isolated function testfromjsonwithRecord1() {
         }
     };
     json jsonData = gettemp.toJson();
-    string expected = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
-                    "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
-                    "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\">" +
-                        "<soapenv:Header>" +
-                        "<Authorization>35</Authorization>" +
-                        "</soapenv:Header>" +
-                        "<soapenv:Body>" +
-                            "<urn:get>" +
-                                "<urn:baseRef>" +
-                                    "<urn1:name>details</urn1:name>" +
-                                "</urn:baseRef>" +
-                            "</urn:get>" +
-                        "</soapenv:Body>" +
-                    "</soapenv:Envelope>";
+    string expected =
+    "<root>" +
+        "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+        "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
+        "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\">" +
+            "<soapenv:Header>" +
+            "<Authorization>35</Authorization>" +
+            "</soapenv:Header>" +
+            "<soapenv:Body>" +
+                "<urn:get>" +
+                    "<urn:baseRef>" +
+                        "<urn1:name>details</urn1:name>" +
+                    "</urn:baseRef>" +
+                "</urn:get>" +
+            "</soapenv:Body>" +
+        "</soapenv:Envelope>" +
+    "</root>";
     xml?|error result = fromJson(jsonData, {attributePrefix: "_"});
+    if result is xml {
+        test:assertEquals(result.toString(), expected);
+    } else {
+        test:assertFail("failed to convert json to xml");
+    }
+}
+
+@test:Config {
+    groups: ["fromJson"]
+}
+isolated function testWithRootTagConfig() {
+    json data = {
+        "Store": {
+            "#id": "AST",
+            "name": "Anne",
+            "address": {
+                "#id": "AST",
+                "street": "Main",
+                "city": "94"
+            },
+            "codes": ["4", "8"]
+        }
+    };
+    xml?|error result = fromJson(data, {attributePrefix: "#", rootTag: "Output"});
+    string expected =
+    "<Output>" +
+        "<Store id=\"AST\">" +
+            "<name>Anne</name>" +
+            "<address id=\"AST\">" +
+                "<street>Main</street>" +
+                "<city>94</city>" +
+            "</address>" +
+            "<codes>4</codes>" +
+            "<codes>8</codes>" +
+        "</Store>" +
+    "</Output>";
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
