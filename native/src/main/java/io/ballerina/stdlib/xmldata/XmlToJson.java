@@ -251,15 +251,20 @@ public class XmlToJson {
                     }
                 }
             }
-            if (type instanceof UnionType || type.getTag() == TypeTags.UNION_TAG) {
+            if (type instanceof UnionType) {
                 UnionType bUnionType = (UnionType) type;
+                boolean isSuccessfullyCast = false;
                 for (Type memberType : bUnionType.getMemberTypes()) {
                     try {
                         convertToRecordType(map, memberType, key, value);
+                        isSuccessfullyCast = true;
                         break;
                     } catch (Exception e) {
-                        continue;
+                        // Ignored
                     }
+                }
+                if (!isSuccessfullyCast) {
+                    throw new Exception("Couldn't convert value: " + value + " to " + bUnionType);
                 }
             } else {
                 convertToRecordType(map, type, key, value);
@@ -277,30 +282,32 @@ public class XmlToJson {
             throws Exception {
         try {
             switch (valueType.getTag()) {
-                case 1:
+                case TypeTags.INT_TAG:
                     map.put(fromString(key), Long.parseLong(value));
                     break;
-                case 3:
+                case TypeTags.FLOAT_TAG:
                     map.put(fromString(key), Double.parseDouble(value));
                     break;
-                case 4:
+                case TypeTags.DECIMAL_TAG:
                     map.put(fromString(key), ValueCreator.createDecimalValue(
                             BigDecimal.valueOf(Double.parseDouble(value))));
                     break;
-                case 6:
+                case TypeTags.BOOLEAN_TAG:
                     map.put(fromString(key), Boolean.parseBoolean(value));
                     break;
-                case 32:
+                case TypeTags.ARRAY_TAG:
                     BArray array = convertToArray(valueType, value);
                     map.put(fromString(key), array);
                     break;
-                case 5:
+                case TypeTags.STRING_TAG:
                 default:
                     map.put(fromString(key), fromString(value));
                     break;
             }
         } catch (NumberFormatException e) {
-            throw new Exception("Error occurred when converting value:" + value + " to " + valueType);
+            throw new Exception("Error occurred when converting value: " + value + " to " + valueType);
+        } catch (Exception e) {
+            throw new Exception("Error occurred when converting value. " + e.getMessage());
         }
     }
 
@@ -310,32 +317,32 @@ public class XmlToJson {
         String valueString = value.toString();
         try {
             switch (elementType.getTag()) {
-                case 1:
+                case TypeTags.INT_TAG:
                     arr = ValueCreator.createArrayValue(LONG_ARRAY_TYPE);
                     if (!valueString.isEmpty()) {
                         arr.append(Long.parseLong(valueString));
                     }
                     return arr;
-                case 3:
+                case TypeTags.FLOAT_TAG:
                     arr = ValueCreator.createArrayValue(FLOAT_ARRAY_TYPE);
                     if (!valueString.isEmpty()) {
                         arr.append(Double.parseDouble(valueString));
                     }
                     return arr;
-                case 4:
+                case TypeTags.DECIMAL_TAG:
                     arr = ValueCreator.createArrayValue(DECIMAL_ARRAY_TYPE);
                     if (!valueString.isEmpty()) {
                         arr.append(ValueCreator.createDecimalValue(
                                 BigDecimal.valueOf(Double.parseDouble(valueString))));
                     }
                     return arr;
-                case 6:
+                case TypeTags.BOOLEAN_TAG:
                     arr = ValueCreator.createArrayValue(BOOLEAN_ARRAY_TYPE);
                     if (!valueString.isEmpty()) {
                         arr.append(Boolean.parseBoolean(valueString));
                     }
                     return arr;
-                case 5:
+                case TypeTags.STRING_TAG:
                     arr = ValueCreator.createArrayValue(STRING_ARRAY_TYPE);
                     if (!valueString.isEmpty()) {
                         arr.append(fromString(valueString));
@@ -350,6 +357,8 @@ public class XmlToJson {
             }
         } catch (NumberFormatException e) {
             throw new Exception("Error occurred when converting value:" + value + " to " + valueType);
+        } catch (Exception e) {
+            throw new Exception("Error occurred when converting value:" + e.getMessage());
         }
     }
 

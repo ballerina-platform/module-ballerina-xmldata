@@ -17,10 +17,11 @@
  */
 package io.ballerina.stdlib.xmldata.compiler;
 
-import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.RecordFieldNode;
-import io.ballerina.compiler.syntax.tree.StatementNode;
+import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.projects.plugins.AnalysisTask;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
@@ -31,6 +32,7 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Xmldata record field analyzer.
@@ -38,12 +40,17 @@ import java.util.List;
 public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnalysisContext> {
 
     private final List<RecordFieldNode> recordNodes = new ArrayList<>();
+    private final List<RecordFieldNode> validatedRecordNodes = new ArrayList<>();
     private static final String STRING = "string";
     private static final String DECIMAL = "decimal";
     private static final String FLOAT = "float";
     private static final String BOOLEAN = "boolean";
     private static final String INT = "int";
     private static final String QUESTION_MARK = "?";
+    private static final String TO_RECORD = "xmldata:toRecord";
+    private static final String VERTICAL_BAR = "|";
+    private static final String SQUARE_BRACKET = "[]";
+    private static final String BRACKET = "[";
 
     @Override
     public void perform(SyntaxNodeAnalysisContext ctx) {
@@ -57,63 +64,88 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
         if (node instanceof RecordFieldNode) {
             this.recordNodes.add((RecordFieldNode) node);
         }
-        if (node instanceof FunctionBodyBlockNode) {
-            FunctionBodyBlockNode functionBodyBlockNode = (FunctionBodyBlockNode) node;
-            for (StatementNode statementNode: functionBodyBlockNode.statements()) {
-                String statement = statementNode.toString();
-                if (statementNode instanceof VariableDeclarationNode && statement.contains("xmldata:toRecord")) {
-                    String[] words = statement.trim().split(" ");
-                    if (words[0].startsWith("record")) {
-                        return;
-                    } else {
-                        checkRecordField(words[0], ctx);
-                    }
+        if (node instanceof VariableDeclarationNode) {
+            VariableDeclarationNode variableDeclarationNode = (VariableDeclarationNode) node;
+            Optional<ExpressionNode> initializer = variableDeclarationNode.initializer();
+            if (!initializer.isEmpty()) {
+                ExpressionNode expressionNode = initializer.get();
+                if (expressionNode.toString().contains(TO_RECORD)) {
+                    TypedBindingPatternNode typedBindingPatternNode = variableDeclarationNode.typedBindingPattern();
+                    checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx);
+                }
+            }
+        }
+        if (node instanceof ModuleVariableDeclarationNode) {
+            ModuleVariableDeclarationNode moduleVariableDeclarationNode = (ModuleVariableDeclarationNode) node;
+            Optional<ExpressionNode> initializer = moduleVariableDeclarationNode.initializer();
+            if (!initializer.isEmpty()) {
+                ExpressionNode expressionNode = initializer.get();
+                if (expressionNode.toString().contains(TO_RECORD)) {
+                    TypedBindingPatternNode typedBindingPatternNode =
+                            moduleVariableDeclarationNode.typedBindingPattern();
+                    checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx);
                 }
             }
         }
     }
 
     private void checkRecordField(String recordName, SyntaxNodeAnalysisContext ctx) {
-        for (RecordFieldNode recordNode: this.recordNodes) {
-            String name = recordNode.parent().parent().children().get(1).toString().trim();
-            String typeName = recordNode.typeName().toString().trim();
-            if (name.equals(recordName.trim())) {
-                if (typeName.contains(QUESTION_MARK)) {
-                    DiagnosticInfo diagnosticInfo = new DiagnosticInfo(DiagnosticsCodes.XMLDATA_101.getCode(),
-                            DiagnosticsCodes.XMLDATA_101.getMessage(), DiagnosticsCodes.XMLDATA_101.getSeverity());
-                    ctx.reportDiagnostic(
-                            DiagnosticFactory.createDiagnostic(diagnosticInfo, recordNode.location()));
-                    if (typeName.contains("|")) {
-                        String[] types = typeName.split("\\|");
-                        for (String type: types) {
-                            if (type.trim().contains(QUESTION_MARK)) {
-                                if (isNonPrimitiveOptionalType(type)) {
-                                    checkRecordField(type.substring(0, type.length() - 1), ctx);
-                                }
-                            } else {
-                                if (isNonPrimitiveType(type)) {
-                                    checkRecordField(type, ctx);
+        for (RecordFieldNode recordFieldNode: this.recordNodes) {
+            if (!this.validatedRecordNodes.contains(recordFieldNode)) {
+                String recordNameOfField = recordFieldNode.parent().parent().children().get(1).toString().trim();
+                String filedType = recordFieldNode.typeName().toString().trim();
+                if (recordNameOfField.equals(recordName.trim())) {
+                    this.validatedRecordNodes.add(recordFieldNode);
+                    if (filedType.contains(QUESTION_MARK)) {
+                        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(DiagnosticsCodes.XMLDATA_101.getCode(),
+                                DiagnosticsCodes.XMLDATA_101.getMessage(), DiagnosticsCodes.XMLDATA_101.getSeverity());
+                        ctx.reportDiagnostic(
+                                DiagnosticFactory.createDiagnostic(diagnosticInfo, recordFieldNode.location()));
+                        if (filedType.contains(VERTICAL_BAR)) {
+                            String[] types = filedType.split("\\" + VERTICAL_BAR);
+                            for (String type : types) {
+                                type = type.trim();
+                                if (type.contains(QUESTION_MARK)) {
+                                    if (isNonPrimitiveType(type)) {
+                                        checkRecordFiled(type, type.length() - 1, ctx);
+                                    }
+                                } else {
+                                    if (isNonPrimitiveType(type)) {
+                                        checkRecordFiled(type, type.length(), ctx);
+                                    }
                                 }
                             }
+                        } else if (isNonPrimitiveType(filedType)) {
+                            checkRecordFiled(filedType, filedType.length() - 1, ctx);
                         }
-                    } else if (isNonPrimitiveOptionalType(typeName)) {
-                        checkRecordField(typeName.substring(0, typeName.length() - 1), ctx);
+                    } else {
+                        if (filedType.contains(VERTICAL_BAR)) {
+                            String[] types = filedType.split("\\" + VERTICAL_BAR);
+                            for (String type : types) {
+                                type = type.trim();
+                                if (isNonPrimitiveType(type)) {
+                                    checkRecordFiled(type, type.length(), ctx);
+                                }
+                            }
+                        } else if (isNonPrimitiveType(filedType)) {
+                            checkRecordFiled(filedType, filedType.length(), ctx);
+                        }
                     }
-                } else if (isNonPrimitiveType(typeName)) {
-                    checkRecordField(typeName, ctx);
                 }
             }
         }
     }
 
-    private boolean isNonPrimitiveType(String typeName) {
-        return !(typeName.equals(STRING) || typeName.equals(INT) || typeName.equals(DECIMAL) ||
-                typeName.equals(FLOAT) || typeName.equals(BOOLEAN));
+    private void checkRecordFiled(String filedType, int endIndex, SyntaxNodeAnalysisContext ctx) {
+        if (filedType.contains(SQUARE_BRACKET)) {
+            checkRecordField(filedType.substring(0, filedType.indexOf(BRACKET)), ctx);
+        } else {
+            checkRecordField(filedType.substring(0, endIndex), ctx);
+        }
     }
 
-    private boolean isNonPrimitiveOptionalType(String typeName) {
-        return !(typeName.equals(STRING + QUESTION_MARK) || typeName.equals(INT + QUESTION_MARK) ||
-                typeName.equals(DECIMAL + QUESTION_MARK) || typeName.equals(FLOAT + QUESTION_MARK) ||
-                typeName.equals(BOOLEAN + QUESTION_MARK));
+    private boolean isNonPrimitiveType(String typeName) {
+        return !(typeName.contains(STRING) || typeName.contains(INT) || typeName.contains(DECIMAL) ||
+                typeName.contains(FLOAT) || typeName.contains(BOOLEAN));
     }
 }

@@ -112,8 +112,38 @@ public class CompilerPluginTest {
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
         Assert.assertEquals(errorDiagnosticsList.size(), 4);
-        Assert.assertEquals(errorDiagnosticsList.get(0).diagnosticInfo().messageFormat(),
-                "invalid field type: the record field does not support the optional value type");
     }
 
+    @Test
+    public void testInvalidType5() {
+        Package currentPackage = loadPackage("sample5");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .collect(Collectors.toList());
+        Assert.assertEquals(errorDiagnosticsList.size(), 5);
+    }
+
+    @Test
+    public void testInvalidType6() {
+        Package currentPackage = loadPackage("sample6");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .collect(Collectors.toList());
+        Assert.assertEquals(errorDiagnosticsList.size(), 3);
+    }
+
+    @Test
+    public void testInvalidType7() {
+        Package currentPackage = loadPackage("sample7");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .collect(Collectors.toList());
+        Assert.assertEquals(errorDiagnosticsList.size(), 2);
+    }
 }
