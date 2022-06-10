@@ -16,7 +16,7 @@
  * under the License.
  */
 
-module io.ballerina.stdlib.cache.compiler {
+module io.ballerina.stdlib.xmldata.compiler {
     requires io.ballerina.lang;
     requires io.ballerina.tools.api;
     requires io.ballerina.parser;
