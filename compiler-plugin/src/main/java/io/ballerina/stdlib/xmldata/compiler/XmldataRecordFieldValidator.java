@@ -50,7 +50,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
     private static final String TO_RECORD = "xmldata:toRecord";
     private static final String VERTICAL_BAR = "|";
     private static final String SQUARE_BRACKET = "[]";
-    private static final String BRACKET = "[";
+    private static final String OPEN_BRACKET = "[";
 
     @Override
     public void perform(SyntaxNodeAnalysisContext ctx) {
