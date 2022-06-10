@@ -47,7 +47,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
     private static final String BOOLEAN = "boolean";
     private static final String INT = "int";
     private static final String QUESTION_MARK = "?";
-    private static final String TO_RECORD = "xmldata:toRecord";
+    private static final String XMLDATA_TO_RECORD = "xmldata:toRecord";
     private static final String VERTICAL_BAR = "|";
     private static final String SQUARE_BRACKET = "[]";
     private static final String OPEN_BRACKET = "[";
