@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.api.values.BXml;
+import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 import org.ballerinalang.langlib.value.CloneWithType;
 
@@ -37,8 +38,12 @@ import static io.ballerina.stdlib.xmldata.XmlToJson.toJson;
 public class XmlToRecord {
 
     public static Object toRecord(BXml xml, boolean preserveNamespaces, BTypedesc type) {
+        return toRecord(xml, preserveNamespaces, Constants.UNDERSCORE, type);
+    }
+
+    public static Object toRecord(BXml xml, boolean preserveNamespaces, String attributePrefix, BTypedesc type) {
         try {
-            Object jsonObject = toJson(xml, preserveNamespaces, type.getDescribingType());
+            Object jsonObject = toJson(xml, preserveNamespaces, attributePrefix, type.getDescribingType());
             if (jsonObject instanceof BError) {
                 return XmlDataUtils.getError("xml type mismatch with record type: " +
                         ((BError) jsonObject).getErrorMessage());

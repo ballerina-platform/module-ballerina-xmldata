@@ -146,4 +146,15 @@ public class CompilerPluginTest {
                 .collect(Collectors.toList());
         Assert.assertEquals(errorDiagnosticsList.size(), 2);
     }
+
+    @Test
+    public void testInvalidType8() {
+        Package currentPackage = loadPackage("sample8");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .collect(Collectors.toList());
+        Assert.assertEquals(errorDiagnosticsList.size(), 2);
+    }
 }

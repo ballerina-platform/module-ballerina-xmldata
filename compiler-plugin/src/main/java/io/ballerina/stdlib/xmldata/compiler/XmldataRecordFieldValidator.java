@@ -48,6 +48,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
     private static final String INT = "int";
     private static final String QUESTION_MARK = "?";
     private static final String TO_RECORD = "xmldata:toRecord";
+    private static final String FROM_XML = "xmldata:fromXml";
     private static final String VERTICAL_BAR = "|";
     private static final String SQUARE_BRACKET = "[]";
     private static final String BRACKET = "[";
@@ -69,7 +70,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
             Optional<ExpressionNode> initializer = variableDeclarationNode.initializer();
             if (!initializer.isEmpty()) {
                 ExpressionNode expressionNode = initializer.get();
-                if (expressionNode.toString().contains(TO_RECORD)) {
+                if (expressionNode.toString().contains(TO_RECORD) || expressionNode.toString().contains(FROM_XML)) {
                     TypedBindingPatternNode typedBindingPatternNode = variableDeclarationNode.typedBindingPattern();
                     checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx);
                 }
@@ -80,7 +81,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
             Optional<ExpressionNode> initializer = moduleVariableDeclarationNode.initializer();
             if (!initializer.isEmpty()) {
                 ExpressionNode expressionNode = initializer.get();
-                if (expressionNode.toString().contains(TO_RECORD)) {
+                if (expressionNode.toString().contains(TO_RECORD) || expressionNode.toString().contains(FROM_XML)) {
                     TypedBindingPatternNode typedBindingPatternNode =
                             moduleVariableDeclarationNode.typedBindingPattern();
                     checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx);

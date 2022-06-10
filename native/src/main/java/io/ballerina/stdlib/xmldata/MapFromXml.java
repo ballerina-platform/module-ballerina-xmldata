@@ -16,23 +16,28 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.xmldata.utils;
+package io.ballerina.stdlib.xmldata;
 
 import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.types.MapType;
+import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.runtime.api.values.BXml;
 
 /**
- * Constants used in Ballerina XmlData library.
+ * This class converts an XML to a Ballerina record type.
  *
- * @since 1.1.0
+ * @since 2.3.0
  */
-public class Constants {
+public class MapFromXml {
+    private static final MapType XML_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_XML);
 
-    private Constants() {}
-
-    public static final String OPTIONS_ATTRIBUTE_PREFIX = "attributePrefix";
-    public static final String OPTIONS_PRESERVE_NS = "preserveNamespaces";
-    public static final String UNDERSCORE = "_";
-    public static final MapType JSON_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_JSON);
+    public static Object fromXml(BXml xml, BTypedesc type) {
+        if (type.getDescribingType().getTag() == TypeTags.RECORD_TYPE_TAG) {
+            return XmlToRecord.toRecord(xml, true, "", type);
+        } else {
+            return  XmlToJson.toJson(xml, true, "", type.getDescribingType());
+        }
+    }
 }
