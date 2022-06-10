@@ -124,7 +124,7 @@ public class XmlToJson {
             }
             return seq;
         } else if (xml.getNodeType().equals(XmlNodeType.TEXT)) {
-            if (type != null && type.getTag() == 32) {
+            if (type != null && type.getTag() == TypeTags.ARRAY_TAG) {
                 return convertToArray(type, xml);
             }
             return JsonUtils.parse(DOUBLE_QUOTES + xml.stringValue(null).replace(DOUBLE_QUOTES,
