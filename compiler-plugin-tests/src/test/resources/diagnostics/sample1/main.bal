@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/xmldata;
-import ballerina/io;
 
 type Foo record {
     Bar? foo;
@@ -29,5 +28,4 @@ type Bar record {
 public function main() returns error? {
     xml x = xml `<foo><bar>2</bar><car></car></foo>`;
     Foo actual = check xmldata:toRecord(x);
-    io:println(actual);
 }

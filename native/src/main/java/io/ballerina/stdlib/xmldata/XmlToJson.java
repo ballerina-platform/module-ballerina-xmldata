@@ -169,7 +169,7 @@ public class XmlToJson {
                     data.put(entry.getKey(), entry.getValue());
                 }
                 putAsBStrings(rootNode, keyValue, data);
-            }  else if (children == null) {
+            } else if (children == null) {
                 putAsBStrings(rootNode, keyValue, childrenData);
             } else if (children instanceof BArray) {
                 putAsBStrings(rootNode, keyValue, children);

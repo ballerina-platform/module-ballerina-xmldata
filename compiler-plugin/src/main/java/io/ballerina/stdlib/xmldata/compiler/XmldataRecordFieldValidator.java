@@ -50,7 +50,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
     private static final String XMLDATA_TO_RECORD = "xmldata:toRecord";
     private static final String VERTICAL_BAR = "|";
     private static final String SQUARE_BRACKET = "[]";
-    private static final String OPEN_BRACKET = "[";
+    private static final String OPEN_SQUARE_BRACKET = "[";
 
     @Override
     public void perform(SyntaxNodeAnalysisContext ctx) {
@@ -64,27 +64,27 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
         if (node instanceof RecordFieldNode) {
             this.recordNodes.add((RecordFieldNode) node);
         }
+
         if (node instanceof VariableDeclarationNode) {
             VariableDeclarationNode variableDeclarationNode = (VariableDeclarationNode) node;
             Optional<ExpressionNode> initializer = variableDeclarationNode.initializer();
-            if (!initializer.isEmpty()) {
-                ExpressionNode expressionNode = initializer.get();
-                if (expressionNode.toString().contains(TO_RECORD)) {
-                    TypedBindingPatternNode typedBindingPatternNode = variableDeclarationNode.typedBindingPattern();
-                    checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx);
-                }
-            }
+            TypedBindingPatternNode typedBindingPatternNode = variableDeclarationNode.typedBindingPattern();
+            processDeclarationNode(initializer, ctx, typedBindingPatternNode);
         }
         if (node instanceof ModuleVariableDeclarationNode) {
             ModuleVariableDeclarationNode moduleVariableDeclarationNode = (ModuleVariableDeclarationNode) node;
             Optional<ExpressionNode> initializer = moduleVariableDeclarationNode.initializer();
-            if (!initializer.isEmpty()) {
-                ExpressionNode expressionNode = initializer.get();
-                if (expressionNode.toString().contains(TO_RECORD)) {
-                    TypedBindingPatternNode typedBindingPatternNode =
-                            moduleVariableDeclarationNode.typedBindingPattern();
-                    checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx);
-                }
+            TypedBindingPatternNode typedBindingPatternNode = moduleVariableDeclarationNode.typedBindingPattern();
+            processDeclarationNode(initializer, ctx, typedBindingPatternNode);
+        }
+    }
+
+    private void processDeclarationNode(Optional<ExpressionNode> initializer, SyntaxNodeAnalysisContext ctx,
+                                        TypedBindingPatternNode typedBindingPatternNode) {
+        if (!initializer.isEmpty()) {
+            ExpressionNode expressionNode = initializer.get();
+            if (expressionNode.toString().contains(XMLDATA_TO_RECORD)) {
+                checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx);
             }
         }
     }
@@ -138,7 +138,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
 
     private void checkRecordFiled(String filedType, int endIndex, SyntaxNodeAnalysisContext ctx) {
         if (filedType.contains(SQUARE_BRACKET)) {
-            checkRecordField(filedType.substring(0, filedType.indexOf(BRACKET)), ctx);
+            checkRecordField(filedType.substring(0, filedType.indexOf(OPEN_SQUARE_BRACKET)), ctx);
         } else {
             checkRecordField(filedType.substring(0, endIndex), ctx);
         }
