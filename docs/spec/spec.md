@@ -36,13 +36,13 @@ The conforming implementation of the specification is released and included in t
         * 4.2.1 [Sample](#421-sample)
     * 4.3 [JSON to XML Conversion](#43-json-to-xml-conversion)
         * 4.3.1 [Sample1](#431-sample1)
-        * 4.3.1 [Sample1](#432-sample2)
+        * 4.3.2 [Sample2](#432-sample2)
     * 4.4 [Ballerina record/Map to XML Conversion](#44-ballerina-recordmap-to-xml-conversion)
         * 4.4.1 [Sample1](#441-sample1)
-        * 4.4.1 [Sample1](#442-sample2)
+        * 4.4.2 [Sample2](#442-sample2)
     * 4.5 [XML to Ballerina record/Map Conversion](#45-xml-to-ballerina-recordmap-conversion)
         * 4.5.1 [Sample1](#451-sample1)
-        * 4.5.1 [Sample1](#452-sample2)
+        * 4.5.2 [Sample2](#452-sample2)
 
 ## 1. Overview
 This specification elaborates on the functionalities available in the Xmldata library.
