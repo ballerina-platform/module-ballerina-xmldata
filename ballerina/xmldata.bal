@@ -19,7 +19,6 @@ import ballerina/jballerina.java;
 const string XMLNS_NAMESPACE_URI = "http://www.w3.org/2000/xmlns/";
 const string CONTENT = "#content";
 const string ATTRIBUTE_PREFIX = "attribute_";
-const string SQUARE_BRACKET = "[]";
 
 # Defines the new name of the name.
 #
@@ -361,6 +360,9 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 # + returnType - The `typedesc` of the record that should be returned as a result. The record
 # doesn't support fields, which allow optional values
 # + return - The Record representation of the given XML on success, else returns an `xmldata:Error`
+# # Deprecated
+# This function will be removed in a later. Use `fromXml` instead.
+@deprecated
 public isolated function toRecord(xml xmlValue, boolean preserveNamespaces = true, typedesc<record {}> returnType = <>)
 returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.XmlToRecord"
@@ -373,7 +375,7 @@ returns returnType|Error = @java:Method {
 # + returnType - The `typedesc` of the `map<anydata>` that should be returned as a result
 # + return - The given target type representation of the given XML on success,
 # else returns an `xmldata:Error`
-public isolated function fromXml(xml xmlValue, typedesc<(map<anydata>|json)> returnType = <>)
+public isolated function fromXml(xml xmlValue, typedesc<(map<anydata>)> returnType = <>)
 returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.MapFromXml"
 } external;
