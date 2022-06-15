@@ -18,10 +18,7 @@
 
 package io.ballerina.stdlib.xmldata;
 
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.creators.TypeCreator;
-import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.api.values.BXml;
 
@@ -31,7 +28,6 @@ import io.ballerina.runtime.api.values.BXml;
  * @since 2.3.0
  */
 public class MapFromXml {
-    private static final MapType XML_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_XML);
 
     public static Object fromXml(BXml xml, BTypedesc type) {
         if (type.getDescribingType().getTag() == TypeTags.RECORD_TYPE_TAG) {

@@ -36,6 +36,28 @@ isolated function testToRecord() returns error? {
     test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
 }
 
+type Employees record {
+    string? name;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptionalfield() returns error? {
+    var x1 = xml `<!-- outer comment -->`;
+    var x2 = xml `<name>Supun</name>`;
+    xml x3 = x1 + x2;
+
+    Employees|Error actual = toRecord(x3);
+    if (actual is Error) {
+        test:assertEquals(actual.message(), "Failed to convert xml to record type: The record field: name does not " +
+                          "support the optional value type: string?",
+                          msg = "testToRecordWithOptionalfield result incorrect");
+    } else {
+        test:assertFail("testToRecordWithOptionalfield result incorrect");
+    }
+}
+
 @test:Config {
     groups: ["toRecord"]
 }

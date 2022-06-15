@@ -18,6 +18,10 @@
 
 package io.ballerina.stdlib.xmldata;
 
+import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.Field;
+import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BTypedesc;
@@ -43,19 +47,40 @@ public class XmlToRecord {
 
     public static Object toRecord(BXml xml, boolean preserveNamespaces, String attributePrefix, BTypedesc type) {
         try {
-            Object jsonObject = toJson(xml, preserveNamespaces, attributePrefix, type.getDescribingType());
+            Type describingType = type.getDescribingType();
+            validateRecord(describingType);
+            Object jsonObject = toJson(xml, preserveNamespaces, attributePrefix, describingType);
             if (jsonObject instanceof BError) {
-                return XmlDataUtils.getError("xml type mismatch with record type: " +
+                return XmlDataUtils.getError("XML type mismatch with record type: " +
                         ((BError) jsonObject).getErrorMessage());
             }
             jsonObject = CloneWithType.cloneWithType(jsonObject, type);
             if (jsonObject instanceof BError) {
-                return XmlDataUtils.getError("xml type mismatch with record type: " +
+                return XmlDataUtils.getError("XML type mismatch with record type: " +
                         ((Map) ((BError) jsonObject).getDetails()).get(StringUtils.fromString("message")).toString());
             }
             return jsonObject;
         } catch (Exception e) {
-            return XmlDataUtils.getError("failed to convert xml to record type: " + e.getMessage());
+            return XmlDataUtils.getError("Failed to convert xml to record type: " + e.getMessage());
+        }
+    }
+
+    private static void validateRecord(Type type) throws Exception {
+        if (type instanceof RecordType) {
+            Map<String, Field> fields = ((RecordType) type).getFields();
+            for (Map.Entry<String, Field> entry : fields.entrySet()) {
+                Field field = entry.getValue();
+                Type fieldType = field.getFieldType();
+                if (field.getFieldType().isNilable()) {
+                    throw new Exception("The record field: " + field.getFieldName() +
+                            " does not support the optional value type: " + fieldType);
+                }
+            }
+        } else if (type instanceof ArrayType) {
+            Type fieldType = ((ArrayType) type).getElementType();
+            if (fieldType instanceof RecordType) {
+                validateRecord(fieldType);
+            }
         }
     }
 }

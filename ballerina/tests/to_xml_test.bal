@@ -68,12 +68,108 @@ type Customer record {
 @test:Config {
     groups: ["toXml"]
 }
-isolated function testRecordToXml1() returns error? {
+isolated function testRecordWithAnnotationToXml1() returns error? {
     Customer data = {name: "Asha", age: 10};
     xml result = check toXml(data);
     test:assertEquals(result,
                     xml `<ns:Customers xmlns:ns="http://sdf.com" ns:employeeName="Asha"><age>10</age></ns:Customers>`,
-                    msg = "testRecordToXml1 result incorrect");
+                    msg = "testRecordWithAnnotationToXml1 result incorrect");
+}
+
+@Namespace {
+    prefix: "ns",
+    uri: "http://sdf.com"
+}
+@Name {
+    value: "Customers"
+}
+type Customer2 record {
+
+    @Namespace {
+        prefix: "ns"
+    }
+    @Name {
+        value: "employeeName"
+    }
+    @Attribute
+    string name;
+
+    int age;
+};
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testRecordWithAnnotationToXml2() returns error? {
+    Customer2 data = {name: "Asha", age: 10};
+    xml result = check toXml(data);
+    test:assertEquals(result,
+                    xml `<ns:Customers xmlns:ns="http://sdf.com" ns:employeeName="Asha"><age>10</age></ns:Customers>`,
+                    msg = "testRecordWithAnnotationToXml2 result incorrect");
+}
+
+@Namespace {
+    prefix: "ns",
+    uri: "http://sdf.com"
+}
+@Name {
+    value: "Customers"
+}
+type Customer3 record {
+
+    @Namespace {
+        prefix: "ns"
+    }
+    @Attribute
+    @Name {
+        value: "employeeName"
+    }
+    string name;
+
+    int age;
+};
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testRecordWithAnnotationToXml3() returns error? {
+    Customer3 data = {name: "Asha", age: 10};
+    xml result = check toXml(data);
+    test:assertEquals(result,
+                    xml `<ns:Customers xmlns:ns="http://sdf.com" ns:employeeName="Asha"><age>10</age></ns:Customers>`,
+                    msg = "testRecordWithAnnotationToXml3 result incorrect");
+}
+
+@Namespace {
+    prefix: "ns",
+    uri: "http://sdf.com"
+}
+@Name {
+    value: "Customers"
+}
+type Customer4 record {
+
+    @Attribute
+    @Name {
+        value: "employeeName"
+    }
+    @Namespace {
+        prefix: "ns"
+    }
+    string name;
+
+    int age;
+};
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testRecordWithAnnotationToXml4() returns error? {
+    Customer4 data = {name: "Asha", age: 10};
+    xml result = check toXml(data);
+    test:assertEquals(result,
+                    xml `<ns:Customers xmlns:ns="http://sdf.com" ns:employeeName="Asha"><age>10</age></ns:Customers>`,
+                    msg = "testRecordWithAnnotationToXml4 result incorrect");
 }
 
 @test:Config {

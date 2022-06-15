@@ -16,15 +16,6 @@
 
 import ballerina/test;
 
-@test:Config {
-    groups: ["fromXml"]
-}
-isolated function testXmlToJson1() returns error? {
-    var x2 = xml `<name>supun</name>`;
-    json j = check fromXml(x2);
-    test:assertEquals(j, {name: "supun"}, msg = "testToMapJson result incorrect");
-}
-
 type Details record {
     string name;
 };
@@ -182,8 +173,8 @@ xml xmlData = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com
     groups: ["fromXml"]
 }
 function testToJsonWithComplexXmlElement() returns Error? {
-    json j = check fromXml(xmlData);
-    json expectedOutput = {
+    map<json> j = check fromXml(xmlData);
+    map<json> expectedOutput = {
         Invoice: {
             PurchesedItems: {
                 PLine: [
