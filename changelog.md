@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- [Introduce `toXml` and `fromXml` APIs](https://github.com/ballerina-platform/ballerina-standard-library/issues/2819)
+
+### Changed
+- Deprecate `toRecord` API
+
+## [2.2.2] - 2022-05-30
+
 ### Fixed
 - [Fix the limitations of using the colon in the output of the `toRecord`](https://github.com/ballerina-platform/module-ballerina-xmldata/pull/418)
 - [Fix the attribute prefix issue in the `fromJson` API](https://github.com/ballerina-platform/ballerina-standard-library/issues/2763)
