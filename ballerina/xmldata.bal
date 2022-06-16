@@ -30,8 +30,6 @@ public type NameConfig record {|
 # The annotation is used to specify the new name of the existing record name or field name according to the XML format.
 public annotation NameConfig Name on type, record field;
 
-//public annotation NameConfig Name on record field;
-
 # Defines the namespace of the XML element
 #
 # + prefix - The value of the prefix of the namespace
