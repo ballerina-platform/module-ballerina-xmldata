@@ -259,7 +259,7 @@ public class XmlToJson {
                         convertToRecordType(map, memberType, key, value);
                         isSuccessfullyCast = true;
                         break;
-                    } catch (Exception e) {
+                    } catch (NumberFormatException e) {
                         // Ignored
                     }
                 }
