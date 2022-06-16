@@ -253,6 +253,34 @@ isolated function testToRecordWithMultipleAttributesAndNamespaces() returns Erro
     test:assertEquals(actual, expected, msg = "testToRecordWithMultipleAttributesAndNamespaces result incorrect");
 }
 
+type r3 record {
+    Root3 Root;
+};
+
+type Root3 record {
+    string _xmlns\:ns;
+    string _ns\:x;
+    string _x;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptinalValues() returns Error? {
+    xml x = xml `<Root xmlns:ns="ns.com" ns:x="y" x="z"/>`;
+
+    r3 expected = {
+        Root: {
+            _xmlns\:ns: "ns.com",
+            _ns\:x: "y",
+            _x: "z"
+        }
+    };
+
+    r3 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithMultipleAttributesAndNamespaces result incorrect");
+}
+
 type empty record {
 };
 
@@ -507,7 +535,7 @@ isolated function testToRecordNagativeOpenRecord() {
     if actual is Error {
         test:assertTrue(actual.toString().includes("missing required field 'age' of type 'int' in record 'xmldata:Employee2'"));
     } else {
-        test:assertFail("testToRecordNagative result is not a mismatch");
+        test:assertFail("testToRecordNagativeOpenRecord result is not a mismatch");
     }
 }
 
@@ -531,7 +559,622 @@ isolated function testToRecordNagativeClosedRecord() {
     }
 }
 
+type emptyChild1 record {
+    foo1 foo;
+};
+
+type foo1 record {
+    int bar;
+    string car;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptinalField2() returns error? {
+    xml x = xml `<foo><bar>2</bar><car></car></foo>`;
+    emptyChild1 expected = {foo: {bar: 2, car: ""}};
+
+    emptyChild1 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithEmptyChildren result incorrect");
+}
+
+type Root4 record {
+    Root5 Root;
+};
+
+type Root5 record {
+    int[] A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptionalArrayValues() returns Error? {
+    xml x = xml `<Root><A>2</A><A>3</A><A>4</A></Root>`;
+    Root4 expected = {
+        Root: {
+            A: [2, 3, 4]
+        }
+    };
+
+    Root4 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptionalArrayValues result incorrect");
+}
+
+type Root6 record {
+    Root7 Root;
+};
+
+type Root7 record {
+    decimal[] A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptionalArrayValues2() returns Error? {
+    xml x = xml `<Root><A>2.3</A><A>3.3</A><A>4.3</A></Root>`;
+    Root6 expected = {
+        Root: {
+            A: [2.3, 3.3, 4.3]
+        }
+    };
+
+    Root6 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptionalArrayValues2 result incorrect");
+}
+
 type Root8 record {
+    Root9 Root;
+};
+
+type Root9 record {
+    decimal[]|string[] A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithUnionArrayValues3() returns Error? {
+    xml x = xml `<Root><A>value1</A><A>value2</A><A>value3</A></Root>`;
+    Root8 expected = {
+        Root: {
+            A: ["value1", "value2", "value3"]
+        }
+    };
+
+    Root8 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues3 result incorrect");
+}
+
+type Root10 record {
+    Root11 Root;
+};
+
+type Root11 record {
+    decimal[]|string[] A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithUnionArrayValues4() returns Error? {
+    xml x = xml `<Root><A>2.4</A><A>3.4</A><A>4.4</A></Root>`;
+    Root10 expected = {
+        Root: {
+            A: [2.4, 3.4, 4.4]
+        }
+    };
+
+    Root10 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues4 result incorrect");
+}
+
+type Root12 record {
+    Root13 Root;
+};
+
+type Root13 record {
+    decimal|int A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithUnionArrayValues5() returns Error? {
+    xml x = xml `<Root><A>2</A></Root>`;
+    Root12 expected = {
+        Root: {
+            A: 2.0d
+        }
+    };
+
+    Root12 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues5 result incorrect");
+}
+
+type Root14 record {
+    Root15 Root;
+};
+
+type Root15 record {
+    int|decimal A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithUnionArrayValues6() returns Error? {
+    xml x = xml `<Root><A>2.5</A></Root>`;
+    Root14 expected = {
+        Root: {
+            A: 2.5
+        }
+    };
+
+    Root14 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues6 result incorrect");
+}
+
+type Root16 record {
+    Root17 Root;
+};
+
+type Root17 record {
+    float[]|string[] A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithUnionArrayValues7() returns Error? {
+    xml x = xml `<Root><A>2.0</A><A>3.0</A><A>4.0</A></Root>`;
+    Root16 expected = {
+        Root: {
+            A: [2.0, 3.0, 4.0]
+        }
+    };
+
+    Root16 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues7 result incorrect");
+}
+
+type Root18 record {
+    Root19 Root;
+};
+
+type Root19 record {
+    boolean[]|string[] A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithUnionArrayValues8() returns Error? {
+    xml x = xml `<Root><A>true</A><A>true</A><A>true</A></Root>`;
+    Root18 expected = {
+        Root: {
+            A: [true, true, true]
+        }
+    };
+
+    Root18 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues8 result incorrect");
+}
+
+type Root20 record {
+    Root21 Root;
+};
+
+type Root21 record {
+    float[]|int[] A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithUnionArrayValues9() returns Error? {
+    xml x = xml `<Root><A>2.4</A><A>2.4</A><A>2.4</A></Root>`;
+    Root20 expected = {
+        Root: {
+            A: [2.4f, 2.4f, 2.4f]
+        }
+    };
+
+    Root20 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues9 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptionalArrayValues10() returns Error? {
+    xml x = xml `<Root><A>2</A><A>2</A><A>2</A></Root>`;
+    Root20 expected = {
+        Root: {
+            A: [2.0, 2.0, 2.0]
+        }
+    };
+
+    Root20 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues10 result incorrect");
+}
+
+type Root24 record {
+    Root25 Root;
+};
+
+type Root25 record {
+    int[]|float[] A;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithUnionArrayValues12() returns Error? {
+    xml x = xml `<Root><A>2</A><A>2</A><A>2</A></Root>`;
+    Root24 expected = {
+        Root: {
+            A: [<int>2, <int>2, <int>2]
+        }
+    };
+
+    Root24 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithUnionArrayValues12 result incorrect");
+}
+
+type Root26 record {
+    Root27 Root;
+};
+
+type Root27 record {
+    int A?;
+    int B;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithOptinalField12() returns Error? {
+    xml x = xml `<Root><B>2</B></Root>`;
+    Root26 expected = {
+        Root: {B: 2}
+    };
+    Root26 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues12 result incorrect");
+}
+
+type Root28 record {
+    Root29 Root;
+};
+
+type Root29 record {
+    int A?;
+    int[] B;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField13() returns Error? {
+    xml x = xml `<Root><B>2</B></Root>`;
+    Root28 expected = {
+        Root: {B: [2]}
+    };
+
+    Root28 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues13 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField14() returns Error? {
+    xml x = xml `<Root><B></B></Root>`;
+    Root28 expected = {
+        Root: {B: []}
+    };
+
+    Root28 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues14 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField15() returns Error? {
+    xml x = xml `<Root><B>2</B><B></B></Root>`;
+    Root28 expected = {
+        Root: {B: [2]}
+    };
+
+    Root28 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues15 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField16() returns Error? {
+    xml x = xml `<Root><B></B><B>2</B></Root>`;
+    Root28 expected = {
+        Root: {B: [2]}
+    };
+
+    Root28 actual = check toRecord(x);
+    test:assertEquals(actual, expected, msg = "testToRecordWithOptinalValues16 result incorrect");
+}
+
+public type ListOfContinentsByNameResponse record {
+    ArrayOftContinent ListOfContinentsByNameResult;
+};
+
+public type ArrayOftContinent record {
+    tContinent[] tContinent?;
+};
+
+public type tContinent record {
+    string sCode;
+    string sName;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField17() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+              <m:sCode>AF</m:sCode>
+              <m:sName>Africa</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AN</m:sCode>
+              <m:sName>Antarctica</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AS</m:sCode>
+              <m:sName>Asia</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>EU</m:sCode>
+              <m:sName>Europe</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>OC</m:sCode>
+              <m:sName>Ocenania</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AM</m:sCode>
+              <m:sName>The Americas</m:sName>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    ListOfContinentsByNameResponse expected = {
+        "ListOfContinentsByNameResult": {
+            "tContinent": [
+                {"sCode": "AF", "sName": "Africa"},
+                {"sCode": "AN", "sName": "Antarctica"},
+                {"sCode": "AS", "sName": "Asia"},
+                {"sCode": "EU", "sName": "Europe"},
+                {"sCode": "OC", "sName": "Ocenania"},
+                {"sCode": "AM", "sName": "The Americas"}
+            ]
+        }
+    };
+    ListOfContinentsByNameResponse actual = check toRecord(responsePayload/*/*/*, false);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField17 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField18() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+              <m:sCode>AF</m:sCode>
+              <m:sName>Africa</m:sName>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    ListOfContinentsByNameResponse expected = {
+        "ListOfContinentsByNameResult": {
+            "tContinent": [
+                {"sCode": "AF", "sName": "Africa"}
+            ]
+        }
+    };
+    ListOfContinentsByNameResponse actual = check toRecord(responsePayload/*/*/*, false);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField18 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField19() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    ListOfContinentsByNameResponse expected = {
+        "ListOfContinentsByNameResult": {
+            "tContinent": []
+        }
+    };
+    ListOfContinentsByNameResponse actual = check toRecord(responsePayload/*/*/*, false);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField19 result incorrect");
+}
+
+public type SoapEnvelope record {
+    Envelope1 soap\:Envelope;
+};
+
+public type Envelope1 record {
+    Body1 soap\:Body;
+    string _xmlns\:soap;
+};
+
+public type Body1 record {
+    ListOfContinentsByNameResponse1 m\:ListOfContinentsByNameResponse;
+};
+
+public type ListOfContinentsByNameResponse1 record {
+    ListOfContinentsByNameResult1 m\:ListOfContinentsByNameResult;
+    string _xmlns\:m;
+};
+
+public type ListOfContinentsByNameResult1 record {
+    Continent[] m\:tContinent;
+};
+
+public type Continent record {
+    string m\:sCode;
+    string m\:sName;
+};
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField20() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+              <m:sCode>AF</m:sCode>
+              <m:sName>Africa</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AN</m:sCode>
+              <m:sName>Antarctica</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AS</m:sCode>
+              <m:sName>Asia</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>EU</m:sCode>
+              <m:sName>Europe</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>OC</m:sCode>
+              <m:sName>Ocenania</m:sName>
+            </m:tContinent>
+            <m:tContinent>
+              <m:sCode>AM</m:sCode>
+              <m:sName>The Americas</m:sName>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    SoapEnvelope expected = {
+        soap\:Envelope: {
+            soap\:Body: {
+                m\:ListOfContinentsByNameResponse: {
+                    m\:ListOfContinentsByNameResult: {
+                        m\:tContinent: [
+                            {m\:sCode: "AF", m\:sName: "Africa"},
+                            {m\:sCode: "AN", m\:sName: "Antarctica"},
+                            {m\:sCode: "AS", m\:sName: "Asia"},
+                            {m\:sCode: "EU", m\:sName: "Europe"},
+                            {m\:sCode: "OC", m\:sName: "Ocenania"},
+                            {m\:sCode: "AM", m\:sName: "The Americas"}
+                        ]
+                    },
+                    _xmlns\:m: "http://www.oorsprong.org/websamples.countryinfo"
+                }
+            },
+            _xmlns\:soap: "http://schemas.xmlsoap.org/soap/envelope/"
+        }
+    };
+    SoapEnvelope actual = check toRecord(responsePayload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField20 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField21() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+              <m:sCode>AF</m:sCode>
+              <m:sName>Africa</m:sName>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    SoapEnvelope expected = {
+        soap\:Envelope: {
+            soap\:Body: {
+                m\:ListOfContinentsByNameResponse: {
+                    m\:ListOfContinentsByNameResult: {
+                        m\:tContinent: [
+                            {m\:sCode: "AF", m\:sName: "Africa"}
+                        ]
+                    },
+                    _xmlns\:m: "http://www.oorsprong.org/websamples.countryinfo"
+                }
+            },
+            _xmlns\:soap: "http://schemas.xmlsoap.org/soap/envelope/"
+        }
+    };
+    SoapEnvelope actual = check toRecord(responsePayload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField21 result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithArrayField22() returns Error? {
+    xml responsePayload = xml `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <m:ListOfContinentsByNameResponse xmlns:m="http://www.oorsprong.org/websamples.countryinfo">
+          <m:ListOfContinentsByNameResult>
+            <m:tContinent>
+            </m:tContinent>
+          </m:ListOfContinentsByNameResult>
+        </m:ListOfContinentsByNameResponse>
+      </soap:Body>
+    </soap:Envelope>`;
+    SoapEnvelope expected = {
+        soap\:Envelope: {
+            soap\:Body: {
+                m\:ListOfContinentsByNameResponse: {
+                    m\:ListOfContinentsByNameResult: {
+                        m\:tContinent: []
+                    },
+                    _xmlns\:m: "http://www.oorsprong.org/websamples.countryinfo"
+                }
+            },
+            _xmlns\:soap: "http://schemas.xmlsoap.org/soap/envelope/"
+        }
+    };
+    SoapEnvelope actual = check toRecord(responsePayload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithArrayField22 result incorrect");
+}
+
+type Root30 record {
     FuelEvents s\:FuelEvents;
 };
 
@@ -563,7 +1206,7 @@ isolated function testToRecordWithSameAttribute() returns Error? {
                          <s:gasPrice>4.89</s:gasPrice>
                      </s:FuelEvent>
                  </s:FuelEvents>`;
-    Root8 expected = {
+    Root30 expected = {
         s\:FuelEvents: {
             s\:FuelEvent: [
                 {
@@ -583,6 +1226,6 @@ isolated function testToRecordWithSameAttribute() returns Error? {
         }
     };
 
-    Root8 actual = check toRecord(x);
+    Root30 actual = check toRecord(x);
     test:assertEquals(actual, expected, msg = "testToRecordWithSameAttribute result incorrect");
 }

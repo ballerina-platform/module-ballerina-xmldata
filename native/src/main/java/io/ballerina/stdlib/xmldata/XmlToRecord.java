@@ -39,12 +39,16 @@ public class XmlToRecord {
     public static Object toRecord(BXml xml, boolean preserveNamespaces, BTypedesc type) {
         try {
             Object jsonObject = toJson(xml, preserveNamespaces, type.getDescribingType());
-            Object record = CloneWithType.convert(type.getDescribingType(), jsonObject);
-            if (record instanceof BError) {
+            if (jsonObject instanceof BError) {
                 return XmlDataUtils.getError("xml type mismatch with record type: " +
-                        ((Map) ((BError) record).getDetails()).get(StringUtils.fromString("message")).toString());
+                        ((BError) jsonObject).getErrorMessage());
             }
-            return record;
+            jsonObject = CloneWithType.cloneWithType(jsonObject, type);
+            if (jsonObject instanceof BError) {
+                return XmlDataUtils.getError("xml type mismatch with record type: " +
+                        ((Map) ((BError) jsonObject).getDetails()).get(StringUtils.fromString("message")).toString());
+            }
+            return jsonObject;
         } catch (Exception e) {
             return XmlDataUtils.getError("failed to convert xml to record type: " + e.getMessage());
         }
