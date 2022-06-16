@@ -223,21 +223,17 @@ public class XmlToJson {
         return rootNode;
     }
 
-    private static Type getFieldType(String fieldName, Type type) throws Exception {
+    private static Type getFieldType(String fieldName, Type type) {
         if (type instanceof RecordType) {
             if (((RecordType) type).getFields().get(fieldName) != null) {
-                Type fieldType = ((RecordType) type).getFields().get(fieldName).getFieldType();
-                checkNullable(fieldType, fieldName, type);
-                return fieldType;
+                return ((RecordType) type).getFields().get(fieldName).getFieldType();
             }
         } else if (type instanceof ArrayType) {
             Type fieldType = ((ArrayType) type).getElementType();
             if (fieldType instanceof RecordType) {
                 Map<String, Field> fileds = ((RecordType) fieldType).getFields();
                 if (fileds.get(fieldName) != null) {
-                    fieldType = fileds.get(fieldName).getFieldType();
-                    checkNullable(fieldType, fieldName, type);
-                    return fieldType;
+                    return fileds.get(fieldName).getFieldType();
                 }
             }
             return fieldType;
@@ -278,18 +274,15 @@ public class XmlToJson {
     private static void putAsFieldTypes(BMap<BString, Object> map, String key, String value, Type type)
             throws Exception {
         if (type != null) {
-            Type type1 = type;
-            if (type1 instanceof ArrayType) {
-                Type fieldType = ((ArrayType) type1).getElementType();
+            if (type instanceof ArrayType) {
+                Type fieldType = ((ArrayType) type).getElementType();
                 if (fieldType instanceof RecordType) {
                     if (((RecordType) fieldType).getFields().get(key) != null) {
-                        type1 = ((RecordType) fieldType).getFields().get(key).getFieldType();
-                        checkNullable(type1, key, type);
+                        type = ((RecordType) fieldType).getFields().get(key).getFieldType();
                     }
                 }
             }
-            if (type1 instanceof UnionType) {
-                checkNullable(type1, key, type);
+            if (type instanceof UnionType) {
                 UnionType bUnionType = (UnionType) type;
                 boolean isSuccessfullyCast = false;
                 for (Type memberType : bUnionType.getMemberTypes()) {
@@ -297,7 +290,7 @@ public class XmlToJson {
                         convertToRecordType(map, memberType, key, value);
                         isSuccessfullyCast = true;
                         break;
-                    } catch (Exception e) {
+                    } catch (NumberFormatException e) {
                         // Ignored
                     }
                 }
@@ -305,18 +298,10 @@ public class XmlToJson {
                     throw new Exception("Couldn't convert value: " + value + " to " + bUnionType);
                 }
             } else {
-                convertToRecordType(map, type1, key, value);
+                convertToRecordType(map, type, key, value);
             }
         } else {
             map.put(fromString(key), fromString(value));
-        }
-    }
-
-    private static void checkNullable(Type fieldType, String key, Type parentType) throws Exception {
-        if (fieldType.isNilable()) {
-            throw new Exception("The record field: '" + key +
-                    "' does not support the optional value type: '" + fieldType +
-                    "' in the " + parentType);
         }
     }
 
