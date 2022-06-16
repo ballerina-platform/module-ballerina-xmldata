@@ -124,7 +124,7 @@ public class XmlToJson {
             }
             return seq;
         } else if (xml.getNodeType().equals(XmlNodeType.TEXT)) {
-            if (type != null && type.getTag() == 32) {
+            if (type != null && type.getTag() == TypeTags.ARRAY_TAG) {
                 return convertToArray(type, xml);
             }
             return JsonUtils.parse(DOUBLE_QUOTES + xml.stringValue(null).replace(DOUBLE_QUOTES,
@@ -169,7 +169,7 @@ public class XmlToJson {
                     data.put(entry.getKey(), entry.getValue());
                 }
                 putAsBStrings(rootNode, keyValue, data);
-            }  else if (children == null) {
+            } else if (children == null) {
                 putAsBStrings(rootNode, keyValue, childrenData);
             } else if (children instanceof BArray) {
                 putAsBStrings(rootNode, keyValue, children);
@@ -305,7 +305,7 @@ public class XmlToJson {
                     break;
             }
         } catch (NumberFormatException e) {
-            throw new Exception("Error occurred when converting value: " + value + " to " + valueType);
+            throw new NumberFormatException("Error occurred when converting value: " + value + " to " + valueType);
         } catch (Exception e) {
             throw new Exception("Error occurred when converting value. " + e.getMessage());
         }
@@ -356,7 +356,7 @@ public class XmlToJson {
                     return arr;
             }
         } catch (NumberFormatException e) {
-            throw new Exception("Error occurred when converting value:" + value + " to " + valueType);
+            throw new NumberFormatException("Error occurred when converting value:" + value + " to " + valueType);
         } catch (Exception e) {
             throw new Exception("Error occurred when converting value:" + e.getMessage());
         }

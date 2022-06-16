@@ -15,14 +15,13 @@
 // under the License.
 
 import ballerina/xmldata;
-import ballerina/io;
 
 type Test record {
     Bar|Bar1? foo;
 };
 
 type Foo record {
-    Bar|Bar1[] foo;
+    Bar|Bar1[]|string foo;
 };
 
 type Bar record {
@@ -37,7 +36,3 @@ type Bar1 record {
 
 xml x1 = xml `<foo><bar>2</bar><car></car></foo>`;
 Foo actual = check xmldata:toRecord(x1);
-
-public function main() returns error? {
-    io:println(actual);
-}
