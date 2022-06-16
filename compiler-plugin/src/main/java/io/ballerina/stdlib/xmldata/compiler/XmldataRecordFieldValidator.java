@@ -17,6 +17,13 @@
  */
 package io.ballerina.stdlib.xmldata.compiler;
 
+import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.NilTypeSymbol;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -39,18 +46,9 @@ import java.util.Optional;
  */
 public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnalysisContext> {
 
-    private final List<RecordFieldNode> recordNodes = new ArrayList<>();
-    private final List<RecordFieldNode> validatedRecordNodes = new ArrayList<>();
-    private static final String STRING = "string";
-    private static final String DECIMAL = "decimal";
-    private static final String FLOAT = "float";
-    private static final String BOOLEAN = "boolean";
-    private static final String INT = "int";
-    private static final String QUESTION_MARK = "?";
+    private final List<SyntaxNodeAnalysisContext> nodes = new ArrayList<>();
+    private final List<SyntaxNodeAnalysisContext> validatedNodes = new ArrayList<>();
     private static final String TO_RECORD = "xmldata:toRecord";
-    private static final String VERTICAL_BAR = "|";
-    private static final String SQUARE_BRACKET = "[]";
-    private static final String BRACKET = "[";
 
     @Override
     public void perform(SyntaxNodeAnalysisContext ctx) {
@@ -60,10 +58,12 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
                 return;
             }
         }
+
         Node node = ctx.node();
         if (node instanceof RecordFieldNode) {
-            this.recordNodes.add((RecordFieldNode) node);
+            this.nodes.add(ctx);
         }
+
         if (node instanceof VariableDeclarationNode) {
             VariableDeclarationNode variableDeclarationNode = (VariableDeclarationNode) node;
             Optional<ExpressionNode> initializer = variableDeclarationNode.initializer();
@@ -90,45 +90,23 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
     }
 
     private void checkRecordField(String recordName, SyntaxNodeAnalysisContext ctx) {
-        for (RecordFieldNode recordFieldNode: this.recordNodes) {
-            if (!this.validatedRecordNodes.contains(recordFieldNode)) {
+        for (SyntaxNodeAnalysisContext syntaxNodeAnalysisContext: this.nodes) {
+            if (!this.validatedNodes.contains(syntaxNodeAnalysisContext)) {
+                RecordFieldNode recordFieldNode = ((RecordFieldNode) syntaxNodeAnalysisContext.node());
                 String recordNameOfField = recordFieldNode.parent().parent().children().get(1).toString().trim();
-                String filedType = recordFieldNode.typeName().toString().trim();
                 if (recordNameOfField.equals(recordName.trim())) {
-                    this.validatedRecordNodes.add(recordFieldNode);
-                    if (filedType.contains(QUESTION_MARK)) {
-                        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(DiagnosticsCodes.XMLDATA_101.getCode(),
-                                DiagnosticsCodes.XMLDATA_101.getMessage(), DiagnosticsCodes.XMLDATA_101.getSeverity());
-                        ctx.reportDiagnostic(
-                                DiagnosticFactory.createDiagnostic(diagnosticInfo, recordFieldNode.location()));
-                        if (filedType.contains(VERTICAL_BAR)) {
-                            String[] types = filedType.split("\\" + VERTICAL_BAR);
-                            for (String type : types) {
-                                type = type.trim();
-                                if (type.contains(QUESTION_MARK)) {
-                                    if (isNonPrimitiveType(type)) {
-                                        checkRecordFiled(type, type.length() - 1, ctx);
-                                    }
-                                } else {
-                                    if (isNonPrimitiveType(type)) {
-                                        checkRecordFiled(type, type.length(), ctx);
-                                    }
-                                }
+                    this.validatedNodes.add(syntaxNodeAnalysisContext);
+                    Optional<Symbol> varSymOptional = syntaxNodeAnalysisContext.semanticModel().
+                            symbol(syntaxNodeAnalysisContext.node());
+                    if (varSymOptional.isPresent()) {
+                        TypeSymbol typeSymbol = ((RecordFieldSymbol) varSymOptional.get()).typeDescriptor();
+                        if (typeSymbol instanceof UnionTypeSymbol) {
+                            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
+                            for (TypeSymbol symbol : typeSymbols) {
+                                validateType(ctx, recordFieldNode, symbol);
                             }
-                        } else if (isNonPrimitiveType(filedType)) {
-                            checkRecordFiled(filedType, filedType.length() - 1, ctx);
-                        }
-                    } else {
-                        if (filedType.contains(VERTICAL_BAR)) {
-                            String[] types = filedType.split("\\" + VERTICAL_BAR);
-                            for (String type : types) {
-                                type = type.trim();
-                                if (isNonPrimitiveType(type)) {
-                                    checkRecordFiled(type, type.length(), ctx);
-                                }
-                            }
-                        } else if (isNonPrimitiveType(filedType)) {
-                            checkRecordFiled(filedType, filedType.length(), ctx);
+                        } else {
+                            validateType(ctx, recordFieldNode, typeSymbol);
                         }
                     }
                 }
@@ -136,16 +114,22 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
         }
     }
 
-    private void checkRecordFiled(String filedType, int endIndex, SyntaxNodeAnalysisContext ctx) {
-        if (filedType.contains(SQUARE_BRACKET)) {
-            checkRecordField(filedType.substring(0, filedType.indexOf(BRACKET)), ctx);
-        } else {
-            checkRecordField(filedType.substring(0, endIndex), ctx);
+    private void validateType(SyntaxNodeAnalysisContext ctx, RecordFieldNode recordFieldNode, TypeSymbol typeSymbol) {
+        if (typeSymbol instanceof NilTypeSymbol) {
+            reportDiagnosticInfo(ctx, recordFieldNode);
+        } else if (typeSymbol instanceof TypeReferenceTypeSymbol) {
+            checkRecordField(typeSymbol.getName().get(), ctx);
+        } else if (typeSymbol instanceof ArrayTypeSymbol) {
+            TypeSymbol arrayTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
+            if (arrayTypeSymbol instanceof TypeReferenceTypeSymbol) {
+                checkRecordField(arrayTypeSymbol.getName().get(), ctx);
+            }
         }
     }
-
-    private boolean isNonPrimitiveType(String typeName) {
-        return !(typeName.contains(STRING) || typeName.contains(INT) || typeName.contains(DECIMAL) ||
-                typeName.contains(FLOAT) || typeName.contains(BOOLEAN));
+    private void reportDiagnosticInfo(SyntaxNodeAnalysisContext ctx, RecordFieldNode recordFieldNode) {
+        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(DiagnosticsCodes.XMLDATA_101.getCode(),
+                DiagnosticsCodes.XMLDATA_101.getMessage(), DiagnosticsCodes.XMLDATA_101.getSeverity());
+        ctx.reportDiagnostic(
+                DiagnosticFactory.createDiagnostic(diagnosticInfo, recordFieldNode.location()));
     }
 }
