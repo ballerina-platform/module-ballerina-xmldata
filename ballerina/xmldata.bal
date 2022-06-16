@@ -64,8 +64,8 @@ public isolated function toXml(map<anydata> mapValue) returns xml|Error {
     if jsonValue is json[] {
         jsonOption.rootTag = jsonValue[1].toString();
         return <xml>check fromJson(jsonValue[0], jsonOption);
-    } 
-    return <xml>check fromJson(jsonValue.toJson(), jsonOption);  
+    }
+    return <xml>check fromJson(jsonValue.toJson(), jsonOption);
 }
 
 isolated function convertMapXml(map<xml>|map<xml[]> mapValue) returns xml {
@@ -357,8 +357,8 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 #
 # + xmlValue - The XML source to be converted to a Record
 # + preserveNamespaces - Instructs whether to preserve the namespaces of the XML when converting
-# + returnType - The `typedesc` of the record that should be returned as a result. The record
-# doesn't support fields, which allow optional values
+# + returnType - The `typedesc` of the record that should be returned as a result.
+# The optional value fields are not allowed in the record type.
 # + return - The Record representation of the given XML on success, else returns an `xmldata:Error`
 # # Deprecated
 # This function will be removed in a later. Use `fromXml` instead.

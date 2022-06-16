@@ -15,29 +15,24 @@
 // under the License.
 
 import ballerina/xmldata;
-import ballerina/io;
 
 type Test record {
-    Bar|Bar1? foo;
+    Bar|Bar1 foo;
 };
 
 type Foo record {
-    Bar|Bar1[] foo;
+    Bar|Bar1[]|string|() foo;
 };
 
 type Bar record {
     int? bar;
-    Bar1[] car;
+    () car;
 };
 
 type Bar1 record {
-    int? bar;
-    string car;
+    int bar;
+    string|() car;
 };
 
 xml x1 = xml `<foo><bar>2</bar><car></car></foo>`;
-public function main() returns error? {
-    Foo output = check xmldata:fromXml(x1);
-    map<json> actual = check xmldata:fromXml(x1);
-    io:println(actual);
-}
+Foo actual = check xmldata:toRecord(x1);

@@ -351,7 +351,7 @@ public class XmlToJson {
                     break;
             }
         } catch (NumberFormatException e) {
-            throw new Exception("Error occurred when converting value: " + value + " to " + valueType);
+            throw new NumberFormatException("Error occurred when converting value: " + value + " to " + valueType);
         } catch (Exception e) {
             throw new Exception("Error occurred when converting value. " + e.getMessage());
         }
@@ -402,7 +402,7 @@ public class XmlToJson {
                     return arr;
             }
         } catch (NumberFormatException e) {
-            throw new Exception("Error occurred when converting value:" + value + " to " + valueType);
+            throw new NumberFormatException("Error occurred when converting value:" + value + " to " + valueType);
         } catch (Exception e) {
             throw new Exception("Error occurred when converting value:" + e.getMessage());
         }

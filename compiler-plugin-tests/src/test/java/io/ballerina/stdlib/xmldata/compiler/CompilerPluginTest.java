@@ -20,7 +20,6 @@ package io.ballerina.stdlib.xmldata.compiler;
 
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Package;
-import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.environment.Environment;
@@ -40,31 +39,25 @@ import java.util.stream.Collectors;
  */
 public class CompilerPluginTest {
 
-    private static final Path RESOURCE_DIRECTORY = Paths.get("src", "test", "resources", "diagnostics")
-            .toAbsolutePath();
-    private static final Path DISTRIBUTION_PATH = Paths.get("../", "target", "ballerina-runtime")
-            .toAbsolutePath();
-
     private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
-        Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(DISTRIBUTION_PATH).build();
+        Path distributionPath = Paths.get("../", "target", "ballerina-runtime").toAbsolutePath();
+        Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(distributionPath).build();
         return ProjectEnvironmentBuilder.getBuilder(environment);
     }
 
     private Package loadPackage(String path) {
-        Path projectDirPath = RESOURCE_DIRECTORY.resolve(path);
+        Path projectDirPath = Paths.get("src", "test", "resources", "diagnostics").
+                toAbsolutePath().resolve(path);
         BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath);
         return project.currentPackage();
     }
 
     @Test
     public void testInvalidType1() {
-        Package currentPackage = loadPackage("sample1");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = loadPackage("sample1").getCompilation().diagnosticResult();
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
-        Assert.assertEquals(errorDiagnosticsList.size(), 2);
         Assert.assertEquals(errorDiagnosticsList.get(0).diagnosticInfo().messageFormat(),
                 "invalid field type: the record field does not support the optional value type");
         Assert.assertEquals(errorDiagnosticsList.get(1).diagnosticInfo().messageFormat(),
@@ -73,9 +66,7 @@ public class CompilerPluginTest {
 
     @Test
     public void testInvalidType2() {
-        Package currentPackage = loadPackage("sample2");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = loadPackage("sample2").getCompilation().diagnosticResult();
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
@@ -92,9 +83,7 @@ public class CompilerPluginTest {
 
     @Test
     public void testInvalidType3() {
-        Package currentPackage = loadPackage("sample3");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = loadPackage("sample3").getCompilation().diagnosticResult();
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
@@ -105,9 +94,7 @@ public class CompilerPluginTest {
 
     @Test
     public void testInvalidType4() {
-        Package currentPackage = loadPackage("sample4");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = loadPackage("sample4").getCompilation().diagnosticResult();
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
@@ -116,9 +103,7 @@ public class CompilerPluginTest {
 
     @Test
     public void testInvalidType5() {
-        Package currentPackage = loadPackage("sample5");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = loadPackage("sample5").getCompilation().diagnosticResult();
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
@@ -127,9 +112,7 @@ public class CompilerPluginTest {
 
     @Test
     public void testInvalidType6() {
-        Package currentPackage = loadPackage("sample6");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = loadPackage("sample6").getCompilation().diagnosticResult();
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
@@ -138,9 +121,7 @@ public class CompilerPluginTest {
 
     @Test
     public void testInvalidType7() {
-        Package currentPackage = loadPackage("sample7");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = loadPackage("sample7").getCompilation().diagnosticResult();
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
@@ -149,12 +130,19 @@ public class CompilerPluginTest {
 
     @Test
     public void testInvalidType8() {
-        Package currentPackage = loadPackage("sample8");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = loadPackage("sample8").getCompilation().diagnosticResult();
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
-        Assert.assertEquals(errorDiagnosticsList.size(), 2);
+        Assert.assertEquals(errorDiagnosticsList.size(), 4);
+    }
+
+    @Test
+    public void testInvalidType9() {
+        DiagnosticResult diagnosticResult = loadPackage("sample9").getCompilation().diagnosticResult();
+        List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .collect(Collectors.toList());
+        Assert.assertEquals(errorDiagnosticsList.size(), 4);
     }
 }

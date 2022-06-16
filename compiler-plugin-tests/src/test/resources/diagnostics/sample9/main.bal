@@ -17,22 +17,22 @@
 import ballerina/xmldata;
 
 type Test record {
-    Bar|Bar1? foo;
+    Bar|Bar1 foo;
 };
 
 type Foo record {
-    Bar|Bar1[]|string foo;
+    Bar|Bar1[]|string|() foo;
 };
 
 type Bar record {
     int? bar;
-    Bar1[] car;
+    () car;
 };
 
 type Bar1 record {
-    int? bar;
-    string car;
+    int bar;
+    string|() car;
 };
 
 xml x1 = xml `<foo><bar>2</bar><car></car></foo>`;
-Foo actual = check xmldata:toRecord(x1);
+Foo actual = check xmldata:fromXml(x1);
