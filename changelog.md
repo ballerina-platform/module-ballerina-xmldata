@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Deprecate `toRecord` API
+- Change `XmlOptions` and `JsonOptions` record to a closed record
 
 ## [2.2.2] - 2022-05-30
 
