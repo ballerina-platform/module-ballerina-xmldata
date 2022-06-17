@@ -2,8 +2,8 @@
 
 _Owners_: @daneshk @kalaiyarasiganeshalingam  
 _Reviewers_: @daneshk  
-_Created_: 2022/06/15   
-_Updated_: 2022/06/15  
+_Created_: 2022/06/17   
+_Updated_: 2022/06/17  
 _Issues_: [#2819](https://github.com/ballerina-platform/ballerina-standard-library/issues/2819)
 
 ## Summary
