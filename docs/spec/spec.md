@@ -4,10 +4,9 @@ _Owners_: @daneshk @kalaiyarasiganeshalingam @MadhukaHarith92
 _Reviewers_: @daneshk  
 _Created_: 2021/12/10  
 _Updated_: 2022/06/07  
-_Edition_: Swan Lake  
-_Issue_: [#2334](https://github.com/ballerina-platform/ballerina-standard-library/issues/2334)
+_Edition_: Swan Lake
 
-# Introduction
+## Introduction
 This is the specification for the Xmldata standard library of [Ballerina language](https://ballerina.io/), which provides APIs to perform conversions between XML and JSON/Ballerina records.
 
 The Xmldata library specification has evolved and may continue to evolve in the future. The released versions of the specification can be found under the relevant Github tag.
@@ -16,7 +15,7 @@ If you have any feedback or suggestions about the library, start a discussion vi
 
 The conforming implementation of the specification is released and included in the distribution. Any deviation from the specification is considered a bug.
 
-# Contents
+## Contents
 1. [Overview](#1-overview)
 2. [Data structure](#2-data-structure)
     * 2.1 [JSON](#21-json)
