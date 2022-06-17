@@ -7,7 +7,7 @@ _Updated_: 2022/06/17
 _Issues_: [#2819](https://github.com/ballerina-platform/ballerina-standard-library/issues/2819)
 
 ## Summary
-The Ballerina Xmldata module doesn't have any API to convert the Ballerina Record/Map to XML directly and XML to map. 
+The Ballerina Xmldata module doesn't have any API to convert the Ballerina Record/Map to XML and XML to map. 
 So, this proposal introduces a new `fromXml` API to convert the XML data to Record/Map and `toXml` API to convert the Record/Map to XML.
 
 ## Goals
@@ -35,7 +35,7 @@ This will be used to do the conversion of the Ballerina record|map data to XML.
 # + returnType - The `typedesc` of the `map<anydata>` that should be returned as a result
 # + return - The given target type representation of the given XML on success,
 # else returns an `xmldata:Error`
-public isolated function fromXml(xml xmlValue, typedesc<(map<anydata>|json)> returnType = <>) returns returnType|Error;
+public isolated function fromXml(xml xmlValue, typedesc<(map<anydata>)> returnType = <>) returns returnType|Error;
 ```
 
 ```ballerina
@@ -55,7 +55,7 @@ public isolated function toXml(map<anydata> mapValue) returns xml|Error;
 #
 # + value - The value of the new name
 public type NameConfig record {|
-string value;
+    string value;
 |};
 ```
 
@@ -67,8 +67,8 @@ public annotation NameConfig Name on type, record field;
 # + prefix - The value of the prefix of the namespace
 # + uri - The value of the URI of the namespace
 public type NamespaceConfig record {|
-string prefix;
-string uri?;
+    string prefix;
+    string uri?;
 |};
 
 # The annotation is used to specify the namespace's prefix and URI of the XML element.
@@ -119,10 +119,10 @@ So, In Ballerina, we are going to introduce some annotations to support these me
 
 **Convert XML element with attributes(Unsupported in OpenAPI)**
 
-OpenAPI does not support xml which has elements with attributes.
+OpenAPI does not support XML which has elements with attributes.
 For more info, please see this issue: [https://github.com/OAI/OpenAPI-Specification/issues/630](https://github.com/OAI/OpenAPI-Specification/issues/630)
 
-But this usecase is commonly used in XML. Therefore, In Ballerina, we support through special field name `#content` like below.
+But this usecase is commonly used in XML. Therefore, In Ballerina, we support through the special field name `#content` like below.
 
 |Ballerina Record Definition | XML Sample | 
 |---|---|
