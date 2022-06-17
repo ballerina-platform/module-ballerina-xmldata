@@ -14,11 +14,15 @@ plugins {
 rootProject.name = 'xmldata'
 include(':checkstyle')
 include ':xmldata-native'
+include 'xmldata-compiler-plugin'
 include ':xmldata-ballerina'
+include ':xmldata-compiler-plugin-tests'
 
 project(':checkstyle').projectDir = file("build-config${File.separator}checkstyle")
 project(':xmldata-native').projectDir = file('native')
+project(':xmldata-compiler-plugin').projectDir = file('compiler-plugin')
 project(':xmldata-ballerina').projectDir = file('ballerina')
+project(':xmldata-compiler-plugin-tests').projectDir = file('compiler-plugin-tests')
 
 gradleEnterprise {
     buildScan {

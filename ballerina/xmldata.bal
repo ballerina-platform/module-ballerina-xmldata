@@ -19,14 +19,15 @@ import ballerina/jballerina.java;
 const string XMLNS_NAMESPACE_URI = "http://www.w3.org/2000/xmlns/";
 const string CONTENT = "#content";
 
-# Represents a record type to provide configurations for the JSON to XML
-# conversion.
+# Provides configurations for converting JSON to XML.
 #
-# + attributePrefix - The attribute prefix to use in the XML representation
-# + arrayEntryTag - The XML tag to add an element from a JSON array
+# + attributePrefix - The prefix of JSON elements' key which is to be treated as an attribute in the XML representation
+# + arrayEntryTag - The name of the XML elements that represent a converted JSON array entry
+# + rootTag- The name of the root element of the XML that will be created
 public type JsonOptions record {
     string attributePrefix = "@";
     string arrayEntryTag = "item";
+    string rootTag = "root";
 };
 
 # Converts a JSON object to an XML representation.
@@ -46,7 +47,7 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
     map<string> allNamespaces = {};
     if !isSingleNode(jsonValue) {
         addNamespaces(allNamespaces, check getNamespacesMap(jsonValue, options, {}));
-        return getElement("root", check traverseNode(jsonValue, allNamespaces, {}, options), allNamespaces, options,
+        return getElement(options.rootTag, check traverseNode(jsonValue, allNamespaces, {}, options), allNamespaces, options,
                             check getAttributesMap(jsonValue, options, allNamespaces));
     } else {
         map<json>|error jMap = jsonValue.ensureType();
@@ -57,15 +58,18 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
             json value = jMap.toArray()[0];
             addNamespaces(allNamespaces, check getNamespacesMap(value, options, {}));
             if value is json[] {
-                return getElement("root", check traverseNode(value, allNamespaces, {}, options, jMap.keys()[0]),
+                return getElement(options.rootTag,
+                                  check traverseNode(value, allNamespaces, {}, options, jMap.keys()[0]),
                                   allNamespaces, options, check getAttributesMap(value, options, allNamespaces));
             } else {
                 string key = jMap.keys()[0];
                 if key == CONTENT {
                     return xml:createText(value.toString());
                 }
-                return getElement(jMap.keys()[0], check traverseNode(value, allNamespaces, {}, options), allNamespaces,
-                                  options, check getAttributesMap(value, options, allNamespaces));
+                xml output = check getElement(jMap.keys()[0], check traverseNode(value, allNamespaces, {}, options),
+                                              allNamespaces, options,
+                                              check getAttributesMap(value, options, allNamespaces));
+                return xml:createElement(options.rootTag, {}, output);
             }
         }
         if jsonValue !is null {
@@ -259,7 +263,7 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 #
 # + xmlValue - The XML source to be converted to a Record
 # + preserveNamespaces - Instructs whether to preserve the namespaces of the XML when converting
-# + returnType - The `typedesc` of the record that should be returned as a result
+# + returnType - The `typedesc` of the record that should be returned as a result. The optional value fields are not allowed in the record type.
 # + return - The Record representation of the given XML on success, else returns an `xmldata:Error`
 public isolated function toRecord(xml xmlValue, boolean preserveNamespaces = true, typedesc<record {}> returnType = <>)
 returns returnType|Error = @java:Method {
