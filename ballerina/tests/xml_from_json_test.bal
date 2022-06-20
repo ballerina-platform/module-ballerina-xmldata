@@ -21,7 +21,7 @@ import ballerina/test;
 }
 isolated function testJsonDataSize() returns error? {
     json data = {id: 30};
-    xml expected = xml `<root><id>30</id></root>`;
+    xml expected = xml `<id>30</id>`;
     xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testFromJSON result incorrect");
@@ -212,7 +212,7 @@ isolated function testSingleElement() returns error? {
     json data = {
         name: "Alex"
     };
-    xml expected = xml `<root><name>Alex</name></root>`;
+    xml expected = xml `<name>Alex</name>`;
     xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected);
@@ -591,7 +591,6 @@ isolated function testWithAttribute1() returns error? {
     };
     xml? result = check fromJson(data);
     string expected =
-    "<root>" +
         "<Store id=\"AST\">" +
             "<name>Anne</name>" +
             "<address>" +
@@ -600,8 +599,7 @@ isolated function testWithAttribute1() returns error? {
             "</address>" +
             "<codes>4</codes>" +
             "<codes>8</codes>" +
-        "</Store>" +
-    "</root>";
+        "</Store>";
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -702,7 +700,7 @@ isolated function testJsonWithDefaultKey() returns error? {
             item: ["book1", "book2", "book6"]
         }
     };
-    xml expected = xml `<root><books>book3<item>book1</item><item>book2</item><item>book6</item></books></root>`;
+    xml expected = xml `<books>book3<item>book1</item><item>book2</item><item>book6</item></books>`;
     xml? result = check fromJson(data);
     if result is xml {
         test:assertEquals(result, expected, msg = "testJsonKey result incorrect");
@@ -729,7 +727,6 @@ isolated function testWithAttribute2() {
     };
     xml?|error result = fromJson(data);
     string expected =
-    "<root>" +
         "<Store id=\"AST\">" +
             "<name>Anne</name>" +
             "<address id=\"AST\">" +
@@ -738,8 +735,7 @@ isolated function testWithAttribute2() {
             "</address>" +
             "<codes>4</codes>" +
             "<codes>8</codes>" +
-        "</Store>" +
-    "</root>";
+        "</Store>";
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -765,7 +761,6 @@ isolated function testWithAttribute3() {
     };
     xml?|error result = fromJson(data, {attributePrefix: "#"});
     string expected =
-    "<root>" +
         "<Store id=\"AST\">" +
             "<name>Anne</name>" +
             "<address id=\"AST\">" +
@@ -774,8 +769,7 @@ isolated function testWithAttribute3() {
             "</address>" +
             "<codes>4</codes>" +
             "<codes>8</codes>" +
-        "</Store>" +
-    "</root>";
+        "</Store>";
     if result is xml {
         test:assertEquals(result.toString(), expected);
     } else {
@@ -821,7 +815,6 @@ isolated function testWithAttribute4() {
         }
     };
     string expected =
-    "<root>" +
         "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
         "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
         "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\" " +
@@ -847,8 +840,7 @@ isolated function testWithAttribute4() {
                     "</urn:baseRef>" +
                 "</urn:get>" +
             "</soapenv:Body>" +
-        "</soapenv:Envelope>" +
-    "</root>";
+        "</soapenv:Envelope>";
     xml|Error? x = fromJson(j);
     if x is xml {
         test:assertEquals(x.toString(), expected);
@@ -895,7 +887,6 @@ isolated function testWithAttribute5() {
         }
     };
     string expected =
-    "<root>" +
         "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
         "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
         "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\">" +
@@ -920,8 +911,7 @@ isolated function testWithAttribute5() {
                     "</urn:baseRef>" +
                 "</urn:get>" +
             "</soapenv:Body>" +
-        "</soapenv:Envelope>" +
-    "</root>";
+        "</soapenv:Envelope>";
     xml|Error? x = fromJson(j);
     if x is xml {
         test:assertEquals(x.toString(), expected);
@@ -993,7 +983,6 @@ isolated function testfromjsonwithRecord() {
         }
     };
     string expected =
-    "<root>" +
         "<Invoice xmlns=\"example.com\" xmlns:ns=\"ns.com\" attr=\"attr-val\">" +
             "<PurchesedItems>" +
                 "<PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>" +
@@ -1006,8 +995,7 @@ isolated function testfromjsonwithRecord() {
                 "<Zip>300</Zip>" +
                 "<Country>LK</Country>" +
             "</Address>" +
-        "</Invoice>" +
-    "</root>";
+        "</Invoice>";
     json jsonData = data.toJson();
     xml?|error result = fromJson(jsonData, {attributePrefix: "_"});
     if result is xml {
@@ -1051,7 +1039,6 @@ isolated function testfromjsonwithRecord1() {
     };
     json jsonData = gettemp.toJson();
     string expected =
-    "<root>" +
         "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
         "xmlns:urn=\"urn:messages_2020_2.platform.webservices.netsuite.com\" " +
         "xmlns:urn1=\"urn:core_2020_2.platform.webservices.netsuite.com\">" +
@@ -1065,8 +1052,7 @@ isolated function testfromjsonwithRecord1() {
                     "</urn:baseRef>" +
                 "</urn:get>" +
             "</soapenv:Body>" +
-        "</soapenv:Envelope>" +
-    "</root>";
+        "</soapenv:Envelope>";
     xml?|error result = fromJson(jsonData, {attributePrefix: "_"});
     if result is xml {
         test:assertEquals(result.toString(), expected);
