@@ -15,13 +15,12 @@ Provide a way to perform conversions between XML and Record/Map.
 
 ## Motivation
 At the moment, users have to write their own custom implementation to perform conversions between Ballerina records/Map to XML.
-Therefore, It would be easy for them if we provided APIs to convert.
+Therefore, It would be easier for them if we provided APIs to convert.
 
-Note: This feature(fromRecord()) is also required by the connector team. When they write a connector for the SOAP backend service(e.g Netsuite Connector),
-they need to convert the Ballerina record value to XML payload. As mentioned in the summary, we don't have a way to do this conversion. 
-They are planning to remove their custom implementation and use `xmldata` module, once we have this feature. As per the [discussion](https://github.com/ballerina-platform/ballerina-standard-library/issues/2819), 
-we are planning to introduce `fromXml` API for their requirement which is an improved API from `fromRecord`. 
-This will be used to do the conversion of the Ballerina record|map data to XML.
+When writing a Ballerina connector for a SOAP backend service like Netsuite connector, we need to convert the Ballerina 
+record to XML and vice versa. In Ballerina, we don't have a standard way of converting Ballerina records to XML and 
+followed our own custom logic in each connector. From this feature, we are trying to standardize 
+the conversion and provide an easier way for conversions than reimplementing the logic.
 
 ## Description
 
@@ -29,39 +28,41 @@ This will be used to do the conversion of the Ballerina record|map data to XML.
 
 ```ballerina
 # Converts an XML to its `Map` or `Record` representation.
-# The namespaces and attributes will not be considered a special case.
+# The namespaces and attributes will not be treated as special cases.
 #
 # + xmlValue - The XML source to be converted to a given target type
 # + returnType - The `typedesc` of the `map<anydata>` that should be returned as a result
 # + return - The given target type representation of the given XML on success,
-# else returns an `xmldata:Error`
+#            else, returns an `xmldata:Error`
 public isolated function fromXml(xml xmlValue, typedesc<(map<anydata>)> returnType = <>) returns returnType|Error;
 ```
 
 ```ballerina
 # Converts a `Map` or `Record` representation to its XML representation.
-# The record has annotations to configure namespaces and attributes,  but others don't have these.
+# Attribute and Namespace annotations provided in the Ballerina record definition 
+# get into account when converting to XML.
 #
 # + mapValue - The `Map` or `Record` representation source to be converted to XML
 # + return - XML representation of the given source if the source is
-# successfully converted or else an `xmldata:Error`
+#            successfully converted or else, an `xmldata:Error`
 public isolated function toXml(map<anydata> mapValue) returns xml|Error;
 ```
 
 ### Record Annotation Definitions:
 
 ```ballerina
-# Defines the new name of the name.
+# Defines the XML element name which matches the record field. The default value is the record field name.
 #
-# + value - The value of the new name
+# + value - The XML element name
 public type NameConfig record {|
     string value;
 |};
 ```
 
 ```ballerina
-# The annotation is used to specify the new name of the existing record name or field name according to the XML format.
+# The Annotation is used to specify which XML element matches the record field.
 public annotation NameConfig Name on type, record field;
+
 # Defines the namespace of the XML element
 #
 # + prefix - The value of the prefix of the namespace
@@ -79,9 +80,9 @@ public annotation NamespaceConfig Namespace on type, record field;
 # The annotation is used to denote the field that is considered an attribute.
 public annotation Attribute on record field;
 ```
-### Rules for performing conversions between Map record and XML
+### Rules for performing conversions between Map and XML
 
-The same rules of conversion between JSON and XML are used. But, this doesn't consider the attributes and namespaces a special case.
+The same rules of conversion between JSON and XML are used. But, this API doesn't treat namespaces and attributes as special cases.
 
 ### Rules for performing conversions between Ballerina record and XML
 
