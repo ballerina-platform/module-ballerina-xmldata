@@ -32,7 +32,17 @@ isolated function testMapJsonToXml1() returns error? {
 isolated function testDefaultRecordToXml1() returns error? {
     record {} data = {"id": 30};
     xml result = check toXml(data);
-    test:assertEquals(result, xml `<root><id>30</id></root>`, msg = "testDefaultRecordToXml1 result incorrect");
+    test:assertEquals(result, xml `<id>30</id>`, msg = "testDefaultRecordToXml1 result incorrect");
+}
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testDefaultRecordToXml2() returns error? {
+    record {} data = {"id": 30, "name": "Asha"};
+    xml result = check toXml(data);
+    test:assertEquals(result, xml `<root><id>30</id><name>Asha</name></root>`,
+                      msg = "testDefaultRecordToXml2 result incorrect");
 }
 
 @test:Config {
@@ -41,7 +51,17 @@ isolated function testDefaultRecordToXml1() returns error? {
 isolated function testMapStringToXml1() returns error? {
     map<string> data = {"id": "30"};
     xml result = check toXml(data);
-    test:assertEquals(result, xml `<root><id>30</id></root>`, msg = "testMapStringToXml1 result incorrect");
+    test:assertEquals(result, xml `<id>30</id>`, msg = "testMapStringToXml1 result incorrect");
+}
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testMapStringToXml2() returns error? {
+    map<string> data = {"id": "30", "name": "Asha"};
+    xml result = check toXml(data);
+    test:assertEquals(result, xml `<root><id>30</id><name>Asha</name></root>`,
+                      msg = "testMapStringToXml2 result incorrect");
 }
 
 @Name {

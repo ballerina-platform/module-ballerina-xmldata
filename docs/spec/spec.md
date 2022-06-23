@@ -36,10 +36,10 @@ The conforming implementation of the specification is released and included in t
     * 4.3. [JSON to XML Conversion](#43-json-to-xml-conversion)
         * 4.3.1. [Sample1](#431-sample1)
         * 4.3.2. [Sample2](#432-sample2)
-    * 4.4 [Ballerina record/Map to XML Conversion](#44-ballerina-recordmap-to-xml-conversion)
+    * 4.4. [Ballerina record/Map to XML Conversion](#44-ballerina-recordmap-to-xml-conversion)
         * 4.4.1. [Sample1](#441-sample1)
         * 4.4.2. [Sample2](#442-sample2)
-    * 4.5 [XML to Ballerina record/Map Conversion](#45-xml-to-ballerina-recordmap-conversion)
+    * 4.5. [XML to Ballerina record/Map Conversion](#45-xml-to-ballerina-recordmap-conversion)
         * 4.5.1. [Sample1](#451-sample1)
         * 4.5.2. [Sample2](#452-sample2)
 
@@ -166,11 +166,11 @@ The following table shows a mapping between the different forms of XML, to a cor
 |JSON object with key <br> as "#content" | `{"#content":"value1"}` | XML text | `value1` |
 |JSON object with key <br> prefix as ‘@’ | `{`<br>&emsp;&emsp;`"foo": {`<br>&emsp;&emsp;&emsp;&emsp;`"@key": "value",`<br>&emsp;&emsp;&emsp;&emsp;`"@xmlns:ns0":"<http://sample.com>"`<br>&emsp;&emsp;`}`<br>} | XML element with attribute and namespace | `<root>`<br>&emsp;&emsp;`<foo key="value"` <br> `xmlns:ns0="<http://sample.com>"/>`<br>`</root>`<br> |
 
-## 3.4 Rules between the Map and XML Conversions
+## 3.4. Rules between the Map and XML Conversions
 
 The same rules of conversion between JSON and XML are used, But this doesn't consider the attributes and namespaces a special case.
 
-## 3.5 Rules between the Ballerina record and XML Conversions
+## 3.5. Rules between the Ballerina record and XML Conversions
 
 **Basic Conversion**
 
