@@ -31,7 +31,7 @@ isolated function testToRecord1() returns error? {
     Details|error actual = fromXml(x3, Details);
     if (actual is error) {
         test:assertTrue(actual.message().includes("'string' value cannot be converted to 'xmldata:Details'"),
-        msg = "testToRecord result incorrect");
+        msg = "testToRecord1 result incorrect");
     } else {
         test:assertFail(msg = "testToRecord1 result incorrect");
     }
@@ -384,7 +384,7 @@ type Address10 record {
 };
 
 @test:Config {
-    groups: ["toRecord"]
+    groups: ["fromXml"]
 }
 function testComplexXmlElementToRecord() returns error? {
     Invoice1 expected = {
@@ -415,7 +415,7 @@ function testComplexXmlElementToRecord() returns error? {
 }
 
 @test:Config {
-    groups: ["toRecord"]
+    groups: ["fromXml"]
 }
 function testComplexXmlElementToMapJson() returns error? {
     map<json> expected = {
@@ -457,9 +457,9 @@ isolated function testXmlToMapString11() returns error? {
     if (actual is error) {
         test:assertEquals(actual.message(),
                         "Failed to convert the xml:<name>Supun</name><name>Supun</name> to string[] type.",
-                        msg = "testToRecord result incorrect");
+                        msg = "testXmlToMapString11 result incorrect");
     } else {
-        test:assertFail(msg = "testToRecord1 result incorrect");
+        test:assertFail(msg = "testXmlToMapString11 result incorrect");
     }
 }
 
@@ -562,4 +562,64 @@ isolated function testXmlToMapTable4() returns error? {
     map<table<Table>> expected = {keys: table [{key1: 1, key2: 2}]};
     map<table<Table>> actual = check fromXml(x1);
     test:assertEquals(actual, expected, msg = "testXmlToMapTable4 result incorrect");
+}
+
+type BookStores11 record {
+    string ns0\:storeName;
+    int ns0\:postalCode;
+    boolean ns0\:isOpen;
+    Add ns0\:address;
+    Codes11 ns0\:codes;
+    string 'xmlns\:ns0;
+    string status;
+};
+
+type Codes11 record {
+    int[] ns0\:item;
+};
+
+type Add record {
+    string ns0\:street;
+    string ns0\:city;
+    string ns0\:country;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testToRecord4() returns error? {
+    xml input = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">
+                        <ns0:storeName>foo</ns0:storeName>
+                        <ns0:postalCode>94</ns0:postalCode>
+                        <ns0:isOpen>true</ns0:isOpen>
+                        <ns0:address>
+                          <ns0:street>foo</ns0:street>
+                          <ns0:city>94</ns0:city>
+                          <ns0:country>true</ns0:country>
+                        </ns0:address>
+                        <ns0:codes>
+                          <ns0:item>4</ns0:item>
+                          <ns0:item>8</ns0:item>
+                          <ns0:item>9</ns0:item>
+                        </ns0:codes>
+                      </ns0:bookStore>
+                      <!-- some comment -->
+                      <?doc document="book.doc"?>`;
+    BookStores11 expected = {
+        ns0\:storeName: "foo",
+        ns0\:postalCode: 94,
+        ns0\:isOpen:true,
+        ns0\:address: {
+            ns0\:street:"foo",
+            ns0\:city: "94",
+            ns0\:country: "true"
+        },
+        ns0\:codes: {
+            ns0\:item:[4,8,9]
+        },
+        'xmlns\:ns0:"http://sample.com/test",
+        status:"online"
+    };
+    BookStores11 actual = check fromXml(input);
+    test:assertEquals(actual, expected, msg = "testToRecord4 result incorrect");
 }
