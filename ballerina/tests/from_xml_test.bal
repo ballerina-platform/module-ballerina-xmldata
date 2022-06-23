@@ -18,6 +18,7 @@ import ballerina/test;
 
 type Details record {
     string name;
+    int age;
 };
 
 @test:Config {
@@ -27,11 +28,28 @@ isolated function testToRecord1() returns error? {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>Supun</name>`;
     xml x3 = x1 + x2;
+    Details|error actual = fromXml(x3, Details);
+    if (actual is error) {
+        test:assertTrue(actual.message().includes("'string' value cannot be converted to 'xmldata:Details'"),
+        msg = "testToRecord result incorrect");
+    } else {
+        test:assertFail(msg = "testToRecord1 result incorrect");
+    }
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testToRecord2() returns error? {
+    var x1 = xml `<!-- outer comment -->`;
+    var x2 = xml `<Details><name>Supun</name><age>5</age></Details>`;
+    xml x3 = x1 + x2;
     Details expected = {
-        name: "Supun"
+        name: "Supun",
+        age: 5
     };
     Details actual = check fromXml(x3, Details);
-    test:assertEquals(actual, expected, msg = "testToRecord result incorrect");
+    test:assertEquals(actual, expected, msg = "testToRecord2 result incorrect");
 }
 
 @test:Config {
@@ -41,8 +59,8 @@ isolated function testXmlToDefaultRecord1() returns error? {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>Supun</name>`;
     xml x3 = x1 + x2;
-    record {} expected = {"name": "Supun"};
-    record {} actual = check fromXml(x3);
+    record {string name;} expected = {"name": "Supun"};
+    record {string name;} actual = check fromXml(x3);
     test:assertEquals(actual, expected, msg = "testXmlToDefaultRecord1 result incorrect");
 }
 
@@ -74,7 +92,7 @@ isolated function testXmlToMapString1() returns error? {
     };
 
     map<string> actual = check fromXml(x3);
-    test:assertEquals(actual, expected, msg = "testXmlToMapJson1 result incorrect");
+    test:assertEquals(actual, expected, msg = "testXmlToMapString1 result incorrect");
 }
 
 @test:Config {
@@ -90,7 +108,7 @@ isolated function testXmlToMapBoolean1() returns error? {
     };
 
     map<boolean> actual = check fromXml(x3);
-    test:assertEquals(actual, expected, msg = "testXmlToMapJson1 result incorrect");
+    test:assertEquals(actual, expected, msg = "testXmlToMapBoolean1 result incorrect");
 }
 
 @test:Config {
@@ -106,7 +124,7 @@ isolated function testXmlToMapInt1() returns error? {
     };
 
     map<int> actual = check fromXml(x3);
-    test:assertEquals(actual, expected, msg = "testXmlToMapJson1 result incorrect");
+    test:assertEquals(actual, expected, msg = "testXmlToMapInt1 result incorrect");
 }
 
 @test:Config {
@@ -122,7 +140,7 @@ isolated function testXmlToMapDecimal1() returns error? {
     };
 
     map<decimal> actual = check fromXml(x3);
-    test:assertEquals(actual, expected, msg = "testXmlToMapJson1 result incorrect");
+    test:assertEquals(actual, expected, msg = "testXmlToMapDecimal1 result incorrect");
 }
 
 @test:Config {
@@ -138,7 +156,7 @@ isolated function testXmlToMapFloat1() returns error? {
     };
 
     map<float> actual = check fromXml(x3);
-    test:assertEquals(actual, expected, msg = "testXmlToMapJson1 result incorrect");
+    test:assertEquals(actual, expected, msg = "testXmlToMapFloat1 result incorrect");
 }
 
 @test:Config {
@@ -152,7 +170,7 @@ isolated function testXmlToMapXml1() returns error? {
     };
 
     map<xml> actual = check fromXml(x1);
-    test:assertEquals(actual, expected, msg = "testXmlToMapJson1 result incorrect");
+    test:assertEquals(actual, expected, msg = "testXmlToMapXml1 result incorrect");
 }
 
 xml xmlData = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
@@ -202,10 +220,6 @@ function testToJsonWithComplexXmlElement() returns Error? {
     test:assertEquals(j, expectedOutput, msg = "testToJsonComplexXmlElement result incorrect");
 }
 
-type Commercial4 record {
-    BookStore4 bookstore;
-};
-
 type BookStore4 record {
     string storeName;
     int postalCode;
@@ -249,30 +263,24 @@ isolated function testRecordToXml4() returns error? {
                         </bookstore>
                         <!-- some comment -->
                         <?doc document="book.doc"?>`;
-    Commercial4 expected = {
-        bookstore: {
-            storeName: "foo",
-            postalCode: 94,
-            isOpen: true,
-            address: {
-                street: "Galle Road",
-                city: "Colombo",
-                country: "Sri Lanka"
-            },
-            codes: {
-                item: [4, 8, 9]
-            },
-            'xmlns\:ns0: "http://sample.com/test",
-            status: "online"
-        }
+    BookStore4 expected = {
+        storeName: "foo",
+        postalCode: 94,
+        isOpen: true,
+        address: {
+            street: "Galle Road",
+            city: "Colombo",
+            country: "Sri Lanka"
+        },
+        codes: {
+            item: [4, 8, 9]
+        },
+        'xmlns\:ns0: "http://sample.com/test",
+        status: "online"
     };
-    Commercial4 actual = check fromXml(payload);
+    BookStore4 actual = check fromXml(payload);
     test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
 }
-
-type Commercial5 record {
-    BookStore5 bookstore;
-};
 
 type BookStore5 record {
     xml storeName;
@@ -317,18 +325,16 @@ isolated function testRecordToXml5() returns error? {
                         </bookstore>
                         <!-- some comment -->
                         <?doc document="book.doc"?>`;
-    Commercial5 expected = {
-        bookstore: {
-            storeName: xml `foo`,
-            postalCode: 94,
-            isOpen: true,
-            address: xml `<street>Galle Road</street><city>Colombo</city><country>Sri Lanka</country>`,
-            codes: xml `<item>4</item><item>8</item><item>9</item>`,
-            'xmlns\:ns0: "http://sample.com/test",
-            status: "online"
-        }
+    BookStore5 expected = {
+        storeName: xml `foo`,
+        postalCode: 94,
+        isOpen: true,
+        address: xml `<street>Galle Road</street><city>Colombo</city><country>Sri Lanka</country>`,
+        codes: xml `<item>4</item><item>8</item><item>9</item>`,
+        'xmlns\:ns0: "http://sample.com/test",
+        status: "online"
     };
-    Commercial5 actual = check fromXml(payload);
+    BookStore5 actual = check fromXml(payload);
     test:assertEquals(actual, expected, msg = "testRecordToXml5 result incorrect");
 }
 
@@ -345,10 +351,6 @@ xml xmValue = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com
                     <Country>LK</Country>
                 </Address>
               </Invoice>`;
-
-type Order1 record {
-    Invoice1 Invoice;
-};
 
 type Invoice1 record {
     PurchesedItems1 PurchesedItems;
@@ -385,32 +387,30 @@ type Address10 record {
     groups: ["toRecord"]
 }
 function testComplexXmlElementToRecord() returns error? {
-    Order1 expected = {
-        Invoice: {
-            PurchesedItems: {
-                PLine: [
-                    {ItemCode: "223345", Count: 10},
-                    {ItemCode: "223300", Count: 7},
-                    {
-                        ItemCode: {discount: "22%", \#content: "200777"},
-                        Count: 7
-                    }
-                ]
-            },
-            Address: {
-                StreetAddress: "20, Palm grove, Colombo 3",
-                City: "Colombo",
-                Zip: 300,
-                Country: "LK",
-                'xmlns: ""
-            },
-            'xmlns: "example.com",
-            'xmlns\:ns: "ns.com",
-            attr: "attr-val",
-            ns\:attr: "ns-attr-val"
-        }
+    Invoice1 expected = {
+        PurchesedItems: {
+            PLine: [
+                {ItemCode: "223345", Count: 10},
+                {ItemCode: "223300", Count: 7},
+                {
+                    ItemCode: {discount: "22%", \#content: "200777"},
+                    Count: 7
+                }
+            ]
+        },
+        Address: {
+            StreetAddress: "20, Palm grove, Colombo 3",
+            City: "Colombo",
+            Zip: 300,
+            Country: "LK",
+            'xmlns: ""
+        },
+        'xmlns: "example.com",
+        'xmlns\:ns: "ns.com",
+        attr: "attr-val",
+        ns\:attr: "ns-attr-val"
     };
-    Order1 actual = check fromXml(xmValue);
+    Invoice1 actual = check fromXml(xmValue);
     test:assertEquals(actual, expected, msg = "testRecordToComplexXmlElement result incorrect");
 }
 
@@ -445,4 +445,121 @@ function testComplexXmlElementToMapJson() returns error? {
     };
     map<json> actual = check fromXml(xmValue);
     test:assertEquals(actual, expected, msg = "testComplexXmlElementToMapJson result incorrect");
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testXmlToMapString11() returns error? {
+    var x2 = xml `<names><name>Supun</name><name>Supun</name></names>`;
+
+    map<string[]>|error actual = fromXml(x2);
+    if (actual is error) {
+        test:assertEquals(actual.message(),
+                        "Failed to convert the xml:<name>Supun</name><name>Supun</name> to string[] type.",
+                        msg = "testToRecord result incorrect");
+    } else {
+        test:assertFail(msg = "testToRecord1 result incorrect");
+    }
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testXmlToMapIntArray() returns error? {
+    var x = xml `<age>5</age>`;
+
+    map<int[]> expected = {
+        age: [5]
+    };
+
+    map<int[]> actual = check fromXml(x);
+    test:assertEquals(actual, expected, msg = "testXmlToMapIntArray result incorrect");
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testXmlToMapFloatArray() returns error? {
+    var x = xml `<age>5</age>`;
+
+    map<float[]> expected = {
+        age: [5]
+    };
+
+    map<float[]> actual = check fromXml(x);
+    test:assertEquals(actual, expected, msg = "testXmlToMapFloatArray result incorrect");
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testXmlToMapDecimalArray() returns error? {
+    var x = xml `<age>5</age>`;
+
+    map<decimal[]> expected = {
+        age: [5]
+    };
+
+    map<decimal[]> actual = check fromXml(x);
+    test:assertEquals(actual, expected, msg = "testXmlToMapFloatArray result incorrect");
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testXmlToMapBooleanArray() returns error? {
+    var x = xml `<value>true</value>`;
+
+    map<boolean[]> expected = {
+        value: [true]
+    };
+
+    map<boolean[]> actual = check fromXml(x);
+    test:assertEquals(actual, expected, msg = "testXmlToMapBooleanArray result incorrect");
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testXmlToMapTable1() returns error? {
+    xml x1 = xml `<keys><key>value</key></keys>`;
+    map<table<map<string>>> expected = {"keys": table [{"key": "value"}]};
+    map<table<map<string>>> actual = check fromXml(x1);
+    test:assertEquals(actual, expected, msg = "testXmlToMapJson1 result incorrect");
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testXmlToMapTable2() returns error? {
+    xml x1 = xml `<keys><key>1</key></keys>`;
+    map<table<map<int>>> expected = {"keys": table [{key: 1}]};
+    map<table<map<int>>> actual = check fromXml(x1);
+    test:assertEquals(actual, expected, msg = "testXmlToMapTable2 result incorrect");
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testXmlToMapTable3() returns error? {
+    xml x1 = xml `<keys><key1>1</key1><key2>2</key2></keys>`;
+    map<table<map<int>>> expected = {keys: table [{key1: 1, key2: 2}]};
+    map<table<map<int>>> actual = check fromXml(x1);
+    test:assertEquals(actual, expected, msg = "testXmlToMapTable3 result incorrect");
+}
+
+type Table record {
+    int key1;
+    int key2;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testXmlToMapTable4() returns error? {
+    xml x1 = xml `<keys><key1>1</key1><key2>2</key2></keys>`;
+    map<table<Table>> expected = {keys: table [{key1: 1, key2: 2}]};
+    map<table<Table>> actual = check fromXml(x1);
+    test:assertEquals(actual, expected, msg = "testXmlToMapTable4 result incorrect");
 }

@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.types.XmlNodeType;
@@ -63,24 +64,24 @@ public class XmlToJson {
     private static final MapType INT_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_INT);
     private static final MapType FLOAT_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_FLOAT);
     private static final MapType XML_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_XML);
-    private static final String XMLNS = "xmlns";
-    private static final String DOUBLE_QUOTES = "\"";
-    private static final String CONTENT = "#content";
-    private static final String EMPTY_STRING = "";
+    private static final ArrayType STRING_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING);
     private static final ArrayType JSON_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
     private static final ArrayType DECIMAL_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
     private static final ArrayType BOOLEAN_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
     private static final ArrayType FLOAT_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
-    private static final ArrayType LONG_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
-    private static final ArrayType STRING_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING);
+    private static final ArrayType INT_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
+    private static final MapType MAP_STRING_ARRAY_TYPE = TypeCreator.createMapType(STRING_ARRAY_TYPE);
+    private static final MapType MAP_DECIMAL_ARRAY_TYPE = TypeCreator.createMapType(DECIMAL_ARRAY_TYPE);
+    private static final MapType MAP_BOOLEAN_ARRAY_TYPE = TypeCreator.createMapType(BOOLEAN_ARRAY_TYPE);
+    private static final MapType MAP_INT_ARRAY_TYPE = TypeCreator.createMapType(INT_ARRAY_TYPE);
+    private static final MapType MAP_FLOAT_ARRAY_TYPE = TypeCreator.createMapType(FLOAT_ARRAY_TYPE);
+    private static final String XMLNS = "xmlns";
+    private static final String DOUBLE_QUOTES = "\"";
+    private static final String CONTENT = "#content";
+    private static final String EMPTY_STRING = "";
     public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_NS_URI_PREFIX.length();
     private static final String COLON = ":";
     private static final String MAP_XML = "map<xml";
-    private static final String MAP_STRING = "map<string>";
-    private static final String MAP_BOOLEAN = "map<boolean>";
-    private static final String MAP_FLOAT = "map<float>";
-    private static final String MAP_DECIMAL = "map<decimal>";
-    private static final String MAP_INT = "map<int>";
 
     /**
      * Converts an XML to the corresponding JSON representation.
@@ -147,14 +148,17 @@ public class XmlToJson {
         if (type != null) {
             if (type.getTag() == TypeTags.ARRAY_TAG) {
                 return convertToArray(type, xml);
-            } else if (type.toString().equals(MAP_BOOLEAN)) {
-                return Boolean.parseBoolean(xml.toString());
-            } else if (type.toString().equals(MAP_INT)) {
-                return Long.parseLong(xml.toString());
-            } else if (type.toString().equals(MAP_FLOAT)) {
-                return Double.parseDouble(xml.toString());
-            } else if (type.toString().equals(MAP_DECIMAL)) {
-                return ValueCreator.createDecimalValue(BigDecimal.valueOf(Double.parseDouble(xml.toString())));
+            } else if (type.getTag() == TypeTags.MAP_TAG) {
+                switch (((MapType) type).getConstrainedType().getTag()) {
+                    case TypeTags.INT_TAG:
+                        return Long.parseLong(xml.toString());
+                    case TypeTags.BOOLEAN_TAG:
+                        return Boolean.parseBoolean(xml.toString());
+                    case TypeTags.DECIMAL_TAG:
+                        return ValueCreator.createDecimalValue(BigDecimal.valueOf(Double.parseDouble(xml.toString())));
+                    case TypeTags.FLOAT_TAG:
+                        return Double.parseDouble(xml.toString());
+                }
             }
         }
         return JsonUtils.parse(DOUBLE_QUOTES + xml.stringValue(null).replace(DOUBLE_QUOTES,
@@ -237,6 +241,12 @@ public class XmlToJson {
                 }
             }
             return fieldType;
+        } else if (type instanceof MapType) {
+            Type valueType = ((MapType) type).getConstrainedType();
+            if (valueType.getTag() == TypeTags.TABLE_TAG) {
+                return ((TableType) valueType).getConstrainedType();
+            }
+            return valueType;
         }
         return type;
     }
@@ -349,7 +359,7 @@ public class XmlToJson {
         try {
             switch (elementType.getTag()) {
                 case TypeTags.INT_TAG:
-                    arr = ValueCreator.createArrayValue(LONG_ARRAY_TYPE);
+                    arr = ValueCreator.createArrayValue(INT_ARRAY_TYPE);
                     if (!valueString.isEmpty()) {
                         arr.append(Long.parseLong(valueString));
                     }
@@ -452,8 +462,7 @@ public class XmlToJson {
                 }
             } else {
                 BString elementName = fromString(getElementKey((BXmlItem) bxml, preserveNamespaces));
-                Object result = convertToJSON(bxml, attributePrefix, preserveNamespaces,
-                        type, parentAttributeMap);
+                Object result = convertToJSON(bxml, attributePrefix, preserveNamespaces, type, parentAttributeMap);
                 result = validateResult(result, elementName);
                 Object value = mapJson.get(elementName);
                 if (value == null) {
@@ -471,7 +480,7 @@ public class XmlToJson {
                 } else {
                     BArray arr;
                     if (value instanceof Long) {
-                        arr = ValueCreator.createArrayValue(LONG_ARRAY_TYPE);
+                        arr = ValueCreator.createArrayValue(INT_ARRAY_TYPE);
                     } else if (value instanceof Boolean) {
                         arr = ValueCreator.createArrayValue(BOOLEAN_ARRAY_TYPE);
                     } else if (value instanceof Double) {
@@ -514,21 +523,36 @@ public class XmlToJson {
 
     private static BMap<BString, Object> newMap(Type type) {
         if (type != null) {
-            String typeName = type.toString();
-            switch (typeName) {
-                case MAP_STRING:
-                    return ValueCreator.createMapValue(STRING_MAP_TYPE);
-                case MAP_BOOLEAN:
-                    return ValueCreator.createMapValue(BOOLEAN_MAP_TYPE);
-                case MAP_INT:
-                    return ValueCreator.createMapValue(INT_MAP_TYPE);
-                case MAP_FLOAT:
-                    return ValueCreator.createMapValue(FLOAT_MAP_TYPE);
-                case MAP_DECIMAL:
-                    return ValueCreator.createMapValue(DECIMAL_MAP_TYPE);
-            }
-            if (typeName.contains(MAP_XML)) {
-                return ValueCreator.createMapValue(XML_MAP_TYPE);
+            if (type.getTag() == TypeTags.MAP_TAG) {
+                Type valueType = ((MapType) type).getConstrainedType();
+                switch (valueType.getTag()) {
+                    case TypeTags.STRING_TAG:
+                        return ValueCreator.createMapValue(STRING_MAP_TYPE);
+                    case TypeTags.BOOLEAN_TAG:
+                        return ValueCreator.createMapValue(BOOLEAN_MAP_TYPE);
+                    case TypeTags.INT_TAG:
+                        return ValueCreator.createMapValue(INT_MAP_TYPE);
+                    case TypeTags.FLOAT_TAG:
+                        return ValueCreator.createMapValue(FLOAT_MAP_TYPE);
+                    case TypeTags.DECIMAL_TAG:
+                        return ValueCreator.createMapValue(DECIMAL_MAP_TYPE);
+                    case TypeTags.XML_TAG:
+                        return ValueCreator.createMapValue(XML_MAP_TYPE);
+                    case TypeTags.ARRAY_TAG:
+                        Type elementType = ((ArrayType) valueType).getElementType();
+                        switch (elementType.getTag()) {
+                            case TypeTags.STRING_TAG:
+                                return ValueCreator.createMapValue(MAP_STRING_ARRAY_TYPE);
+                            case TypeTags.BOOLEAN_TAG:
+                                return ValueCreator.createMapValue(MAP_BOOLEAN_ARRAY_TYPE);
+                            case TypeTags.FLOAT_TAG:
+                                return ValueCreator.createMapValue(MAP_FLOAT_ARRAY_TYPE);
+                            case TypeTags.INT_TAG:
+                                return ValueCreator.createMapValue(MAP_INT_ARRAY_TYPE);
+                            case TypeTags.DECIMAL_TAG:
+                                return ValueCreator.createMapValue(MAP_DECIMAL_ARRAY_TYPE);
+                        }
+                }
             }
         }
         return ValueCreator.createMapValue(Constants.JSON_MAP_TYPE);

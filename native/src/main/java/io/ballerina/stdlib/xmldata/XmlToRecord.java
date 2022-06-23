@@ -47,9 +47,7 @@ public class XmlToRecord {
 
     public static Object toRecord(BXml xml, boolean preserveNamespaces, String attributePrefix, BTypedesc type) {
         try {
-            Type describingType = type.getDescribingType();
-            validateRecord(describingType);
-            Object jsonObject = toJson(xml, preserveNamespaces, attributePrefix, describingType);
+            Object jsonObject = covertToJson(xml, preserveNamespaces, attributePrefix, type);
             if (jsonObject instanceof BError) {
                 return XmlDataUtils.getError("XML type mismatch with record type: " +
                         ((BError) jsonObject).getErrorMessage());
@@ -63,6 +61,13 @@ public class XmlToRecord {
         } catch (Exception e) {
             return XmlDataUtils.getError("Failed to convert xml to record type: " + e.getMessage());
         }
+    }
+
+    public static Object covertToJson(BXml xml, boolean preserveNamespaces, String attributePrefix, BTypedesc type)
+            throws Exception {
+        Type describingType = type.getDescribingType();
+        validateRecord(describingType);
+        return toJson(xml, preserveNamespaces, attributePrefix, describingType);
     }
 
     private static void validateRecord(Type type) throws Exception {
