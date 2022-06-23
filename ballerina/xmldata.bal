@@ -92,11 +92,12 @@ returns json|json[]|record{}|Error = @java:Method {
 #
 # + attributePrefix - The prefix of JSON elements' key which is to be treated as an attribute in the XML representation
 # + arrayEntryTag - The name of the XML elements that represent a converted JSON array entry
-# + rootTag - The name of the root element of the XML that will be created
+# + rootTag- The name of the root element of the XML that will be created. If its value is (), and the converted XML
+#            is not in the valid format, it will create a root tag as `root`
 public type JsonOptions record {|
     string attributePrefix = "@";
     string arrayEntryTag = "item";
-    string rootTag = "root";
+    string? rootTag = ();
 |};
 
 # Converts a JSON object to an XML representation.
@@ -113,11 +114,13 @@ public type JsonOptions record {|
 # + return - XML representation of the given JSON if the JSON is
 # successfully converted or else an `xmldata:Error`. The `()` value is not returned
 public isolated function fromJson(json jsonValue, JsonOptions options = {}) returns xml?|Error {
+    string? rootTag = options.rootTag;
     map<string> allNamespaces = {};
     if !isSingleNode(jsonValue) {
         addNamespaces(allNamespaces, check getNamespacesMap(jsonValue, options, {}));
-        return getElement(options.rootTag, check traverseNode(jsonValue, allNamespaces, {}, options), allNamespaces, options,
-                            check getAttributesMap(jsonValue, options, allNamespaces));
+        return getElement(rootTag is string ? rootTag : "root",
+                          check traverseNode(jsonValue, allNamespaces, {}, options), allNamespaces, options,
+                          check getAttributesMap(jsonValue, options, allNamespaces));
     } else {
         map<json>|error jMap = jsonValue.ensureType();
         if jMap is map<json> {
@@ -127,9 +130,9 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
             json value = jMap.toArray()[0];
             addNamespaces(allNamespaces, check getNamespacesMap(value, options, {}));
             if value is json[] {
-                return getElement(options.rootTag,
-                                check traverseNode(value, allNamespaces, {}, options, jMap.keys()[0]),
-                                allNamespaces, options, check getAttributesMap(value, options, allNamespaces));
+                return getElement(rootTag is string ? rootTag : "root",
+                                  check traverseNode(value, allNamespaces, {}, options, jMap.keys()[0]),
+                                  allNamespaces, options, check getAttributesMap(value, options, allNamespaces));
             } else {
                 string key = jMap.keys()[0];
                 if key == CONTENT {
@@ -138,7 +141,10 @@ public isolated function fromJson(json jsonValue, JsonOptions options = {}) retu
                 xml output = check getElement(jMap.keys()[0], check traverseNode(value, allNamespaces, {}, options),
                                             allNamespaces, options,
                                             check getAttributesMap(value, options, allNamespaces));
-                return xml:createElement(options.rootTag, {}, output);
+                if rootTag is string {
+                    return xml:createElement(rootTag.toString(), {}, output);
+                }
+                return output;
             }
         }
         if jsonValue !is null {

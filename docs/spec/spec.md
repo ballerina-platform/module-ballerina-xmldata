@@ -4,10 +4,9 @@ _Owners_: @daneshk @kalaiyarasiganeshalingam @MadhukaHarith92
 _Reviewers_: @daneshk  
 _Created_: 2021/12/10  
 _Updated_: 2022/06/07  
-_Edition_: Swan Lake  
-_Issue_: [#2334](https://github.com/ballerina-platform/ballerina-standard-library/issues/2334)
+_Edition_: Swan Lake
 
-# Introduction
+## Introduction
 This is the specification for the Xmldata standard library of [Ballerina language](https://ballerina.io/), which provides APIs to perform conversions between XML and JSON/Ballerina records.
 
 The Xmldata library specification has evolved and may continue to evolve in the future. The released versions of the specification can be found under the relevant Github tag.
@@ -16,33 +15,33 @@ If you have any feedback or suggestions about the library, start a discussion vi
 
 The conforming implementation of the specification is released and included in the distribution. Any deviation from the specification is considered a bug.
 
-# Contents
+## Contents
 1. [Overview](#1-overview)
 2. [Data structure](#2-data-structure)
-    * 2.1 [JSON](#21-json)
-    * 2.2 [XML](#22-xml)
-    * 2.3 [Map](#23-map)
-    * 2.4 [Record](#24-record)
+    * 2.1. [JSON](#21-json)
+    * 2.2. [XML](#22-xml)
+    * 2.3. [Map](#23-map)
+    * 2.4. [Record](#24-record)
 3. [Rules](#3-rules)
-    * 3.1 [Rules for XML to JSON Conversion](#31-rules-for-xml-to-json-conversion)
-    * 3.2 [Rules for XML to Record Conversion](#32-rules-for-xml-to-record-conversion)
-    * 3.3 [Rules for JSON to XML Conversion](#33-rules-for-json-to-xml-conversion)
-    * 3.4 [Rules between the Map and XML Conversions](#34-rules-between-the-map-and-xml-conversions)
-    * 3.5 [Rules between the Ballerina record and XML Conversions](#35-rules-between-the-ballerina-record-and-xml-conversions)
+    * 3.1. [Rules for XML to JSON Conversion](#31-rules-for-xml-to-json-conversion)
+    * 3.2. [Rules for XML to Record Conversion](#32-rules-for-xml-to-record-conversion)
+    * 3.3. [Rules for JSON to XML Conversion](#33-rules-for-json-to-xml-conversion)
+    * 3.4. [Rules between the Map and XML Conversions](#34-rules-between-the-map-and-xml-conversions)
+    * 3.5. [Rules between the Ballerina record and XML Conversions](#35-rules-between-the-ballerina-record-and-xml-conversions)
 4. [Operations](#4-operations)
-    * 4.1 [XML to JSON Conversion](#41-xml-to-json-conversion)
-        * 4.1.1 [Sample](#411-sample)
-    * 4.2 [XML to Record Conversion](#42-xml-to-record-conversion)
-        * 4.2.1 [Sample](#421-sample)
-    * 4.3 [JSON to XML Conversion](#43-json-to-xml-conversion)
-        * 4.3.1 [Sample1](#431-sample1)
-        * 4.3.2 [Sample2](#432-sample2)
+    * 4.1. [XML to JSON Conversion](#41-xml-to-json-conversion)
+        * 4.1.1. [Sample](#411-sample)
+    * 4.2. [XML to Record Conversion](#42-xml-to-record-conversion)
+        * 4.2.1. [Sample](#421-sample)
+    * 4.3. [JSON to XML Conversion](#43-json-to-xml-conversion)
+        * 4.3.1. [Sample1](#431-sample1)
+        * 4.3.2. [Sample2](#432-sample2)
     * 4.4 [Ballerina record/Map to XML Conversion](#44-ballerina-recordmap-to-xml-conversion)
-        * 4.4.1 [Sample1](#441-sample1)
-        * 4.4.2 [Sample2](#442-sample2)
+        * 4.4.1. [Sample1](#441-sample1)
+        * 4.4.2. [Sample2](#442-sample2)
     * 4.5 [XML to Ballerina record/Map Conversion](#45-xml-to-ballerina-recordmap-conversion)
-        * 4.5.1 [Sample1](#451-sample1)
-        * 4.5.2 [Sample2](#452-sample2)
+        * 4.5.1. [Sample1](#451-sample1)
+        * 4.5.2. [Sample2](#452-sample2)
 
 ## 1. Overview
 This specification elaborates on the functionalities available in the Xmldata library.
@@ -56,15 +55,14 @@ This package considers JSON, XML, Ballerina record and Map data structure and cr
 
 ## 2. Data Structure
 
-### 2.1 JSON
+### 2.1. JSON
 
 JSON is a textual format for representing a single or collection of following values: 
  - a simple value (string, number, boolean, null) 
  - an array of values
  - an object
 
-
-### 2.2 XML
+### 2.2. XML
 
 An XML value is a sequence representing the parsed content of an XML element. Values are sequences of zero or more items, where an item is one of the following:
  - element
@@ -72,11 +70,12 @@ An XML value is a sequence representing the parsed content of an XML element. Va
  - processing instruction
  - comment
 
-### 2.3 Map
+### 2.3. Map
+
 A map is an unordered collection of key-value pair elements. A map element is a key and value pair that maps one thing to another.
 The key must in a string. The value can be of a primitive or complex data type.
 
-### 2.4 Record
+### 2.4. Record
 
 A record is just a collection of fields. Record equality works the same as map equality. 
 A record type descriptor describes a type of mapping value by specifying a type separately for the value of each field.
@@ -89,7 +88,7 @@ Hence, the returned data include both defined fields in the record and additiona
 
 We have followed some set of rules for every conversion to preserve the information and structure of both input and output.
 
-## 3.1 Rules for XML to JSON Conversion
+### 3.1. Rules for XML to JSON Conversion
 
 The following rules are used during the conversion process:
 
@@ -114,7 +113,7 @@ The following table shows a mapping between the different forms of XML, to a cor
 |XML with attribute  | `<foo key="value">5</foo>`<br>| JSON object. <br> Here, attribute has ‘@’ prefix  | `{`<br>&emsp;&emsp;`"foo": {`<br>&emsp;&emsp;&emsp;&emsp;`"@key": "value",`<br>&emsp;&emsp;&emsp;&emsp;`"#content": "5"`<br>&emsp;&emsp;`}`<br>`}` <br>|
 |XML with attribute and namespace  | `<foo key="value"` <br>` xmlns:ns0="http://sample.com">5</foo>`<br> | JSON object. <br> Here, attribute and namespace <br> have ‘@’ prefix | `{`<br>&emsp;&emsp;`"foo":{`<br>&emsp;&emsp;&emsp;&emsp;`"@key":"value",`<br>&emsp;&emsp;&emsp;&emsp;`"@xmlns:ns0":"<http://sample.com>",`<br>&emsp;&emsp;&emsp;&emsp;`"#content":"5"`<br>&emsp;&emsp;`}`<br>`}` |
 
-## 3.2 Rules for XML to Record Conversion
+### 3.2. Rules for XML to Record Conversion
 
 This conversion also follows all the rules which will be applied during the XML to the JSON conversion process except the attributes and namespaces rule. Here, attributes and namespaces key will be converted with a prefix as `_` in the record.
 
@@ -125,7 +124,7 @@ The table shows a mapping of XML with attribute and namespace to JSON.
 |XML with attribute | `<foo key="value">5</foo>`<br> | JSON object. <br> Here, attribute has ‘_’ prefix. | `{`<br>&emsp;&emsp;`"foo": {`<br>&emsp;&emsp;&emsp;&emsp;`"_key": "value",`<br>&emsp;&emsp;&emsp;&emsp;`"#content": "5"`<br>&emsp;&emsp;`}`<br>| 
 |XML with attribute and namespace  | `<foo key="value"`<br>` xmlns:ns0="http://sample.com">5</foo>`<br> |JSON object. <br> Here, attribute and namespace <br> have ‘_’ prefix.  | `{`<br>&emsp;&emsp;`"foo":{`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"_key":"value",`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"_xmlns:ns0":"<http://sample.com>",`<br>&emsp;&emsp;&emsp;&emsp;&emsp;`"#content":"5"`<br>&emsp;&emsp;`}`<br>`}` |
 
-## 3.3 Rules for JSON to XML Conversion
+### 3.3. Rules for JSON to XML Conversion
 
 The following rules are used during the conversion process:
 
@@ -218,7 +217,7 @@ But this use-case is commonly used in XML. Therefore, In Ballerina, we support t
 
 ## 4. Operations
 
-### 4.1 XML to JSON Conversion
+### 4.1. XML to JSON Conversion
 
 XML to JSON conversion is a mapping between the different forms of XML to a corresponding matching JSON representation.
 The following API returns the JSON data to the given XML structure by configuring the `XmlOptions`.
@@ -234,7 +233,7 @@ public type XmlOptions record {
 };
 ```
 
-#### 4.1.1 Sample
+#### 4.1.1. Sample
 
 ```ballerina
 xml input = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">
@@ -296,14 +295,14 @@ When `attributePrefix` is `&` and `preserveNamespaces` is `false`, the JSON repr
     }
 }
 ```
-### 4.2 XML to Record Conversion
+### 4.2. XML to Record Conversion
 This conversion is a mapping between the different forms of XML to a corresponding matching Ballerina record representation.
 The following API returns the record to the given XML structure by configuring the `preserveNamespaces` and `returnType`.
 ```ballerina
 public isolated function toRecord(xml xmlValue, boolean preserveNamespaces = true, typedesc<record {}> returnType = <>) returns returnType|Error
 ```
 
-#### 4.2.1 Sample
+#### 4.2.1. Sample
 
 ```ballerina
 xml input = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">
@@ -367,7 +366,7 @@ When `preserveNamespaces` is `false`, the JSON representation of the above XML.
 }
 ```
 
-### 4.3 JSON to XML Conversion
+### 4.3. JSON to XML Conversion
 
 This conversion provides a mapping between the different forms of JSON, to a corresponding matching XML representation.
 The following API returns the JSON data to the given XML structure by configuring the `JsonOptions`.
@@ -385,7 +384,7 @@ public type JsonOptions record {
 };
 ```
 
-#### 4.3.1 Sample1
+#### 4.3.1. Sample1
 
 ```ballerina
 json input = {
@@ -426,7 +425,7 @@ The XML representation of the above JSON with the default configuration of this 
 </ns0:bookStore>
 ```
 
-#### 4.3.2 Sample2
+#### 4.3.2. Sample2
 
 ```ballerina
 json input = {
@@ -469,7 +468,7 @@ When `attributePrefix` is `&` and `arrayEntryTag` is `list`, the XML representat
 </root>
 ```
 
-### 4.4 Ballerina record/Map to XML Conversion
+### 4.4. Ballerina record/Map to XML Conversion
 This conversion provides a mapping between the different forms of Ballerina record/Map, to a corresponding matching XML representation.
 The following API returns the XML data to the given Ballerina record/Map. The record has annotations to configure namespaces and attributes, but others don't have these.
 ```ballerina
@@ -507,7 +506,7 @@ public annotation NamespaceConfig Namespace on type, record field;
 # The annotation is used to denote the field that is considered an attribute.
 public annotation Attribute on record field;
 ```
-#### 4.4.1 Sample1
+#### 4.4.1. Sample1
 ```ballerina
 @Name {
     value: "Customers"
@@ -540,7 +539,7 @@ The XML representation of the above Record.
 </ns:Customers>
 ```
 
-#### 4.4.2 Sample2
+#### 4.4.2. Sample2
 
 ```ballerina
 map<string> input = {
@@ -560,14 +559,14 @@ The XML representation of the above map.
 </root>;
 ```
 
-### 4.5 XML to Ballerina record/Map Conversion
+### 4.5. XML to Ballerina record/Map Conversion
 his conversion is a mapping between the different forms of XML to a corresponding matching Ballerina record/Map representation.
 The following API returns the record/map to the given XML structure. The namespaces and attributes will not be considered a special case.
 ```ballerina
 public isolated function fromXml(xml xmlValue, typedesc<(map<anydata>)> returnType = <>) returns returnType|Error
 ```
 
-#### 4.5.1 Sample1
+#### 4.5.1. Sample1
 ```ballerina
 type Commercial record {
     BookStore bookstore;
@@ -627,7 +626,7 @@ Commercial output = {
     }
 };
 ```
-#### 4.5.2 Sample2
+#### 4.5.2. Sample2
 
 ```ballerina
 xml xmlData = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
