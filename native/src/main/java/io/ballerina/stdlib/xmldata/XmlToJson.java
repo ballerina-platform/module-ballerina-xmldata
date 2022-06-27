@@ -17,20 +17,20 @@
  */
 
 package io.ballerina.stdlib.xmldata;
-import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.constants.TypeConstants;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.types.XmlNodeType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -58,8 +58,7 @@ import static io.ballerina.runtime.api.utils.StringUtils.fromString;
  */
 public class XmlToJson {
 
-    private static final Type JSON_MAP_TYPE =
-            TypeCreator.createMapType(TypeConstants.MAP_TNAME, PredefinedTypes.TYPE_JSON, new Module(null, null, null));
+    public static final MapType JSON_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_JSON);
     private static final String XMLNS = "xmlns";
     private static final String DOUBLE_QUOTES = "\"";
     private static final String CONTENT = "#content";
@@ -193,19 +192,30 @@ public class XmlToJson {
     }
 
     private static Type getFieldType(String fieldName, Type type) {
-        if (type instanceof RecordType) {
-            if (((RecordType) type).getFields().get(fieldName) != null) {
-                return ((RecordType) type).getFields().get(fieldName).getFieldType();
-            }
-        } else if (type instanceof ArrayType) {
-            Type filedType = ((ArrayType) type).getElementType();
-            if (filedType instanceof RecordType) {
-                Map<String, Field> fileds = ((RecordType) filedType).getFields();
-                if (fileds.get(fieldName) != null) {
-                    return fileds.get(fieldName).getFieldType();
+        if (type != null) {
+            if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                return getRecordFieldType(type, fieldName);
+            } else if (type.getTag() == TypeTags.ARRAY_TAG) {
+                Type filedType = ((ArrayType) type).getElementType();
+                if (filedType instanceof RecordType) {
+                    return getRecordFieldType(filedType, fieldName);
+                }
+                return filedType;
+            } else if (type.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
+                Type referredType = TypeUtils.getReferredType(type);
+                if (referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                    return getRecordFieldType(referredType, fieldName);
                 }
             }
-            return filedType;
+        }
+        return type;
+    }
+
+    private static Type getRecordFieldType(Type type, String fieldName) {
+        RecordType recordType = (RecordType) type;
+        Map<String, Field> fields = recordType.getFields();
+        if (fields.get(fieldName) != null) {
+            return fields.get(fieldName).getFieldType();
         }
         return type;
     }
