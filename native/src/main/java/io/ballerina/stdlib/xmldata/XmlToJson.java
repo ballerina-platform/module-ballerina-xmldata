@@ -31,6 +31,7 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.types.XmlNodeType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -81,7 +82,6 @@ public class XmlToJson {
     private static final String EMPTY_STRING = "";
     public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_NS_URI_PREFIX.length();
     private static final String COLON = ":";
-    private static final String MAP_XML = "map<xml";
 
     /**
      * Converts an XML to the corresponding JSON representation.
@@ -119,10 +119,13 @@ public class XmlToJson {
      */
     public static Object convertToJSON(BXml xml, String attributePrefix, boolean preserveNamespaces, Type type,
                                        BMap<BString, BString> parentAttributeMap) throws Exception {
-        if (type != null && type.toString().contains(MAP_XML)) {
-            BMap<BString, Object> map = newMap(type);
-            map.put(StringUtils.fromString(CONTENT), xml);
-            return map;
+        if (type instanceof MapType) {
+            MapType mapType = (MapType) type;
+            if (mapType.getConstrainedType().getTag() == TypeTags.XML_TAG) {
+                BMap<BString, Object> map = newMap(type);
+                map.put(fromString(CONTENT), xml);
+                return map;
+            }
         }
         if (xml instanceof BXmlItem) {
             return convertElement((BXmlItem) xml, attributePrefix, preserveNamespaces, type, parentAttributeMap);
@@ -181,8 +184,10 @@ public class XmlToJson {
         BMap<BString, BString> attributeMap = xmlItem.getAttributesMap();
         String keyValue = getElementKey(xmlItem, preserveNamespaces);
         Type fieldType = getFieldType(keyValue, type);
-        processAttributes(attributeMap, attributePrefix, childrenData, fieldType,
-                parentAttributeMap, xmlItem.getQName().getPrefix(), preserveNamespaces);
+        if (attributePrefix != null || preserveNamespaces) {
+            processAttributes(attributeMap, attributePrefix, childrenData, fieldType,
+                    parentAttributeMap, xmlItem.getQName().getPrefix(), preserveNamespaces);
+        }
         Object children = convertBXmlSequence(xmlItem.getChildrenSeq(), attributePrefix, preserveNamespaces,
                 fieldType,  attributeMap);
         BMap<BString, Object> rootNode = newMap(type);
@@ -228,25 +233,36 @@ public class XmlToJson {
     }
 
     private static Type getFieldType(String fieldName, Type type) {
-        if (type instanceof RecordType) {
-            if (((RecordType) type).getFields().get(fieldName) != null) {
-                return ((RecordType) type).getFields().get(fieldName).getFieldType();
-            }
-        } else if (type instanceof ArrayType) {
-            Type fieldType = ((ArrayType) type).getElementType();
-            if (fieldType instanceof RecordType) {
-                Map<String, Field> fileds = ((RecordType) fieldType).getFields();
-                if (fileds.get(fieldName) != null) {
-                    return fileds.get(fieldName).getFieldType();
+        if (type != null) {
+            if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                return getRecordFieldType(type, fieldName);
+            } else if (type.getTag() == TypeTags.ARRAY_TAG) {
+                Type fieldType = ((ArrayType) type).getElementType();
+                if (fieldType instanceof RecordType) {
+                    return getRecordFieldType(fieldType, fieldName);
                 }
+                return fieldType;
+            } else if (type.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
+                Type referredType = TypeUtils.getReferredType(type);
+                if (referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                    return getRecordFieldType(referredType, fieldName);
+                }
+            } else if (type.getTag() == TypeTags.MAP_TAG) {
+                Type valueType = ((MapType) type).getConstrainedType();
+                if (valueType.getTag() == TypeTags.TABLE_TAG) {
+                    return ((TableType) valueType).getConstrainedType();
+                }
+                return valueType;
             }
-            return fieldType;
-        } else if (type instanceof MapType) {
-            Type valueType = ((MapType) type).getConstrainedType();
-            if (valueType.getTag() == TypeTags.TABLE_TAG) {
-                return ((TableType) valueType).getConstrainedType();
-            }
-            return valueType;
+        }
+        return type;
+    }
+
+    private static Type getRecordFieldType(Type type, String fieldName) {
+        RecordType recordType = (RecordType) type;
+        Map<String, Field> fields = recordType.getFields();
+        if (fields.get(fieldName) != null) {
+            return fields.get(fieldName).getFieldType();
         }
         return type;
     }
@@ -634,7 +650,7 @@ public class XmlToJson {
      * @param preserveNamespaces Whether namespace info included in the key or not
      * @return String Element key with the namespace information
      */
-    private static String getElementKey(BXmlItem xmlItem, boolean preserveNamespaces) {
+    public static String getElementKey(BXmlItem xmlItem, boolean preserveNamespaces) {
         // Construct the element key based on the namespaces
         StringBuilder elementKey = new StringBuilder();
         QName qName = xmlItem.getQName();

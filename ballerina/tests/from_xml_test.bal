@@ -21,6 +21,9 @@ type Details record {
     int age;
 };
 
+type name record {
+};
+
 @test:Config {
     groups: ["fromXml"]
 }
@@ -28,10 +31,26 @@ isolated function testToRecord1() returns error? {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>Supun</name>`;
     xml x3 = x1 + x2;
-    Details|error actual = fromXml(x3, Details);
+    name|error actual = fromXml(x3, name);
     if (actual is error) {
-        test:assertTrue(actual.message().includes("'string' value cannot be converted to 'xmldata:Details'"),
+        test:assertTrue(actual.message().includes("'string' value cannot be converted to 'xmldata:name'"),
         msg = "testToRecord1 result incorrect");
+    } else {
+        test:assertFail(msg = "testToRecord1 result incorrect");
+    }
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testToRecord3() returns error? {
+    var x1 = xml `<!-- outer comment -->`;
+    var x2 = xml `<name>Supun</name>`;
+    xml x3 = x1 + x2;
+    Details|error actual = fromXml(x3);
+    if (actual is error) {
+        test:assertTrue(actual.message().includes("The record type name: Details mismatch with given XML name: name"),
+        msg = "testToRecord3 result incorrect");
     } else {
         test:assertFail(msg = "testToRecord1 result incorrect");
     }
@@ -198,23 +217,15 @@ function testToJsonWithComplexXmlElement() returns Error? {
                 PLine: [
                     {ItemCode: "223345", Count: "10"},
                     {ItemCode: "223300", Count: "7"},
-                    {
-                        ItemCode: {"discount": "22%", "#content": "200777"},
-                        Count: "7"
-                    }
+                    {ItemCode: "200777", Count: "7"}
                 ]
             },
             Address: {
                 StreetAddress: "20, Palm grove, Colombo 3",
                 City: "Colombo",
                 Zip: "00300",
-                Country: "LK",
-                "xmlns": ""
-            },
-            "xmlns:ns": "ns.com",
-            "xmlns": "example.com",
-            "attr": "attr-val",
-            "ns:attr": "ns-attr-val"
+                Country: "LK"
+            }
         }
     };
     test:assertEquals(j, expectedOutput, msg = "testToJsonComplexXmlElement result incorrect");
@@ -246,7 +257,7 @@ type Codes4 record {
     groups: ["fromXml"]
 }
 isolated function testRecordToXml4() returns error? {
-    xml payload = xml `<bookstore status="online" xmlns:ns0="http://sample.com/test">
+    xml payload = xml `<BookStore4 status="online" xmlns:ns0="http://sample.com/test">
                             <storeName>foo</storeName>
                             <postalCode>94</postalCode>
                             <isOpen>true</isOpen>
@@ -260,7 +271,7 @@ isolated function testRecordToXml4() returns error? {
                                 <item>8</item>
                                 <item>9</item>
                             </codes>
-                        </bookstore>
+                        </BookStore4>
                         <!-- some comment -->
                         <?doc document="book.doc"?>`;
     BookStore4 expected = {
@@ -308,7 +319,7 @@ type Codes5 record {
     groups: ["fromXml"]
 }
 isolated function testRecordToXml5() returns error? {
-    xml payload = xml `<bookstore status="online" xmlns:ns0="http://sample.com/test">
+    xml payload = xml `<BookStore5 status="online" xmlns:ns0="http://sample.com/test">
                             <storeName>foo</storeName>
                             <postalCode>94</postalCode>
                             <isOpen>true</isOpen>
@@ -322,7 +333,7 @@ isolated function testRecordToXml5() returns error? {
                                 <item>8</item>
                                 <item>9</item>
                             </codes>
-                        </bookstore>
+                        </BookStore5>
                         <!-- some comment -->
                         <?doc document="book.doc"?>`;
     BookStore5 expected = {
@@ -338,7 +349,7 @@ isolated function testRecordToXml5() returns error? {
     test:assertEquals(actual, expected, msg = "testRecordToXml5 result incorrect");
 }
 
-xml xmValue = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
+xml xmValue = xml `<Bill xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
                 <PurchesedItems>
                     <PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>
                     <PLine><ItemCode>223300</ItemCode><Count>7</Count></PLine>
@@ -350,9 +361,9 @@ xml xmValue = xml `<Invoice xmlns="example.com" attr="attr-val" xmlns:ns="ns.com
                     <Zip>300</Zip>
                     <Country>LK</Country>
                 </Address>
-              </Invoice>`;
+              </Bill>`;
 
-type Invoice1 record {
+type Bill record {
     PurchesedItems1 PurchesedItems;
     Address10 Address;
     string 'xmlns?;
@@ -387,7 +398,7 @@ type Address10 record {
     groups: ["fromXml"]
 }
 function testComplexXmlElementToRecord() returns error? {
-    Invoice1 expected = {
+    Bill expected = {
         PurchesedItems: {
             PLine: [
                 {ItemCode: "223345", Count: 10},
@@ -410,7 +421,7 @@ function testComplexXmlElementToRecord() returns error? {
         attr: "attr-val",
         ns\:attr: "ns-attr-val"
     };
-    Invoice1 actual = check fromXml(xmValue);
+    Bill actual = check fromXml(xmValue);
     test:assertEquals(actual, expected, msg = "testRecordToComplexXmlElement result incorrect");
 }
 
@@ -419,28 +430,20 @@ function testComplexXmlElementToRecord() returns error? {
 }
 function testComplexXmlElementToMapJson() returns error? {
     map<json> expected = {
-        Invoice: {
+        Bill: {
             PurchesedItems: {
                 PLine: [
                     {ItemCode: "223345", Count: "10"},
                     {ItemCode: "223300", Count: "7"},
-                    {
-                        ItemCode: {discount: "22%", \#content: "200777"},
-                        Count: "7"
-                    }
+                    {ItemCode: "200777", Count: "7"}
                 ]
             },
             Address: {
                 StreetAddress: "20, Palm grove, Colombo 3",
                 City: "Colombo",
                 Zip: "300",
-                Country: "LK",
-                'xmlns: ""
-            },
-            'xmlns: "example.com",
-            'xmlns\:ns: "ns.com",
-            attr: "attr-val",
-            ns\:attr: "ns-attr-val"
+                Country: "LK"
+            }
         }
     };
     map<json> actual = check fromXml(xmValue);
@@ -588,7 +591,7 @@ type Add record {
     groups: ["fromXml"]
 }
 isolated function testToRecord4() returns error? {
-    xml input = xml `<ns0:bookStore status="online" xmlns:ns0="http://sample.com/test">
+    xml input = xml `<ns0:BookStores11 status="online" xmlns:ns0="http://sample.com/test">
                         <ns0:storeName>foo</ns0:storeName>
                         <ns0:postalCode>94</ns0:postalCode>
                         <ns0:isOpen>true</ns0:isOpen>
@@ -602,7 +605,7 @@ isolated function testToRecord4() returns error? {
                           <ns0:item>8</ns0:item>
                           <ns0:item>9</ns0:item>
                         </ns0:codes>
-                      </ns0:bookStore>
+                      </ns0:BookStores11>
                       <!-- some comment -->
                       <?doc document="book.doc"?>`;
     BookStores11 expected = {

@@ -28,6 +28,7 @@ import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
@@ -105,8 +106,11 @@ public class XmlDataUtils {
             Object value = entry.getValue();
             if (fields.containsKey(key.getValue())) {
                 Type childType = fields.get(key.toString()).getFieldType();
-                if (childType instanceof RecordType) {
+                if (childType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                     record.put(key, addFields(((BMap<BString, Object>) value), childType));
+                } else if (childType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
+                    Type referredType = TypeUtils.getReferredType(childType);
+                    record.put(key, addFields(((BMap<BString, Object>) value), referredType));
                 } else {
                     BString annotationKey =
                             StringUtils.fromString((FIELD + key).replace(":", "\\:"));

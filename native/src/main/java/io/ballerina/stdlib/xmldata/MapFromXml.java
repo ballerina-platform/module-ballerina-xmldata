@@ -53,6 +53,14 @@ public class MapFromXml {
         Type describingType = type.getDescribingType();
         if (describingType.getTag() == TypeTags.RECORD_TYPE_TAG) {
             try {
+                if (describingType.getFlags() != DEFAULT_TYPE_FLAG) {
+                    String recordName = describingType.getName();
+                    String elementName = getKey(xml);
+                    if (!recordName.equals(elementName)) {
+                        return XmlDataUtils.getError("The record type name: " + recordName +
+                                " mismatch with given XML name: " + elementName);
+                    }
+                }
                 Object output =  XmlToRecord.covertToJson(xml, true, "", type);
                 if (output instanceof BError) {
                     return XmlDataUtils.getError("XML type mismatch with record type: " +
@@ -77,7 +85,8 @@ public class MapFromXml {
             try {
                 Type valueType = ((MapType) describingType).getConstrainedType();
                 isValidXmlWithOutputType(xml, valueType);
-                Object output = XmlToJson.toJson(xml, true, "", type.getDescribingType());
+                Object output = XmlToJson.toJson(xml, false, null,
+                        type.getDescribingType());
                 if (valueType.getTag() == TypeTags.TABLE_TAG) {
                     TableType tableType = (TableType) valueType;
                     BMap<BString, Object> newMap = ValueCreator.createMapValue(TypeCreator.createMapType(tableType));
@@ -99,6 +108,15 @@ public class MapFromXml {
                 return XmlDataUtils.getError(e.getMessage());
             }
         }
+    }
+
+    private static String getKey(BXml xml) {
+        String elementKey = xml.elements().getElementName();
+        int startIndex = 0;
+        if (elementKey.contains("}")) {
+            startIndex = elementKey.indexOf("}") + 1;
+        }
+        return elementKey.substring(startIndex);
     }
 
     private static void isValidXmlWithOutputType(BXml xml, Type type) throws Exception {
