@@ -30,7 +30,7 @@ isolated function testMapJsonToXml1() returns error? {
     groups: ["toXml"]
 }
 isolated function testDefaultRecordToXml1() returns error? {
-    record {} data = {"id": 30};
+    record {int id;} data = {id: 30};
     xml result = check toXml(data);
     test:assertEquals(result, xml `<id>30</id>`, msg = "testDefaultRecordToXml1 result incorrect");
 }
@@ -39,7 +39,7 @@ isolated function testDefaultRecordToXml1() returns error? {
     groups: ["toXml"]
 }
 isolated function testDefaultRecordToXml2() returns error? {
-    record {} data = {"id": 30, "name": "Asha"};
+    record {int id; string name;} data = {id: 30, name: "Asha"};
     xml result = check toXml(data);
     test:assertEquals(result, xml `<root><id>30</id><name>Asha</name></root>`,
                       msg = "testDefaultRecordToXml2 result incorrect");
@@ -76,11 +76,8 @@ type Customer record {
     @Name {
         value: "employeeName"
     }
-    @Namespace {
-        prefix: "ns"
-    }
     @Attribute
-    string name;
+    string ns\:name;
 
     int age;
 };
@@ -89,7 +86,7 @@ type Customer record {
     groups: ["toXml"]
 }
 isolated function testRecordWithAnnotationToXml1() returns error? {
-    Customer data = {name: "Asha", age: 10};
+    Customer data = {ns\:name: "Asha", age: 10};
     xml result = check toXml(data);
     test:assertEquals(result,
                     xml `<ns:Customers xmlns:ns="http://sdf.com" ns:employeeName="Asha"><age>10</age></ns:Customers>`,
@@ -438,7 +435,7 @@ isolated function testMapXmlArrayToXml1() returns error? {
     groups: ["toXml"]
 }
 isolated function testRecordArrayToXml1() returns error? {
-    Customer[] customers = [{name: "Asha", age: 10}, {name: "Kalai", age: 10}];
+    Customer[] customers = [{ns\:name: "Asha", age: 10}, {ns\:name: "Kalai", age: 10}];
     map<Customer[]> data = {customers: customers};
     string expected = "<root>" +
                         "<customers>" +
@@ -460,7 +457,7 @@ isolated function testRecordArrayToXml1() returns error? {
     groups: ["toXml"]
 }
 isolated function testRecordArrayToXml2() returns error? {
-    Customer[] customers = [{name: "Asha", age: 10}, {name: "Kalai", age: 10}];
+    Customer[] customers = [{ns\:name: "Asha", age: 10}, {ns\:name: "Kalai", age: 10}];
     map<Customer[]> data = {customer1: customers, customer2: customers};
     string expected = "<root>" +
                         "<customer1>" +

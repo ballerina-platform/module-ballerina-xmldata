@@ -78,7 +78,7 @@ isolated function testXmlToDefaultRecord1() returns error? {
     var x1 = xml `<!-- outer comment -->`;
     var x2 = xml `<name>Supun</name>`;
     xml x3 = x1 + x2;
-    record {string name;} expected = {"name": "Supun"};
+    record {string name;} expected = {name: "Supun"};
     record {string name;} actual = check fromXml(x3);
     test:assertEquals(actual, expected, msg = "testXmlToDefaultRecord1 result incorrect");
 }

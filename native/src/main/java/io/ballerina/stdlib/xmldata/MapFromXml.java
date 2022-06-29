@@ -33,6 +33,7 @@ import io.ballerina.runtime.api.values.BTable;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.runtime.api.values.BXmlSequence;
+import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 import org.ballerinalang.langlib.value.CloneWithType;
 
@@ -46,14 +47,14 @@ import java.util.Map;
  */
 public class MapFromXml {
 
-    private static final int DEFAULT_TYPE_FLAG = 2049;
+
 
     @SuppressWarnings("unchecked")
     public static Object fromXml(BXml xml, BTypedesc type) {
         Type describingType = type.getDescribingType();
         if (describingType.getTag() == TypeTags.RECORD_TYPE_TAG) {
             try {
-                if (describingType.getFlags() != DEFAULT_TYPE_FLAG) {
+                if (describingType.getFlags() != Constants.DEFAULT_TYPE_FLAG) {
                     String recordName = describingType.getName();
                     String elementName = getKey(xml);
                     if (!recordName.equals(elementName)) {
@@ -67,7 +68,7 @@ public class MapFromXml {
                             ((BError) output).getErrorMessage());
                 }
                 BMap<BString, Object> record = (BMap<BString, Object>) output;
-                if (describingType.getFlags() == DEFAULT_TYPE_FLAG) {
+                if (describingType.getFlags() == Constants.DEFAULT_TYPE_FLAG) {
                     output = CloneWithType.cloneWithType(output, type);
                 } else {
                     output = CloneWithType.cloneWithType(record.get(record.getKeys()[0]), type);

@@ -84,7 +84,7 @@ public class XmlDataUtils {
             }
         }
         if (describingType.getTag() == TypeTags.RECORD_TYPE_TAG &&
-                !describingType.getName().contains("record {| anydata...; |}")) {
+                describingType.getFlags() != Constants.DEFAULT_TYPE_FLAG) {
             BArray jsonArray = ValueCreator.createArrayValue(PredefinedTypes.TYPE_JSON_ARRAY);
             BMap<BString, Object> recordField =  addFields(input, type.getDescribingType());
             BMap<BString, Object> processedRecord = processParentAnnotation(type.getDescribingType(), recordField);
