@@ -155,7 +155,7 @@ public class XmlToJson {
                 fieldType,  attributeMap);
         BMap<BString, Object> rootNode = newJsonMap();
         if (type != null && fieldType instanceof ArrayType && children instanceof BMap &&
-                ((ArrayType) fieldType).getElementType() instanceof RecordType) {
+                TypeUtils.getReferredType(((ArrayType) fieldType).getElementType()) instanceof RecordType) {
             for (Map.Entry<BString, Object> entry: childrenData.entrySet()) {
                 ((BMap<BString, Object>) children).put(entry.getKey(), entry.getValue());
             }
@@ -196,7 +196,7 @@ public class XmlToJson {
             if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 return getRecordFieldType(type, fieldName);
             } else if (type.getTag() == TypeTags.ARRAY_TAG) {
-                Type filedType = ((ArrayType) type).getElementType();
+                Type filedType = TypeUtils.getReferredType(((ArrayType) type).getElementType());
                 if (filedType instanceof RecordType) {
                     return getRecordFieldType(filedType, fieldName);
                 }
@@ -254,7 +254,7 @@ public class XmlToJson {
             throws Exception {
         if (type != null) {
             if (type instanceof ArrayType) {
-                Type fieldType = ((ArrayType) type).getElementType();
+                Type fieldType = TypeUtils.getReferredType(((ArrayType) type).getElementType());
                 if (fieldType instanceof RecordType) {
                     if (((RecordType) fieldType).getFields().get(key) != null) {
                         type = ((RecordType) type).getFields().get(key).getFieldType();
@@ -322,7 +322,7 @@ public class XmlToJson {
     }
 
     private static BArray convertToArray(Type valueType, Object value) throws Exception {
-        Type elementType = ((ArrayType) valueType).getElementType();
+        Type elementType = TypeUtils.getReferredType(((ArrayType) valueType).getElementType());
         BArray arr;
         String valueString = value.toString();
         try {
