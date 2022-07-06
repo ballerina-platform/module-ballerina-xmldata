@@ -60,22 +60,11 @@ import static io.ballerina.runtime.api.utils.StringUtils.fromString;
  */
 public class XmlToJson {
 
-    private static final MapType STRING_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_STRING);
-    private static final MapType BOOLEAN_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_BOOLEAN);
-    private static final MapType DECIMAL_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_DECIMAL);
-    private static final MapType INT_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_INT);
-    private static final MapType FLOAT_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_FLOAT);
-    private static final MapType XML_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_XML);
     private static final ArrayType STRING_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING);
     private static final ArrayType DECIMAL_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
     private static final ArrayType BOOLEAN_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
     private static final ArrayType FLOAT_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
     private static final ArrayType INT_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
-    private static final MapType MAP_STRING_ARRAY_TYPE = TypeCreator.createMapType(STRING_ARRAY_TYPE);
-    private static final MapType MAP_DECIMAL_ARRAY_TYPE = TypeCreator.createMapType(DECIMAL_ARRAY_TYPE);
-    private static final MapType MAP_BOOLEAN_ARRAY_TYPE = TypeCreator.createMapType(BOOLEAN_ARRAY_TYPE);
-    private static final MapType MAP_INT_ARRAY_TYPE = TypeCreator.createMapType(INT_ARRAY_TYPE);
-    private static final MapType MAP_FLOAT_ARRAY_TYPE = TypeCreator.createMapType(FLOAT_ARRAY_TYPE);
     private static final String XMLNS = "xmlns";
     private static final String DOUBLE_QUOTES = "\"";
     private static final String CONTENT = "#content";
