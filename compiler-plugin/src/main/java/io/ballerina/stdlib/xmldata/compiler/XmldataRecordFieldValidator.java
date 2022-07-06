@@ -70,9 +70,10 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
             Optional<ExpressionNode> initializer = variableDeclarationNode.initializer();
             if (!initializer.isEmpty()) {
                 ExpressionNode expressionNode = initializer.get();
-                if (expressionNode.toString().contains(TO_RECORD) || expressionNode.toString().contains(FROM_XML)) {
+                String functionName = expressionNode.toString();
+                if (functionName.contains(TO_RECORD) || functionName.contains(FROM_XML)) {
                     TypedBindingPatternNode typedBindingPatternNode = variableDeclarationNode.typedBindingPattern();
-                    checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx);
+                    checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx, functionName);
                 }
             }
         }
@@ -81,16 +82,17 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
             Optional<ExpressionNode> initializer = moduleVariableDeclarationNode.initializer();
             if (!initializer.isEmpty()) {
                 ExpressionNode expressionNode = initializer.get();
-                if (expressionNode.toString().contains(TO_RECORD) || expressionNode.toString().contains(FROM_XML)) {
+                String functionName = expressionNode.toString();
+                if (functionName.contains(TO_RECORD) || functionName.contains(FROM_XML)) {
                     TypedBindingPatternNode typedBindingPatternNode =
                             moduleVariableDeclarationNode.typedBindingPattern();
-                    checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx);
+                    checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx, functionName);
                 }
             }
         }
     }
 
-    private void checkRecordField(String recordName, SyntaxNodeAnalysisContext ctx) {
+    private void checkRecordField(String recordName, SyntaxNodeAnalysisContext ctx, String functionName) {
         for (SyntaxNodeAnalysisContext syntaxNodeAnalysisContext: this.nodes) {
             if (!this.validatedNodes.contains(syntaxNodeAnalysisContext)) {
                 RecordFieldNode recordFieldNode = ((RecordFieldNode) syntaxNodeAnalysisContext.node());
@@ -104,10 +106,13 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
                         if (typeSymbol instanceof UnionTypeSymbol) {
                             List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
                             for (TypeSymbol symbol : typeSymbols) {
-                                validateType(ctx, recordFieldNode, symbol);
+                                validateType(ctx, recordFieldNode, symbol, functionName);
+                            }
+                            if (functionName.contains(FROM_XML))  {
+                                validateUnionType(ctx, typeSymbols, recordFieldNode, functionName);
                             }
                         } else {
-                            validateType(ctx, recordFieldNode, typeSymbol);
+                            validateType(ctx, recordFieldNode, typeSymbol, functionName);
                         }
                     }
                 }
@@ -115,18 +120,43 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
         }
     }
 
-    private void validateType(SyntaxNodeAnalysisContext ctx, RecordFieldNode recordFieldNode, TypeSymbol typeSymbol) {
+    private void validateType(SyntaxNodeAnalysisContext ctx, RecordFieldNode recordFieldNode, TypeSymbol typeSymbol,
+                              String functionName) {
         if (typeSymbol instanceof NilTypeSymbol) {
             reportDiagnosticInfo(ctx, recordFieldNode);
         } else if (typeSymbol instanceof TypeReferenceTypeSymbol) {
-            checkRecordField(typeSymbol.getName().get(), ctx);
+            checkRecordField(typeSymbol.getName().get(), ctx, functionName);
         } else if (typeSymbol instanceof ArrayTypeSymbol) {
             TypeSymbol arrayTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
             if (arrayTypeSymbol instanceof TypeReferenceTypeSymbol) {
-                checkRecordField(arrayTypeSymbol.getName().get(), ctx);
+                checkRecordField(arrayTypeSymbol.getName().get(), ctx, functionName);
             }
         }
     }
+
+    private void validateUnionType(SyntaxNodeAnalysisContext ctx, List<TypeSymbol> typeSymbols,
+                                   RecordFieldNode recordFieldNode, String functionName) {
+        int noOfNonPrimitiveType = 0;
+        for (TypeSymbol typeSymbol : typeSymbols) {
+            if (typeSymbol instanceof TypeReferenceTypeSymbol) {
+                noOfNonPrimitiveType += 1;
+                checkRecordField(typeSymbol.getName().get(), ctx, functionName);
+            } else if (typeSymbol instanceof ArrayTypeSymbol) {
+                TypeSymbol arrayTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
+                if (arrayTypeSymbol instanceof TypeReferenceTypeSymbol) {
+                    noOfNonPrimitiveType += 1;
+                    checkRecordField(arrayTypeSymbol.getName().get(), ctx, functionName);
+                }
+            }
+        }
+        if (noOfNonPrimitiveType > 1)  {
+            DiagnosticInfo diagnosticInfo = new DiagnosticInfo(DiagnosticsCodes.XMLDATA_102.getCode(),
+                    DiagnosticsCodes.XMLDATA_102.getMessage(), DiagnosticsCodes.XMLDATA_102.getSeverity());
+            ctx.reportDiagnostic(
+                    DiagnosticFactory.createDiagnostic(diagnosticInfo, recordFieldNode.location()));
+        }
+    }
+
     private void reportDiagnosticInfo(SyntaxNodeAnalysisContext ctx, RecordFieldNode recordFieldNode) {
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(DiagnosticsCodes.XMLDATA_101.getCode(),
                 DiagnosticsCodes.XMLDATA_101.getMessage(), DiagnosticsCodes.XMLDATA_101.getSeverity());

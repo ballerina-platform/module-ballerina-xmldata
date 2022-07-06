@@ -47,7 +47,7 @@ public class XmlToRecord {
 
     public static Object toRecord(BXml xml, boolean preserveNamespaces, String attributePrefix, BTypedesc type) {
         try {
-            Object jsonObject = covertToJson(xml, preserveNamespaces, attributePrefix, type);
+            Object jsonObject = convertToJson(xml, preserveNamespaces, attributePrefix, type);
             if (jsonObject instanceof BError) {
                 return XmlDataUtils.getError("XML type mismatch with record type: " +
                         ((BError) jsonObject).getErrorMessage());
@@ -63,14 +63,14 @@ public class XmlToRecord {
         }
     }
 
-    public static Object covertToJson(BXml xml, boolean preserveNamespaces, String attributePrefix, BTypedesc type)
+    public static Object convertToJson(BXml xml, boolean preserveNamespaces, String attributePrefix, BTypedesc type)
             throws Exception {
         Type describingType = type.getDescribingType();
-        validateRecord(describingType);
+        validateRecordType(describingType);
         return toJson(xml, preserveNamespaces, attributePrefix, describingType);
     }
 
-    private static void validateRecord(Type type) throws Exception {
+    private static void validateRecordType(Type type) throws Exception {
         if (type instanceof RecordType) {
             Map<String, Field> fields = ((RecordType) type).getFields();
             for (Map.Entry<String, Field> entry : fields.entrySet()) {
@@ -84,7 +84,7 @@ public class XmlToRecord {
         } else if (type instanceof ArrayType) {
             Type fieldType = ((ArrayType) type).getElementType();
             if (fieldType instanceof RecordType) {
-                validateRecord(fieldType);
+                validateRecordType(fieldType);
             }
         }
     }

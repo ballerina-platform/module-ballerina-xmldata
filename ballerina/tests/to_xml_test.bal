@@ -102,14 +102,11 @@ isolated function testRecordWithAnnotationToXml1() returns error? {
 }
 type Customer2 record {
 
-    @Namespace {
-        prefix: "ns"
-    }
     @Name {
         value: "employeeName"
     }
     @Attribute
-    string name;
+    string ns\:name;
 
     int age;
 };
@@ -118,7 +115,7 @@ type Customer2 record {
     groups: ["toXml"]
 }
 isolated function testRecordWithAnnotationToXml2() returns error? {
-    Customer2 data = {name: "Asha", age: 10};
+    Customer2 data = {ns\:name: "Asha", age: 10};
     xml result = check toXml(data);
     test:assertEquals(result,
                     xml `<ns:Customers xmlns:ns="http://sdf.com" ns:employeeName="Asha"><age>10</age></ns:Customers>`,
@@ -134,14 +131,11 @@ isolated function testRecordWithAnnotationToXml2() returns error? {
 }
 type Customer3 record {
 
-    @Namespace {
-        prefix: "ns"
-    }
     @Attribute
     @Name {
         value: "employeeName"
     }
-    string name;
+    string ns\:name;
 
     int age;
 };
@@ -150,7 +144,7 @@ type Customer3 record {
     groups: ["toXml"]
 }
 isolated function testRecordWithAnnotationToXml3() returns error? {
-    Customer3 data = {name: "Asha", age: 10};
+    Customer3 data = {ns\:name: "Asha", age: 10};
     xml result = check toXml(data);
     test:assertEquals(result,
                     xml `<ns:Customers xmlns:ns="http://sdf.com" ns:employeeName="Asha"><age>10</age></ns:Customers>`,
@@ -170,10 +164,7 @@ type Customer4 record {
     @Name {
         value: "employeeName"
     }
-    @Namespace {
-        prefix: "ns"
-    }
-    string name;
+    string ns\:name;
 
     int age;
 };
@@ -182,7 +173,7 @@ type Customer4 record {
     groups: ["toXml"]
 }
 isolated function testRecordWithAnnotationToXml4() returns error? {
-    Customer4 data = {name: "Asha", age: 10};
+    Customer4 data = {ns\:name: "Asha", age: 10};
     xml result = check toXml(data);
     test:assertEquals(result,
                     xml `<ns:Customers xmlns:ns="http://sdf.com" ns:employeeName="Asha"><age>10</age></ns:Customers>`,
@@ -616,4 +607,248 @@ isolated function testComplexRecordToXml() returns error? {
                     "</Commercial6>";
     xml result = check toXml(data);
     test:assertEquals(result.toString(), expected, msg = "testComplexRecordToXml result incorrect");
+}
+
+@Namespace {
+    uri: "example.com"
+}
+type Purchesed_Bill record {
+    Purchesed_Items PurchesedItems;
+    Purchesed_Address Address;
+    @Attribute
+    string 'xmlns\:ns?;
+    @Attribute
+    string attr?;
+    @Attribute
+    string ns\:attr?;
+};
+
+type Purchesed_Items record {
+    Purchesed_Purchase[] PLine;
+};
+
+type Purchesed_Purchase record {
+    string|Purchesed_ItemCode ItemCode;
+    int Count;
+};
+
+type Purchesed_ItemCode record {
+    @Attribute
+    string discount;
+    string \#content?;
+};
+
+//@Namespace {
+//    uri: ""
+//}
+type Purchesed_Address record {
+    string StreetAddress;
+    string City;
+    int Zip;
+    string Country;
+    @Attribute
+    string 'xmlns?;
+};
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testRecordWithNamaspaceAnnotationToXml() returns error? {
+    Purchesed_Bill input = {
+        PurchesedItems: {
+                PLine: [
+                    {ItemCode: "223345", Count: 10},
+                    {ItemCode: "223300", Count: 7},
+                    {
+                        ItemCode: {discount: "22%", \#content: "200777"},
+                        Count: 7
+                    }
+            ]
+        },
+        Address: {
+            StreetAddress: "20, Palm grove, Colombo 3",
+            City: "Colombo",
+            Zip: 300,
+            Country: "LK"
+        },
+        'xmlns\:ns: "ns.com",
+        attr: "attr-val",
+        ns\:attr: "ns-attr-val"
+    };
+    string expected =
+        "<Purchesed_Bill xmlns=\"example.com\" xmlns:ns=\"ns.com\" attr=\"attr-val\" ns:attr=\"ns-attr-val\">" +
+            "<PurchesedItems>" +
+                "<PLine>" +
+                    "<ItemCode>223345</ItemCode>" +
+                    "<Count>10</Count>" +
+                "</PLine>" +
+                "<PLine>" +
+                    "<ItemCode>223300</ItemCode>" +
+                    "<Count>7</Count>" +
+                "</PLine>" +
+                "<PLine>" +
+                    "<ItemCode discount=\"22%\">200777</ItemCode>" +
+                    "<Count>7</Count>" +
+                "</PLine>" +
+            "</PurchesedItems>" +
+            "<Address>" +
+                "<StreetAddress>20, Palm grove, Colombo 3</StreetAddress>" +
+                "<City>Colombo</City>" +
+                "<Zip>300</Zip>" +
+                "<Country>LK</Country>" +
+            "</Address>" +
+        "</Purchesed_Bill>";
+    xml result = check toXml(input);
+    test:assertEquals(result.toString(), expected, msg = "testComplexRecordToXml result incorrect");
+}
+
+@Namespace {
+    uri: "example.com"
+}
+type Purchesed_Bill1 record {
+    Purchesed_Items1 PurchesedItems;
+    @Attribute
+    string 'xmlns\:ns?;
+    @Attribute
+    string attr?;
+    @Attribute
+    string ns\:attr?;
+};
+
+@Namespace {
+    prefix: "ns0",
+    uri: "example.com"
+}
+type Purchesed_Items1 record {
+    Purchesed_Purchase1[] PLine;
+};
+
+type Purchesed_Purchase1 record {
+    string|Purchesed_ItemCode1 ItemCode;
+    int Count;
+};
+
+@Namespace {
+    prefix: "ns1",
+    uri: "example.com"
+}
+type Purchesed_ItemCode1 record {
+    @Attribute
+    string discount;
+    string \#content?;
+};
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testRecordWithNamaspaceAnnotationToXml1() returns error? {
+    Purchesed_Bill1 input = {
+            PurchesedItems: {
+                    PLine: [
+                        {ItemCode: "223345", Count: 10},
+                        {ItemCode: "223300", Count: 7},
+                        {
+                            ItemCode: {discount: "22%", \#content: "200777"},
+                            Count: 7
+                        }
+                    ]
+            },
+            'xmlns\:ns: "ns.com",
+            attr: "attr-val",
+            ns\:attr: "ns-attr-val"
+        };
+    string expected =
+        "<Purchesed_Bill1 xmlns=\"example.com\" xmlns:ns=\"ns.com\" attr=\"attr-val\" ns:attr=\"ns-attr-val\">" +
+            "<PurchesedItems xmlns:ns0=\"example.com\">" +
+                "<PLine>" +
+                    "<ItemCode>223345</ItemCode>" +
+                    "<Count>10</Count>" +
+                "</PLine>" +
+                "<PLine>" +
+                    "<ItemCode>223300</ItemCode>" +
+                    "<Count>7</Count>" +
+                "</PLine>" +
+                "<PLine>" +
+                    "<ItemCode xmlns:ns1=\"example.com\" discount=\"22%\">200777</ItemCode>" +
+                    "<Count>7</Count>" +
+                "</PLine>" +
+            "</PurchesedItems>" +
+        "</Purchesed_Bill1>";
+    xml result = check toXml(input);
+    test:assertEquals(result.toString(), expected, msg = "testRecordWithNamaspaceAnnotationToXml1 result incorrect");
+}
+
+@Namespace {
+    prefix: "ns0",
+    uri: "example.com"
+}
+type Purchesed_Bill2 record {
+    Purchesed_Items2 PurchesedItems;
+    @Attribute
+    string 'xmlns\:ns?;
+    @Attribute
+    string attr?;
+    @Attribute
+    string ns\:attr?;
+};
+
+@Namespace {
+    uri: "example.com"
+}
+type Purchesed_Items2 record {
+    Purchesed_Purchase2[] PLine;
+};
+
+type Purchesed_Purchase2 record {
+    string|Purchesed_ItemCode2 ItemCode;
+    int Count;
+};
+
+@Namespace {
+    uri: "example1.com"
+}
+type Purchesed_ItemCode2 record {
+    @Attribute
+    string discount;
+    string \#content?;
+};
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testRecordWithNamaspaceAnnotationToXml2() returns error? {
+    Purchesed_Bill2 input = {
+            PurchesedItems: {
+                    PLine: [
+                        {ItemCode: "223345", Count: 10},
+                        {ItemCode: "223300", Count: 7},
+                        {
+                            ItemCode: {discount: "22%", \#content: "200777"},
+                            Count: 7
+                        }
+                    ]
+            },
+            'xmlns\:ns: "ns.com",
+            attr: "attr-val",
+            ns\:attr: "ns-attr-val"
+        };
+    string expected =
+        "<ns0:Purchesed_Bill2 xmlns:ns0=\"example.com\" xmlns:ns=\"ns.com\" attr=\"attr-val\" ns:attr=\"ns-attr-val\">" +
+            "<PurchesedItems xmlns=\"example.com\">" +
+                "<PLine>" +
+                    "<ItemCode>223345</ItemCode>" +
+                    "<Count>10</Count>" +
+                "</PLine>" +
+                "<PLine>" +
+                    "<ItemCode>223300</ItemCode>" +
+                    "<Count>7</Count>" +
+                "</PLine>" +
+                "<PLine>" +
+                    "<ItemCode xmlns=\"example1.com\" discount=\"22%\">200777</ItemCode>" +
+                    "<Count>7</Count>" +
+                "</PLine>" +
+            "</PurchesedItems>" +
+        "</ns0:Purchesed_Bill2>";
+    xml result = check toXml(input);
+    test:assertEquals(result.toString(), expected, msg = "testRecordWithNamaspaceAnnotationToXml2 result incorrect");
 }

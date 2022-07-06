@@ -350,10 +350,10 @@ isolated function testRecordToXml5() returns error? {
 }
 
 xml xmValue = xml `<Bill xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
-                <PurchesedItems>
-                    <PLine><ItemCode>223345</ItemCode><Count>10</Count></PLine>
+                <PurchesedItems attr="attr-val">
+                    <PLine attr="attr-val"><ItemCode>223345</ItemCode><Count>10</Count></PLine>
                     <PLine><ItemCode>223300</ItemCode><Count>7</Count></PLine>
-                    <PLine><ItemCode discount="22%">200777</ItemCode><Count>7</Count></PLine>
+                    <PLine attr="attr-val" ><ItemCode discount="22%">200777</ItemCode><Count>7</Count></PLine>
                 </PurchesedItems>
                 <Address xmlns="">
                     <StreetAddress>20, Palm grove, Colombo 3</StreetAddress>
@@ -363,35 +363,47 @@ xml xmValue = xml `<Bill xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" n
                 </Address>
               </Bill>`;
 
+@Namespace {
+    uri: "example.com"
+}
 type Bill record {
     PurchesedItems1 PurchesedItems;
     Address10 Address;
-    string 'xmlns?;
+    @Attribute
     string 'xmlns\:ns?;
+    @Attribute
     string attr?;
+    @Attribute
     string ns\:attr?;
 };
 
 type PurchesedItems1 record {
     Purchase1[] PLine;
+    @Attribute
+    string attr?;
 };
 
 type Purchase1 record {
     string|ItemCode1 ItemCode;
     int Count;
+    @Attribute
+    string attr?;
 };
 
 type ItemCode1 record {
+    @Attribute
     string discount;
     string \#content;
 };
 
+@Namespace {
+    uri: ""
+}
 type Address10 record {
     string StreetAddress;
     string City;
     int Zip;
     string Country;
-    string 'xmlns?;
 };
 
 @test:Config {
@@ -401,13 +413,101 @@ function testComplexXmlElementToRecord() returns error? {
     Bill expected = {
         PurchesedItems: {
             PLine: [
-                {ItemCode: "223345", Count: 10},
+                {ItemCode: "223345", Count: 10, attr: "attr-val"},
                 {ItemCode: "223300", Count: 7},
                 {
                     ItemCode: {discount: "22%", \#content: "200777"},
-                    Count: 7
+                    Count: 7,
+                    attr: "attr-val"
                 }
-            ]
+            ],
+            attr: "attr-val"
+        },
+        Address: {
+            StreetAddress: "20, Palm grove, Colombo 3",
+            City: "Colombo",
+            Zip: 300,
+            Country: "LK"
+        },
+        'xmlns\:ns: "ns.com",
+        attr: "attr-val",
+        ns\:attr: "ns-attr-val"
+    };
+    Bill actual = check fromXml(xmValue);
+    test:assertEquals(actual, expected, msg = "testRecordToComplexXmlElement result incorrect");
+}
+
+type Bill11 record {
+    PurchesedItems11 PurchesedItems;
+    Address11 Address;
+    @Attribute
+    string 'xmlns\:ns?;
+    @Attribute
+    string attr?;
+    @Attribute
+    string ns\:attr?;
+    @Attribute
+    string 'xmlns;
+};
+
+type PurchesedItems11 record {
+    Purchase11[] PLine;
+    @Attribute
+    string attr?;
+};
+
+type Purchase11 record {
+    string|ItemCode11 ItemCode;
+    int Count;
+    @Attribute
+    string attr?;
+};
+
+type ItemCode11 record {
+    @Attribute
+    string discount;
+    string \#content;
+};
+
+type Address11 record {
+    string StreetAddress;
+    string City;
+    int Zip;
+    string Country;
+    @Attribute
+    string 'xmlns?;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+function testComplexXmlElementToRecord1() returns error? {
+    xml xmValue = xml `<Bill11 xmlns="example.com" attr="attr-val" xmlns:ns="ns.com" ns:attr="ns-attr-val">
+                    <PurchesedItems attr="attr-val">
+                        <PLine attr="attr-val"><ItemCode>223345</ItemCode><Count>10</Count></PLine>
+                        <PLine><ItemCode>223300</ItemCode><Count>7</Count></PLine>
+                        <PLine attr="attr-val" ><ItemCode discount="22%">200777</ItemCode><Count>7</Count></PLine>
+                    </PurchesedItems>
+                    <Address xmlns="">
+                        <StreetAddress>20, Palm grove, Colombo 3</StreetAddress>
+                        <City>Colombo</City>
+                        <Zip>300</Zip>
+                        <Country>LK</Country>
+                    </Address>
+                  </Bill11>`;
+
+    Bill11 expected = {
+        PurchesedItems: {
+            PLine: [
+                {ItemCode: "223345", Count: 10, attr: "attr-val"},
+                {ItemCode: "223300", Count: 7},
+                {
+                    ItemCode: {discount: "22%", \#content: "200777"},
+                    Count: 7,
+                    attr: "attr-val"
+                }
+            ],
+            attr: "attr-val"
         },
         Address: {
             StreetAddress: "20, Palm grove, Colombo 3",
@@ -421,8 +521,8 @@ function testComplexXmlElementToRecord() returns error? {
         attr: "attr-val",
         ns\:attr: "ns-attr-val"
     };
-    Bill actual = check fromXml(xmValue);
-    test:assertEquals(actual, expected, msg = "testRecordToComplexXmlElement result incorrect");
+    Bill11 actual = check fromXml(xmValue);
+    test:assertEquals(actual, expected, msg = "testRecordToComplexXmlElement1 result incorrect");
 }
 
 @test:Config {
@@ -573,7 +673,9 @@ type BookStores11 record {
     boolean ns0\:isOpen;
     Add ns0\:address;
     Codes11 ns0\:codes;
+    @Attribute
     string 'xmlns\:ns0;
+    @Attribute
     string status;
 };
 

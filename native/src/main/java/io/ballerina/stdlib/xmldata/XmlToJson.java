@@ -41,6 +41,7 @@ import io.ballerina.runtime.api.values.BXmlSequence;
 import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
+import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +67,6 @@ public class XmlToJson {
     private static final MapType FLOAT_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_FLOAT);
     private static final MapType XML_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_XML);
     private static final ArrayType STRING_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING);
-    private static final ArrayType JSON_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
     private static final ArrayType DECIMAL_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
     private static final ArrayType BOOLEAN_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
     private static final ArrayType FLOAT_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
@@ -82,6 +82,7 @@ public class XmlToJson {
     private static final String EMPTY_STRING = "";
     public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_NS_URI_PREFIX.length();
     private static final String COLON = ":";
+    private static PrintStream print = System.err;
 
     /**
      * Converts an XML to the corresponding JSON representation.
@@ -122,7 +123,7 @@ public class XmlToJson {
         if (type instanceof MapType) {
             MapType mapType = (MapType) type;
             if (mapType.getConstrainedType().getTag() == TypeTags.XML_TAG) {
-                BMap<BString, Object> map = newMap(type);
+                BMap<BString, Object> map = createMapValue(type);
                 map.put(fromString(CONTENT), xml);
                 return map;
             }
@@ -137,13 +138,13 @@ public class XmlToJson {
             Object seq = convertBXmlSequence(xmlSequence, attributePrefix, preserveNamespaces, type,
                     parentAttributeMap);
             if (seq == null) {
-                return newJsonList();
+                return createNewJsonList();
             }
             return seq;
         } else if (xml.getNodeType().equals(XmlNodeType.TEXT)) {
             return convertValue(xml, type);
         } else {
-            return newMap(type);
+            return createMapValue(type);
         }
     }
 
@@ -180,24 +181,58 @@ public class XmlToJson {
     private static Object convertElement(BXmlItem xmlItem, String attributePrefix,
                                          boolean preserveNamespaces, Type type,
                                          BMap<BString, BString> parentAttributeMap) throws Exception {
-        BMap<BString, Object> childrenData = newMap(type);
+        BMap<BString, Object> childrenData = createMapValue(type);
         BMap<BString, BString> attributeMap = xmlItem.getAttributesMap();
         String keyValue = getElementKey(xmlItem, preserveNamespaces);
         Type fieldType = getFieldType(keyValue, type);
-        if (attributePrefix != null || preserveNamespaces) {
-            processAttributes(attributeMap, attributePrefix, childrenData, fieldType,
-                    parentAttributeMap, xmlItem.getQName().getPrefix(), preserveNamespaces);
-        }
+        processAttributeWithAnnotation(xmlItem, attributePrefix, preserveNamespaces, childrenData, fieldType,
+                attributeMap, parentAttributeMap);
         Object children = convertBXmlSequence(xmlItem.getChildrenSeq(), attributePrefix, preserveNamespaces,
                 fieldType,  attributeMap);
-        BMap<BString, Object> rootNode = newMap(type);
+        BMap<BString, Object> rootNode = createMapValue(type);
         if (type != null && fieldType instanceof ArrayType && children instanceof BMap &&
-                ((ArrayType) fieldType).getElementType() instanceof RecordType) {
+                TypeUtils.getReferredType(((ArrayType) fieldType).getElementType()) instanceof RecordType) {
             for (Map.Entry<BString, Object> entry: childrenData.entrySet()) {
                 ((BMap<BString, Object>) children).put(entry.getKey(), entry.getValue());
             }
             children = convertToArray(fieldType, children);
         }
+        return insertDataToMap(childrenData, children, rootNode,  keyValue, fieldType);
+    }
+
+    private static void processAttributeWithAnnotation(BXmlItem xmlItem, String attributePrefix,
+                                                        boolean preserveNamespaces, BMap<BString, Object> childrenData,
+                                                        Type fieldType, BMap<BString, BString> attributeMap,
+                                                        BMap<BString, BString> parentAttributeMap) throws Exception {
+        if (!attributePrefix.equals(Constants.SKIP_ATTRIBUTE)) {
+            BMap<BString, Object> annotations = null;
+            if (attributePrefix.equals(Constants.ADD_IF_HAS_ANNOTATION))  {
+                Type annotationType = fieldType;
+                if (fieldType.getTag() == TypeTags.ARRAY_TAG) {
+                    annotationType = TypeUtils.getReferredType(((ArrayType) fieldType).getElementType());
+                } else if (fieldType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
+                    annotationType = TypeUtils.getReferredType(fieldType);;
+                } else if (fieldType instanceof UnionType) {
+                    UnionType bUnionType = (UnionType) fieldType;
+                    for (Type memberType : bUnionType.getMemberTypes()) {
+                        if (memberType.getTag() == TypeTags.RECORD_TYPE_TAG)  {
+                            annotationType = memberType;
+                        }
+                    }
+                }
+                if (annotationType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                    annotations = ((RecordType) annotationType).getAnnotations();
+                }
+            }
+            processAttributes(attributeMap, attributePrefix, childrenData, fieldType,
+                    parentAttributeMap, xmlItem.getQName().getPrefix(), preserveNamespaces, annotations);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static BMap<BString, Object> insertDataToMap(BMap<BString, Object> childrenData, Object children,
+                                                         BMap<BString, Object> rootNode, String keyValue,
+                                                         Type fieldType) throws Exception {
         if (childrenData.size() > 0) {
             if (children instanceof BMap) {
                 BMap<BString, Object> data = (BMap<BString, Object>) children;
@@ -237,7 +272,7 @@ public class XmlToJson {
             if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 return getRecordFieldType(type, fieldName);
             } else if (type.getTag() == TypeTags.ARRAY_TAG) {
-                Type fieldType = ((ArrayType) type).getElementType();
+                Type fieldType = TypeUtils.getReferredType(((ArrayType) type).getElementType());
                 if (fieldType instanceof RecordType) {
                     return getRecordFieldType(fieldType, fieldName);
                 }
@@ -270,25 +305,77 @@ public class XmlToJson {
     private static void processAttributes(BMap<BString, BString> attributeMap, String attributePrefix,
                                           BMap<BString, Object> mapData, Type type,
                                           BMap<BString, BString> parentAttributeMap, String prefix,
-                                          boolean preserveNamespaces) throws Exception {
+                                          boolean preserveNamespaces, BMap<BString, Object> annotations)
+            throws Exception {
         Map<String, String> nsPrefixMap = getNamespacePrefixes(attributeMap);
         if (prefix != null && preserveNamespaces && parentAttributeMap != null) {
             for (Map.Entry<BString, BString> entry : attributeMap.entrySet()) {
                 BString value = entry.getValue();
                 if (!isNamespacePrefixEntry(entry) ||
                         !isBelongingToElement(parentAttributeMap, entry.getKey(), value)) {
-                    String key = attributePrefix + getKey(entry, nsPrefixMap, preserveNamespaces);
-                    putAsFieldTypes(mapData, key, value.getValue(), getFieldType(key, type));
+                    String key = getAttributeKey(attributePrefix, getKey(entry, nsPrefixMap, preserveNamespaces));
+                    checkAnnotationAndAddAttributes(annotations, mapData, getFieldType(key, type), key,
+                            value.getValue(), attributePrefix);
                 }
             }
         } else {
             for (Map.Entry<BString, BString> entry : attributeMap.entrySet()) {
                 String key = getKey(entry, nsPrefixMap, preserveNamespaces);
                 if (key != null) {
-                    key = attributePrefix + key;
-                    putAsFieldTypes(mapData, key, entry.getValue().getValue(), getFieldType(key, type));
+                    key = getAttributeKey(attributePrefix, key);
+                    checkAnnotationAndAddAttributes(annotations, mapData, getFieldType(key, type), key,
+                            entry.getValue().getValue(), attributePrefix);
                 }
             }
+        }
+    }
+
+    private static String getAttributeKey(String attributePrefix , String key) {
+        if (attributePrefix.equals(Constants.ADD_IF_HAS_ANNOTATION)) {
+            return key;
+        } else {
+            return attributePrefix + key;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void checkAnnotationAndAddAttributes(BMap<BString, Object> annotations,
+                                                        BMap<BString, Object> mapData, Type type, String key,
+                                                        String value, String attributePrefix) throws Exception {
+        if (!attributePrefix.equals(Constants.ADD_IF_HAS_ANNOTATION)) {
+            putAsFieldTypes(mapData, key, value, type);
+        } else if (annotations.size() > 0) {
+            boolean isAttributeAdded = false;
+            BString annotationKey = StringUtils.fromString((Constants.FIELD + key).replace(":",
+                    "\\:"));
+            for (BString annotationsKey : annotations.getKeys()) {
+                if (annotationsKey.getValue().contains(Constants.FIELD) &&
+                        annotationsKey.getValue().equals(annotationKey.getValue())) {
+                    BMap<BString, Object> annotationsForField = (BMap<BString, Object>) annotations.get(annotationsKey);
+                    for (BString annotationForField : annotationsForField.getKeys()) {
+                        if (annotationForField.getValue().endsWith(Constants.ATTRIBUTE)) {
+                            putAsFieldTypes(mapData, key, value, getFieldType(key, type));
+                            isAttributeAdded = true;
+                            break;
+                        }
+                    }
+                } else if (!annotationsKey.getValue().contains(Constants.FIELD) &&
+                        annotationsKey.getValue().endsWith(Constants.NAME_SPACE)) {
+                    BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotations.get(annotationsKey);
+                    BString prefix = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.PREFIX));
+                    if ((prefix == null && key.equals("xmlns")) || (prefix != null && prefix.getValue().equals(key))) {
+                        isAttributeAdded = true;
+                        break;
+                    }
+                }
+            }
+            if (!isAttributeAdded) {
+                print.println("This attribute/namespace " + key + " is skipped in the record as record does " +
+                        "not have any namespace or attribute annotations.");
+            }
+        } else {
+            print.println("Attributes and namespaces are skipped in the record as the record does not have " +
+                    "any namespace or attribute annotations.");
         }
     }
 
@@ -301,7 +388,7 @@ public class XmlToJson {
             throws Exception {
         if (type != null) {
             if (type instanceof ArrayType) {
-                Type fieldType = ((ArrayType) type).getElementType();
+                Type fieldType = TypeUtils.getReferredType(((ArrayType) type).getElementType());
                 if (fieldType instanceof RecordType) {
                     if (((RecordType) fieldType).getFields().get(key) != null) {
                         type = ((RecordType) fieldType).getFields().get(key).getFieldType();
@@ -369,7 +456,7 @@ public class XmlToJson {
     }
 
     private static BArray convertToArray(Type valueType, Object value) throws Exception {
-        Type elementType = ((ArrayType) valueType).getElementType();
+        Type elementType = TypeUtils.getReferredType(((ArrayType) valueType).getElementType());
         BArray arr;
         String valueString = value.toString();
         try {
@@ -406,7 +493,7 @@ public class XmlToJson {
                     }
                     return arr;
                 default:
-                    arr = newJsonList();
+                    arr = createNewJsonList();
                     if (!valueString.isEmpty()) {
                         arr.append(value);
                     }
@@ -457,14 +544,14 @@ public class XmlToJson {
         if (sequence.size() == 1) {
             return convertToJSON(sequence.get(0), attributePrefix, preserveNamespaces, type, parentAttributeMap);
         }
-        BMap<BString, Object> mapJson = newMap(type);
+        BMap<BString, Object> mapJson = createMapValue(type);
         for (BXml bxml : sequence) {
             if (isCommentOrPi(bxml)) {
                 continue;
             } else if (bxml.getNodeType() == XmlNodeType.TEXT) {
                 if (mapJson.containsKey(fromString(CONTENT))) {
                     if (mapJson.get(fromString(CONTENT)) instanceof BString) {
-                        BArray jsonList = newJsonList();
+                        BArray jsonList = createNewJsonList();
                         jsonList.append(mapJson.get(fromString(CONTENT)));
                         jsonList.append(fromString(bxml.toString().trim()));
                         mapJson.put(fromString(CONTENT), jsonList);
@@ -506,7 +593,7 @@ public class XmlToJson {
                     } else if (value instanceof BString) {
                         arr = ValueCreator.createArrayValue(STRING_ARRAY_TYPE);
                     } else {
-                        arr = newJsonList();
+                        arr = createNewJsonList();
                     }
                     arr.append(value);
                     arr.append(result);
@@ -533,42 +620,14 @@ public class XmlToJson {
         return bxml.getNodeType() == XmlNodeType.COMMENT || bxml.getNodeType() == XmlNodeType.PI;
     }
 
-    private static BArray newJsonList() {
-        return ValueCreator.createArrayValue(JSON_ARRAY_TYPE);
+    private static BArray createNewJsonList() {
+        return ValueCreator.createArrayValue(Constants.JSON_ARRAY_TYPE);
     }
 
-    private static BMap<BString, Object> newMap(Type type) {
+    private static BMap<BString, Object> createMapValue(Type type) {
         if (type != null) {
             if (type.getTag() == TypeTags.MAP_TAG) {
-                Type valueType = ((MapType) type).getConstrainedType();
-                switch (valueType.getTag()) {
-                    case TypeTags.STRING_TAG:
-                        return ValueCreator.createMapValue(STRING_MAP_TYPE);
-                    case TypeTags.BOOLEAN_TAG:
-                        return ValueCreator.createMapValue(BOOLEAN_MAP_TYPE);
-                    case TypeTags.INT_TAG:
-                        return ValueCreator.createMapValue(INT_MAP_TYPE);
-                    case TypeTags.FLOAT_TAG:
-                        return ValueCreator.createMapValue(FLOAT_MAP_TYPE);
-                    case TypeTags.DECIMAL_TAG:
-                        return ValueCreator.createMapValue(DECIMAL_MAP_TYPE);
-                    case TypeTags.XML_TAG:
-                        return ValueCreator.createMapValue(XML_MAP_TYPE);
-                    case TypeTags.ARRAY_TAG:
-                        Type elementType = ((ArrayType) valueType).getElementType();
-                        switch (elementType.getTag()) {
-                            case TypeTags.STRING_TAG:
-                                return ValueCreator.createMapValue(MAP_STRING_ARRAY_TYPE);
-                            case TypeTags.BOOLEAN_TAG:
-                                return ValueCreator.createMapValue(MAP_BOOLEAN_ARRAY_TYPE);
-                            case TypeTags.FLOAT_TAG:
-                                return ValueCreator.createMapValue(MAP_FLOAT_ARRAY_TYPE);
-                            case TypeTags.INT_TAG:
-                                return ValueCreator.createMapValue(MAP_INT_ARRAY_TYPE);
-                            case TypeTags.DECIMAL_TAG:
-                                return ValueCreator.createMapValue(MAP_DECIMAL_ARRAY_TYPE);
-                        }
-                }
+                return ValueCreator.createMapValue((MapType) type);
             }
         }
         return ValueCreator.createMapValue(Constants.JSON_MAP_TYPE);

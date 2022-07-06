@@ -47,12 +47,11 @@ import java.util.Map;
  */
 public class MapFromXml {
 
-
-
     @SuppressWarnings("unchecked")
     public static Object fromXml(BXml xml, BTypedesc type) {
         Type describingType = type.getDescribingType();
         if (describingType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+            Object output;
             try {
                 if (describingType.getFlags() != Constants.DEFAULT_TYPE_FLAG) {
                     String recordName = describingType.getName();
@@ -61,8 +60,11 @@ public class MapFromXml {
                         return XmlDataUtils.getError("The record type name: " + recordName +
                                 " mismatch with given XML name: " + elementName);
                     }
+                    output = XmlToRecord.convertToJson(xml, true, Constants.ADD_IF_HAS_ANNOTATION,
+                            type);
+                } else {
+                    output =  XmlToRecord.convertToJson(xml, true, Constants.SKIP_ATTRIBUTE, type);
                 }
-                Object output =  XmlToRecord.covertToJson(xml, true, "", type);
                 if (output instanceof BError) {
                     return XmlDataUtils.getError("XML type mismatch with record type: " +
                             ((BError) output).getErrorMessage());
@@ -86,13 +88,13 @@ public class MapFromXml {
             try {
                 Type valueType = ((MapType) describingType).getConstrainedType();
                 isValidXmlWithOutputType(xml, valueType);
-                Object output = XmlToJson.toJson(xml, false, null,
+                Object output = XmlToJson.toJson(xml, false, Constants.SKIP_ATTRIBUTE,
                         type.getDescribingType());
                 if (valueType.getTag() == TypeTags.TABLE_TAG) {
                     TableType tableType = (TableType) valueType;
-                    BMap<BString, Object> newMap = ValueCreator.createMapValue(TypeCreator.createMapType(tableType));
-                    BMap<BString, Object> map = (BMap<BString, Object>) output;
-                    for (Map.Entry<BString, Object> entry : map.entrySet()) {
+                    BMap<BString, Object> tableMap = ValueCreator.createMapValue(TypeCreator.createMapType(tableType));
+                    BMap<BString, Object> resultMap = (BMap<BString, Object>) output;
+                    for (Map.Entry<BString, Object> entry : resultMap.entrySet()) {
                         BTable tableValue = ValueCreator.createTableValue(tableType);
                         Type tableValueType = ((TableType) valueType).getConstrainedType();
                         if (tableValueType.getTag() == TypeTags.RECORD_TYPE_TAG) {
@@ -100,9 +102,9 @@ public class MapFromXml {
                         } else {
                             tableValue.put(entry.getValue());
                         }
-                        newMap.put(entry.getKey(), tableValue);
+                        tableMap.put(entry.getKey(), tableValue);
                     }
-                    return newMap;
+                    return tableMap;
                 }
                 return output;
             } catch (Exception e) {

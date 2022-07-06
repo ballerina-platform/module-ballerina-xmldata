@@ -20,6 +20,7 @@ package io.ballerina.stdlib.xmldata.utils;
 
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.creators.TypeCreator;
+import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
 
 /**
@@ -35,5 +36,13 @@ public class Constants {
     public static final String OPTIONS_PRESERVE_NS = "preserveNamespaces";
     public static final String UNDERSCORE = "_";
     public static final MapType JSON_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_JSON);
+    public static final ArrayType JSON_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
+    public static final String FIELD = "$field$.";
+    public static final String NAME_SPACE = "Namespace";
+    public static final String URI = "uri";
+    public static final String PREFIX = "prefix";
+    public static final String ATTRIBUTE = "Attribute";
+    public static final String SKIP_ATTRIBUTE = "skip";
+    public static final String ADD_IF_HAS_ANNOTATION = "add";
     public static final int DEFAULT_TYPE_FLAG = 2049;
 }

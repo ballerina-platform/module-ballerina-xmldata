@@ -35,12 +35,12 @@ public annotation NameConfig Name on type, record field;
 # + prefix - The value of the prefix of the namespace
 # + uri - The value of the URI of the namespace
 public type NamespaceConfig record {|
-    string prefix;
-    string uri?;
+    string prefix?;
+    string uri;
 |};
 
 # The annotation is used to specify the namespace's prefix and URI of the XML element.
-public annotation NamespaceConfig Namespace on type, record field;
+public annotation NamespaceConfig Namespace on type;
 
 # The annotation is used to denote the field that is considered an attribute.
 public annotation Attribute on record field;
@@ -57,8 +57,8 @@ public isolated function toXml(map<anydata> mapValue) returns xml|Error {
         return convertMapXml(mapValue);
     }
     JsonOptions jsonOption = {attributePrefix: ATTRIBUTE_PREFIX, arrayEntryTag : ""};
-    typedesc<(map<anydata>)> iputType = typeof mapValue;
-    json|json[]|record{} jsonValue = check getModifiedRecord(mapValue, iputType);
+    typedesc<(map<anydata>)> inputType = typeof mapValue;
+    json|json[]|record{} jsonValue = check getModifiedRecord(mapValue, inputType);
     if jsonValue is json[] {
         jsonOption.rootTag = jsonValue[1].toString();
         return <xml>check fromJson(jsonValue[0], jsonOption);
@@ -245,7 +245,13 @@ isolated function getElement(string name, xml children, map<string> namespaces, 
         }
     } else {
         if !name.startsWith(attributePrefix) {
-            element = xml:createElement(name, attributes, children);
+            map<string> newAttributes = attributes;
+            if newAttributes.hasKey(string `{${XMLNS_NAMESPACE_URI}}`) {
+                string value = newAttributes.get(string `{${XMLNS_NAMESPACE_URI}}`);
+                _ = newAttributes.remove(string `{${XMLNS_NAMESPACE_URI}}`);
+                newAttributes["xmlns"] = value;
+            }
+            element = xml:createElement(name, newAttributes, children);
         } else {
             return error Error("attribute cannot be an object or array");
         }
@@ -276,8 +282,12 @@ isolated function getAttributesMap(json jTree, JsonOptions options, map<string> 
                         attributes[string `{${namespaceUrl}}${suffix}`] = v.toString();
                     }
                 } else {
-                    int startIndex = getStartIndex(attributePrefix, k);
-                    attributes[k.substring(startIndex)] = v.toString();
+                    if k == attributePrefix + "xmlns" {
+                        attributes[string `{${XMLNS_NAMESPACE_URI}}`] = v.toString();
+                    } else {
+                        int startIndex = getStartIndex(attributePrefix, k);
+                        attributes[k.substring(startIndex)] = v.toString();
+                    }
                 }
             }
         }
