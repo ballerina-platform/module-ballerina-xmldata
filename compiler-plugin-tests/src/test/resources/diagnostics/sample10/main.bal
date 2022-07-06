@@ -26,7 +26,7 @@ type Foo record {
 
 type Bar record {
     int? bar;
-    string|Bar car;
+    string|Bar|map<string> car;
 };
 
 type Bar1 record {

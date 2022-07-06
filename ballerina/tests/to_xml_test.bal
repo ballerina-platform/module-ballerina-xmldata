@@ -638,16 +638,14 @@ type Purchesed_ItemCode record {
     string \#content?;
 };
 
-//@Namespace {
-//    uri: ""
-//}
+@Namespace {
+    uri: ""
+}
 type Purchesed_Address record {
     string StreetAddress;
     string City;
     int Zip;
     string Country;
-    @Attribute
-    string 'xmlns?;
 };
 
 @test:Config {
