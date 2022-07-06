@@ -728,3 +728,23 @@ isolated function testToRecord4() returns error? {
     BookStores11 actual = check fromXml(input);
     test:assertEquals(actual, expected, msg = "testToRecord4 result incorrect");
 }
+
+type Details1 record {
+    string name;
+    int age;
+    string 'xmlns;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlNegative() returns error? {
+    var x1 = xml `<Details1 xmlns=""><name>Supun</name><age>6</age></Details1>`;
+    Details1|error actual = fromXml(x1);
+    if (actual is error) {
+        test:assertTrue(actual.message().includes("missing required field 'xmlns' of type 'string' " +
+                "in record 'xmldata:Details1'"), msg = "testFromXmlNegative result incorrect");
+    } else {
+        test:assertFail(msg = "testFromXmlNegative result incorrect");
+    }
+}

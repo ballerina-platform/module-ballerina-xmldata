@@ -83,7 +83,7 @@ isolated function convertMapXml(map<xml>|map<xml[]> mapValue) returns xml {
     return xml:createElement("root", {}, xNode);
 }
 
-isolated function getModifiedRecord(map<anydata> mapValue, typedesc<(map<anydata>|json)> iputType)
+isolated function getModifiedRecord(map<anydata> mapValue, typedesc<(map<anydata>|json)> inputType)
 returns json|json[]|record{}|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.utils.XmlDataUtils"
 } external;

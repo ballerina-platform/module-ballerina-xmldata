@@ -67,7 +67,7 @@ public class XmlDataUtils {
             Type elementType = TypeUtils.getReferredType(((ArrayType) objectArray.getType()).getElementType());
             if (elementType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 BMap<BString, Object> jsonMap = ValueCreator.createMapValue(Constants.JSON_MAP_TYPE);
-                for (Map.Entry<BString, Object> entry :input.entrySet()) {
+                for (Map.Entry<BString, Object> entry : input.entrySet()) {
                     List<BMap<BString, Object>> records = new ArrayList<>();
                     BArray arrayValue = (BArray) entry.getValue();
                     for (int i = 0; i < arrayValue.getLength(); i++) {
@@ -96,30 +96,30 @@ public class XmlDataUtils {
 
     @SuppressWarnings("unchecked")
     private static BMap<BString, Object> addFields(BMap<BString, Object> input, Type type) {
-        BMap<BString, Object> record = ValueCreator.createMapValue(Constants.JSON_MAP_TYPE);
+        BMap<BString, Object> recordValue = ValueCreator.createMapValue(Constants.JSON_MAP_TYPE);
         Map<String, Field> fields = ((RecordType) type).getFields();
         BMap<BString, Object> annotations = ((RecordType) type).getAnnotations();
         for (Map.Entry<BString, Object> entry: input.entrySet()) {
             BString key = entry.getKey();
             Object value = entry.getValue();
             if (fields.containsKey(key.getValue())) {
-                Type childType = fields.get(key.toString()).getFieldType();
-                childType = getTypeFromUnionType(childType, value);
-                if (childType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                    processRecord(key, annotations, record, value, childType);
-                } else if (childType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                    Type referredType = TypeUtils.getReferredType(childType);
-                    record.put(key, addFields(((BMap<BString, Object>) value), referredType));
-                } else if (childType.getTag() == TypeTags.ARRAY_TAG) {
-                    processArray(childType, annotations, record, entry);
+                Type fieldType = fields.get(key.getValue()).getFieldType();
+                fieldType = getTypeFromUnionType(fieldType, value);
+                if (fieldType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                    processRecord(key, annotations, recordValue, value, fieldType);
+                } else if (fieldType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
+                    Type referredType = TypeUtils.getReferredType(fieldType);
+                    recordValue.put(key, addFields(((BMap<BString, Object>) value), referredType));
+                } else if (fieldType.getTag() == TypeTags.ARRAY_TAG) {
+                    processArray(fieldType, annotations, recordValue, entry);
                 } else {
-                    addPrimitiveValue(key, annotations, record, value);
+                    addPrimitiveValue(key, annotations, recordValue, value);
                 }
             } else {
-                record.put(key, value);
+                recordValue.put(key, value);
             }
         }
-        return record;
+        return recordValue;
     }
 
     @SuppressWarnings("unchecked")
@@ -287,7 +287,7 @@ public class XmlDataUtils {
     @SuppressWarnings("unchecked")
     private static void processSubRecordAnnotation(BMap<BString, Object> annotation, BMap<BString, Object>  subRecord) {
         BString[] keys = annotation.getKeys();
-        for (BString value :keys) {
+        for (BString value : keys) {
             if (value.getValue().endsWith(Constants.NAME_SPACE)) {
                 BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotation.get(value);
                 BString uri = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.URI));
