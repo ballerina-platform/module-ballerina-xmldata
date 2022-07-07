@@ -41,7 +41,6 @@ import io.ballerina.runtime.api.values.BXmlSequence;
 import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
-import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +70,6 @@ public class XmlToJson {
     private static final String EMPTY_STRING = "";
     public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_NS_URI_PREFIX.length();
     private static final String COLON = ":";
-    private static PrintStream print = System.err;
 
     /**
      * Converts an XML to the corresponding JSON representation.
@@ -334,7 +332,6 @@ public class XmlToJson {
         if (!attributePrefix.equals(Constants.ADD_IF_HAS_ANNOTATION)) {
             putAsFieldTypes(mapData, key, value, type);
         } else if (annotations.size() > 0) {
-            boolean isAttributeAdded = false;
             BString annotationKey = StringUtils.fromString((Constants.FIELD + key).replace(":",
                     "\\:"));
             for (BString annotationsKey : annotations.getKeys()) {
@@ -344,7 +341,6 @@ public class XmlToJson {
                     for (BString annotationForField : annotationsForField.getKeys()) {
                         if (annotationForField.getValue().endsWith(Constants.ATTRIBUTE)) {
                             putAsFieldTypes(mapData, key, value, getFieldType(key, type));
-                            isAttributeAdded = true;
                             break;
                         }
                     }
@@ -353,18 +349,10 @@ public class XmlToJson {
                     BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotations.get(annotationsKey);
                     BString prefix = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.PREFIX));
                     if ((prefix == null && key.equals("xmlns")) || (prefix != null && prefix.getValue().equals(key))) {
-                        isAttributeAdded = true;
                         break;
                     }
                 }
             }
-            if (!isAttributeAdded) {
-                print.println("This attribute/namespace " + key + " is skipped in the record as record does " +
-                        "not have any namespace or attribute annotations.");
-            }
-        } else {
-            print.println("Attributes and namespaces are skipped in the record as the record does not have " +
-                    "any namespace or attribute annotations.");
         }
     }
 

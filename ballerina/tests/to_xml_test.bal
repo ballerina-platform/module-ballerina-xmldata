@@ -74,7 +74,7 @@ isolated function testMapStringToXml2() returns error? {
 type Customer record {
 
     @Name {
-        value: "employeeName"
+        value: "ns:employeeName"
     }
     @Attribute
     string ns\:name;
@@ -103,7 +103,7 @@ isolated function testRecordWithAnnotationToXml1() returns error? {
 type Customer2 record {
 
     @Name {
-        value: "employeeName"
+        value: "ns:employeeName"
     }
     @Attribute
     string ns\:name;
@@ -133,7 +133,7 @@ type Customer3 record {
 
     @Attribute
     @Name {
-        value: "employeeName"
+        value: "ns:employeeName"
     }
     string ns\:name;
 
@@ -162,7 +162,7 @@ type Customer4 record {
 
     @Attribute
     @Name {
-        value: "employeeName"
+        value: "ns:employeeName"
     }
     string ns\:name;
 
@@ -183,7 +183,7 @@ isolated function testRecordWithAnnotationToXml4() returns error? {
 @test:Config {
     groups: ["toXml"]
 }
-isolated function testMapXmLToXml() returns error? {
+isolated function testMapXmlToXml() returns error? {
     map<xml> data = {
         "value": xml `<text>1</text>`,
         "value1": xml `<text>2</text>`
@@ -196,7 +196,7 @@ isolated function testMapXmLToXml() returns error? {
 @test:Config {
     groups: ["toXml"]
 }
-isolated function testMapStrinToXml2() returns error? {
+isolated function testMapStringToXml3() returns error? {
     map<string> data = {
         "series": "Dark",
         genre: "Sci-Fi",
@@ -212,7 +212,7 @@ isolated function testMapStrinToXml2() returns error? {
                         "<id>3296</id>" +
                     "</root>";
     xml result = check toXml(data);
-    test:assertEquals(result.toString(), expected, msg = "testMapStrinToXml2 result incorrect");
+    test:assertEquals(result.toString(), expected, msg = "testMapStrinToXml3 result incorrect");
 }
 
 @test:Config {
@@ -429,15 +429,11 @@ isolated function testRecordArrayToXml1() returns error? {
     Customer[] customers = [{ns\:name: "Asha", age: 10}, {ns\:name: "Kalai", age: 10}];
     map<Customer[]> data = {customers: customers};
     string expected = "<root>" +
-                        "<customers>" +
-                            "<ns:Customers xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Asha\">" +
-                                "<age>10</age>" +
-                            "</ns:Customers>" +
+                        "<customers xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Asha\">" +
+                            "<age>10</age>" +
                         "</customers>" +
-                        "<customers>" +
-                            "<ns:Customers xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Kalai\">" +
-                                "<age>10</age>" +
-                            "</ns:Customers>" +
+                        "<customers xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Kalai\">" +
+                            "<age>10</age>" +
                         "</customers>" +
                     "</root>";
     xml result = check toXml(data);
@@ -451,25 +447,17 @@ isolated function testRecordArrayToXml2() returns error? {
     Customer[] customers = [{ns\:name: "Asha", age: 10}, {ns\:name: "Kalai", age: 10}];
     map<Customer[]> data = {customer1: customers, customer2: customers};
     string expected = "<root>" +
-                        "<customer1>" +
-                            "<ns:Customers xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Asha\">" +
-                                "<age>10</age>" +
-                            "</ns:Customers>" +
+                        "<customer1 xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Asha\">" +
+                            "<age>10</age>" +
                         "</customer1>" +
-                        "<customer1>" +
-                            "<ns:Customers xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Kalai\">" +
-                                "<age>10</age>" +
-                            "</ns:Customers>" +
+                        "<customer1 xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Kalai\">" +
+                            "<age>10</age>" +
                         "</customer1>" +
-                        "<customer2>" +
-                            "<ns:Customers xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Asha\">" +
-                                "<age>10</age>" +
-                            "</ns:Customers>" +
+                        "<customer2 xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Asha\">" +
+                            "<age>10</age>" +
                         "</customer2>" +
-                        "<customer2>" +
-                            "<ns:Customers xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Kalai\">" +
-                                "<age>10</age>" +
-                            "</ns:Customers>" +
+                        "<customer2 xmlns:ns=\"http://sdf.com\" ns:employeeName=\"Kalai\">" +
+                            "<age>10</age>" +
                         "</customer2>" +
                     "</root>";
     xml result = check toXml(data);
@@ -727,8 +715,8 @@ type Purchesed_Purchase1 record {
 };
 
 @Namespace {
-    prefix: "ns1",
-    uri: "example.com"
+    prefix: "ns2",
+    uri: "example1.com"
 }
 type Purchesed_ItemCode1 record {
     @Attribute
@@ -757,7 +745,7 @@ isolated function testRecordWithNamaspaceAnnotationToXml1() returns error? {
         };
     string expected =
         "<Purchesed_Bill1 xmlns=\"example.com\" xmlns:ns=\"ns.com\" attr=\"attr-val\" ns:attr=\"ns-attr-val\">" +
-            "<PurchesedItems xmlns:ns0=\"example.com\">" +
+            "<ns0:PurchesedItems xmlns:ns0=\"example.com\">" +
                 "<PLine>" +
                     "<ItemCode>223345</ItemCode>" +
                     "<Count>10</Count>" +
@@ -767,10 +755,10 @@ isolated function testRecordWithNamaspaceAnnotationToXml1() returns error? {
                     "<Count>7</Count>" +
                 "</PLine>" +
                 "<PLine>" +
-                    "<ItemCode xmlns:ns1=\"example.com\" discount=\"22%\">200777</ItemCode>" +
+                    "<ns2:ItemCode xmlns:ns2=\"example1.com\" discount=\"22%\">200777</ns2:ItemCode>" +
                     "<Count>7</Count>" +
                 "</PLine>" +
-            "</PurchesedItems>" +
+            "</ns0:PurchesedItems>" +
         "</Purchesed_Bill1>";
     xml result = check toXml(input);
     test:assertEquals(result.toString(), expected, msg = "testRecordWithNamaspaceAnnotationToXml1 result incorrect");
@@ -781,7 +769,7 @@ isolated function testRecordWithNamaspaceAnnotationToXml1() returns error? {
     uri: "example.com"
 }
 type Purchesed_Bill2 record {
-    Purchesed_Items2 PurchesedItems;
+    Purchesed_Items2 purchesedItems;
     @Attribute
     string 'xmlns\:ns?;
     @Attribute
@@ -791,15 +779,20 @@ type Purchesed_Bill2 record {
 };
 
 @Namespace {
-    uri: "example.com"
+    prefix: "ns1",
+    uri: "example1.com"
 }
 type Purchesed_Items2 record {
-    Purchesed_Purchase2[] PLine;
+    Purchesed_Purchase2[] pLine;
 };
 
+@Namespace {
+    prefix: "ns2",
+    uri: "example2.com"
+}
 type Purchesed_Purchase2 record {
-    string|Purchesed_ItemCode2 ItemCode;
-    int Count;
+    string|Purchesed_ItemCode2 itemCode;
+    int count;
 };
 
 @Namespace {
@@ -816,13 +809,13 @@ type Purchesed_ItemCode2 record {
 }
 isolated function testRecordWithNamaspaceAnnotationToXml2() returns error? {
     Purchesed_Bill2 input = {
-            PurchesedItems: {
-                    PLine: [
-                        {ItemCode: "223345", Count: 10},
-                        {ItemCode: "223300", Count: 7},
+            purchesedItems: {
+                    pLine: [
+                        {itemCode: "223345", count: 10},
+                        {itemCode: "223300", count: 7},
                         {
-                            ItemCode: {discount: "22%", \#content: "200777"},
-                            Count: 7
+                            itemCode: {discount: "22%", \#content: "200777"},
+                            count: 7
                         }
                     ]
             },
@@ -832,21 +825,50 @@ isolated function testRecordWithNamaspaceAnnotationToXml2() returns error? {
         };
     string expected =
         "<ns0:Purchesed_Bill2 xmlns:ns0=\"example.com\" xmlns:ns=\"ns.com\" attr=\"attr-val\" ns:attr=\"ns-attr-val\">" +
-            "<PurchesedItems xmlns=\"example.com\">" +
-                "<PLine>" +
-                    "<ItemCode>223345</ItemCode>" +
-                    "<Count>10</Count>" +
-                "</PLine>" +
-                "<PLine>" +
-                    "<ItemCode>223300</ItemCode>" +
-                    "<Count>7</Count>" +
-                "</PLine>" +
-                "<PLine>" +
-                    "<ItemCode xmlns=\"example1.com\" discount=\"22%\">200777</ItemCode>" +
-                    "<Count>7</Count>" +
-                "</PLine>" +
-            "</PurchesedItems>" +
+            "<ns1:purchesedItems xmlns:ns1=\"example1.com\">" +
+                "<ns2:pLine xmlns:ns2=\"example2.com\">" +
+                    "<itemCode>223345</itemCode>" +
+                    "<count>10</count>" +
+                "</ns2:pLine>" +
+                "<ns2:pLine xmlns:ns2=\"example2.com\">" +
+                    "<itemCode>223300</itemCode>" +
+                    "<count>7</count>" +
+                "</ns2:pLine>" +
+                "<ns2:pLine xmlns:ns2=\"example2.com\">" +
+                    "<itemCode xmlns=\"example1.com\" discount=\"22%\">200777</itemCode>" +
+                    "<count>7</count>" +
+                "</ns2:pLine>" +
+            "</ns1:purchesedItems>" +
         "</ns0:Purchesed_Bill2>";
     xml result = check toXml(input);
     test:assertEquals(result.toString(), expected, msg = "testRecordWithNamaspaceAnnotationToXml2 result incorrect");
+}
+
+@Name {
+    value: "Customers"
+}
+@Namespace {
+    prefix: "ns",
+    uri: "http://sdf.com"
+}
+type CustomerDetails record {
+
+    @Name {
+        value: "employeeName"
+    }
+    @Attribute
+    string ns\:name;
+
+    int age;
+};
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testRecordWithAnnotationToXml5() returns error? {
+    CustomerDetails data = {ns\:name: "Asha", age: 10};
+    xml result = check toXml(data);
+    test:assertEquals(result,
+                    xml `<ns:Customers xmlns:ns="http://sdf.com" employeeName="Asha"><age>10</age></ns:Customers>`,
+                    msg = "testRecordWithAnnotationToXml5 result incorrect");
 }

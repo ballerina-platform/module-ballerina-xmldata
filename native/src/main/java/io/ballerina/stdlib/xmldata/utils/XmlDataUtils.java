@@ -73,7 +73,9 @@ public class XmlDataUtils {
                     for (int i = 0; i < arrayValue.getLength(); i++) {
                         BMap<BString, Object> record = addFields(((BMap<BString, Object>) arrayValue.get(i)),
                                 elementType);
-                        records.add(processParentAnnotation(elementType, record));
+                        BMap<BString, Object> parentRecord = processParentAnnotation(elementType, record);
+                        // Remove parent element
+                        records.add((BMap<BString, Object>) parentRecord.get(parentRecord.getKeys()[0]));
                     }
                     jsonMap.put(entry.getKey(), ValueCreator.createArrayValue(records.toArray(),
                             TypeCreator.createArrayType(elementType)));
@@ -109,6 +111,8 @@ public class XmlDataUtils {
                     processRecord(key, annotations, recordValue, value, fieldType);
                 } else if (fieldType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
                     Type referredType = TypeUtils.getReferredType(fieldType);
+                    BMap<BString, Object> subRecordAnnotations = ((RecordType) referredType).getAnnotations();
+                    key = getElementName(subRecordAnnotations, key.getValue());
                     recordValue.put(key, addFields(((BMap<BString, Object>) value), referredType));
                 } else if (fieldType.getTag() == TypeTags.ARRAY_TAG) {
                     processArray(fieldType, annotations, recordValue, entry);
@@ -123,21 +127,22 @@ public class XmlDataUtils {
     }
 
     @SuppressWarnings("unchecked")
-    private static void processRecord(BString key, BMap<BString, Object> annotations,
+    private static void processRecord(BString key, BMap<BString, Object> parentAnnotations,
                                       BMap<BString, Object> record, Object value, Type childType) {
-        BMap<BString, Object>  annotationRecord = ValueCreator.createMapValue(Constants.JSON_MAP_TYPE);
+        BMap<BString, Object>  parentRecordAnnotations = ValueCreator.createMapValue(Constants.JSON_MAP_TYPE);
         BMap<BString, Object> annotation = ((RecordType) childType).getAnnotations();
-        if (annotations.size() > 0) {
-            processSubRecordAnnotation(annotations, annotationRecord);
+        if (parentAnnotations.size() > 0) {
+            processSubRecordAnnotation(parentAnnotations, parentRecordAnnotations);
         }
         BMap<BString, Object> subRecord = addFields(((BMap<BString, Object>) value), childType);
         if (annotation.size() > 0) {
             processSubRecordAnnotation(annotation, subRecord);
         }
+        key = getElementName(annotation, key.getValue());
         record.put(key, subRecord);
-        if (annotationRecord.size() > 0) {
-            record.put(annotationRecord.getKeys()[0],
-                    annotationRecord.get(annotationRecord.getKeys()[0]));
+        if (parentRecordAnnotations.size() > 0) {
+            record.put(parentRecordAnnotations.getKeys()[0],
+                    parentRecordAnnotations.get(parentRecordAnnotations.getKeys()[0]));
         }
     }
 
@@ -172,7 +177,8 @@ public class XmlDataUtils {
                 subRecord = processParentAnnotation(elementType, subRecord);
                 records.add((BMap<BString, Object>) subRecord.get(subRecord.getKeys()[0]));
             }
-            record.put(entry.getKey(), ValueCreator.createArrayValue(records.toArray(),
+            record.put(getElementName(((RecordType) elementType).getAnnotations(),
+                    entry.getKey().getValue()), ValueCreator.createArrayValue(records.toArray(),
                     TypeCreator.createArrayType(Constants.JSON_ARRAY_TYPE)));
         } else {
             List<Object> records = new ArrayList<>();
@@ -217,87 +223,96 @@ public class XmlDataUtils {
 
     @SuppressWarnings("unchecked")
     private static BString processFieldAnnotation(BMap<BString, Object> annotation, String key) {
-        StringBuilder keyBuilder = new StringBuilder(key);
         for (BString value : annotation.getKeys()) {
             String stringValue = value.getValue();
             if (stringValue.endsWith(NAME)) {
                 BMap<BString, Object> names = (BMap<BString, Object>) annotation.get(value);
                 String name = names.get(StringUtils.fromString(VALUE)).toString();
-                if (keyBuilder.toString().contains(":")) {
-                    keyBuilder = new StringBuilder(keyBuilder.substring(0, keyBuilder.indexOf(":") + 1) + name);
-                } else if (keyBuilder.toString().contains(ATTRIBUTE_PREFIX)) {
-                    keyBuilder = new StringBuilder(keyBuilder.substring(0, keyBuilder.indexOf("_") + 1) + name);
+                if (key.contains(ATTRIBUTE_PREFIX)) {
+                    key = key.substring(0, key.indexOf("_") + 1) + name;
                 } else {
-                    keyBuilder = new StringBuilder(((BMap<BString, Object>) annotation.get(value)).
-                            get(StringUtils.fromString(VALUE)).toString());
-                }
-            }
-            if (stringValue.endsWith(Constants.NAME_SPACE)) {
-                BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotation.get(value);
-                if (keyBuilder.toString().contains(ATTRIBUTE_PREFIX)) {
-                    keyBuilder = new StringBuilder(keyBuilder.substring(0, keyBuilder.indexOf("_") + 1) +
-                            namespaceAnnotation.get(StringUtils.
-                            fromString(Constants.PREFIX)) + ":" + keyBuilder.substring(keyBuilder.indexOf("_") + 1));
-                } else {
-                    keyBuilder.insert(0, namespaceAnnotation.get(
-                            StringUtils.fromString(Constants.PREFIX)) + ":");
+                    key = name;
                 }
             }
             if (stringValue.endsWith(Constants.ATTRIBUTE)) {
-                keyBuilder.insert(0, ATTRIBUTE_PREFIX);
+                key = ATTRIBUTE_PREFIX.concat(key);
             }
         }
-        return StringUtils.fromString(keyBuilder.toString());
+        return StringUtils.fromString(key);
     }
 
-    @SuppressWarnings("unchecked")
     private static BString processAnnotation(BMap<BString, Object> annotation, String key,
                                         BMap<BString, Object> namespaces) {
-        StringBuilder keyBuilder = new StringBuilder(key);
+        boolean hasNamespaceAnnotation = false;
         for (BString value : annotation.getKeys()) {
             if (!value.getValue().contains(Constants.FIELD)) {
                 String stringValue = value.getValue();
                 if (stringValue.endsWith(NAME)) {
-                    String nameValue = ((BMap<BString, Object>) annotation.get(value)).
-                            get(StringUtils.fromString(VALUE)).toString();
-                    if (keyBuilder.toString().contains(":")) {
-                        keyBuilder = new StringBuilder(keyBuilder.substring(0,
-                                keyBuilder.indexOf(":") + 1) + nameValue);
-                    } else {
-                        keyBuilder = new StringBuilder(nameValue);
-                    }
+                    key = processNameAnnotation(annotation, key, value, hasNamespaceAnnotation);
                 }
                 if (stringValue.endsWith(Constants.NAME_SPACE)) {
-                    BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotation.get(value);
-                    BString uri = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.URI));
-                    BString prefix = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.PREFIX));
-                    if (prefix ==  null) {
-                        namespaces.put(StringUtils.fromString(ATTRIBUTE_PREFIX + "xmlns"), uri);
-                    } else {
-                        namespaces.put(StringUtils.fromString(ATTRIBUTE_PREFIX + "xmlns:" + prefix), uri);
-                        keyBuilder.insert(0, namespaceAnnotation.get(
-                                StringUtils.fromString(Constants.PREFIX)) + ":");
-                    }
+                    hasNamespaceAnnotation = true;
+                    key = processNamespaceAnnotation(annotation, key, value, namespaces);
                 }
             }
         }
-        return StringUtils.fromString(keyBuilder.toString());
+        return StringUtils.fromString(key);
     }
 
-    @SuppressWarnings("unchecked")
-    private static void processSubRecordAnnotation(BMap<BString, Object> annotation, BMap<BString, Object>  subRecord) {
+    private static void processSubRecordAnnotation(BMap<BString, Object> annotation,
+                                                   BMap<BString, Object>  subRecord) {
         BString[] keys = annotation.getKeys();
         for (BString value : keys) {
             if (value.getValue().endsWith(Constants.NAME_SPACE)) {
-                BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotation.get(value);
-                BString uri = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.URI));
-                BString prefix = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.PREFIX));
-                if (prefix == null) {
-                    subRecord.put(StringUtils.fromString(ATTRIBUTE_PREFIX + "xmlns"), uri);
-                } else {
-                    subRecord.put(StringUtils.fromString(ATTRIBUTE_PREFIX + "xmlns:" + prefix), uri);
-                }
+                processNamespaceAnnotation(annotation, "", value, subRecord);
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static BString getElementName(BMap<BString, Object> annotation, String key) {
+        BString[] keys = annotation.getKeys();
+        boolean hasNamespaceAnnotation = false;
+        for (BString value : keys) {
+            if (value.getValue().endsWith(Constants.NAME_SPACE)) {
+                hasNamespaceAnnotation = true;
+                BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotation.get(value);
+                BString prefix = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.PREFIX));
+                if (prefix != null) {
+                    key = prefix.getValue().concat(":").concat(key);
+                }
+            }
+            if (value.getValue().endsWith(NAME)) {
+                key = processNameAnnotation(annotation, key, value, hasNamespaceAnnotation);
+            }
+        }
+        return StringUtils.fromString(key);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static String processNameAnnotation(BMap<BString, Object> annotation, String key, BString value,
+                                                boolean hasNamespaceAnnotation) {
+        String nameValue = ((BMap<BString, Object>) annotation.get(value)).
+                get(StringUtils.fromString(VALUE)).toString();
+        if (hasNamespaceAnnotation) {
+            return key.substring(0, key.indexOf(":") + 1) + nameValue;
+        } else {
+            return nameValue;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static String processNamespaceAnnotation(BMap<BString, Object> annotation, String key, BString value,
+                                                     BMap<BString, Object>  subRecord) {
+        BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotation.get(value);
+        BString uri = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.URI));
+        BString prefix = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.PREFIX));
+        if (prefix ==  null) {
+            subRecord.put(StringUtils.fromString(ATTRIBUTE_PREFIX + "xmlns"), uri);
+        } else {
+            subRecord.put(StringUtils.fromString(ATTRIBUTE_PREFIX + "xmlns:" + prefix), uri);
+            key = prefix.getValue().concat(":").concat(key);
+        }
+        return key;
     }
 }
