@@ -136,4 +136,26 @@ public class CompilerPluginTest {
                 .collect(Collectors.toList());
         Assert.assertEquals(errorDiagnosticsList.size(), 4);
     }
+
+    @Test
+    public void testInvalidType9() {
+        DiagnosticResult diagnosticResult = loadPackage("sample9").getCompilation().diagnosticResult();
+        List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .collect(Collectors.toList());
+        Assert.assertEquals(errorDiagnosticsList.size(), 5);
+    }
+
+    @Test
+    public void testInvalidUnionType1() {
+        DiagnosticResult diagnosticResult = loadPackage("sample10").getCompilation().diagnosticResult();
+        List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .collect(Collectors.toList());
+        Assert.assertEquals(errorDiagnosticsList.size(), 2);
+        Assert.assertEquals(errorDiagnosticsList.get(0).diagnosticInfo().messageFormat(),
+                "invalid field type: the record field does not support the optional value type");
+        Assert.assertEquals(errorDiagnosticsList.get(1).diagnosticInfo().messageFormat(),
+                "invalid union type: union type does not support multiple non-primitive record types");
+    }
 }

@@ -21,18 +21,18 @@ type Test record {
 };
 
 type Foo record {
-    Bar|Bar1[]|string|() foo;
+    Bar|Bar1[]|string|int foo;
 };
 
 type Bar record {
     int? bar;
-    () car;
+    string|Bar|map<string> car;
 };
 
 type Bar1 record {
     int bar;
-    string|() car;
+    string|int|float car;
 };
 
 xml x1 = xml `<foo><bar>2</bar><car></car></foo>`;
-Foo actual = check xmldata:toRecord(x1);
+Foo actual = check xmldata:fromXml(x1);

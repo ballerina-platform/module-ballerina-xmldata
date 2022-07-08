@@ -27,7 +27,9 @@ import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
 public enum DiagnosticsCodes {
 
     XMLDATA_101("XMLDATA_101",
-            "invalid field type: the record field does not support the optional value type", ERROR);
+            "invalid field type: the record field does not support the optional value type", ERROR),
+    XMLDATA_102("XMLDATA_102",
+            "invalid union type: union type does not support multiple non-primitive record types", ERROR);
 
     private final String code;
     private final String message;

@@ -35,4 +35,4 @@ type Bar1 record {
 };
 
 xml x1 = xml `<foo><bar>2</bar><car></car></foo>`;
-Foo actual = check xmldata:toRecord(x1);
+Foo actual = check xmldata:fromXml(x1);
