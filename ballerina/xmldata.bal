@@ -375,7 +375,7 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 # The optional value fields are not allowed in the record type.
 # + return - The Record representation of the given XML on success, else returns an `xmldata:Error`
 # # Deprecated
-# This function will be removed in a later. Use `fromXml` instead.
+# This function is going away in a future release. Use `fromXml` instead.
 @deprecated
 public isolated function toRecord(xml xmlValue, boolean preserveNamespaces = true, typedesc<record {}> returnType = <>)
 returns returnType|Error = @java:Method {
