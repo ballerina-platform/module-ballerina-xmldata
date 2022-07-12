@@ -62,7 +62,7 @@ public class XmlDataUtils {
     public static Object getModifiedRecord(BMap<BString, Object> input, BTypedesc type) {
         Type describingType = type.getDescribingType();
         Object value = input.get(input.getKeys()[0]);
-        if (value instanceof BArray) {
+        if (describingType.getTag() == TypeTags.MAP_TAG && value instanceof BArray) {
             BArray objectArray = (BArray) value;
             Type elementType = TypeUtils.getReferredType(((ArrayType) objectArray.getType()).getElementType());
             if (elementType.getTag() == TypeTags.RECORD_TYPE_TAG) {
