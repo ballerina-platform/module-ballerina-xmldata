@@ -872,3 +872,38 @@ isolated function testRecordWithAnnotationToXml5() returns error? {
                     xml `<ns:Customers xmlns:ns="http://sdf.com" employeeName="Asha"><age>10</age></ns:Customers>`,
                     msg = "testRecordWithAnnotationToXml5 result incorrect");
 }
+
+@Namespace {
+    prefix: "ns",
+    uri: "http://sdf.com"
+}
+type Invoices record {
+    int id;
+    string purchesedItem;
+    @Attribute
+    string 'xmlns?;
+    @Attribute
+    string attr?;
+    @Attribute
+    string ns\:attr?;
+};
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testRecordWithAnnotationToXml6() returns error? {
+    Invoices data = {
+        id: 1,
+        purchesedItem: "soap",
+        attr: "attr-val",
+        'xmlns: "example2.com",
+        ns\:attr: "example1.com"
+    };
+    string expected =
+        "<ns:Invoices xmlns=\"example2.com\" xmlns:ns=\"http://sdf.com\" attr=\"attr-val\" ns:attr=\"example1.com\">" +
+            "<id>1</id>" +
+            "<purchesedItem>soap</purchesedItem>" +
+        "</ns:Invoices>";
+    xml result = check toXml(data);
+    test:assertEquals(result.toString(), expected, msg = "testRecordWithAnnotationToXml6 result incorrect");
+}

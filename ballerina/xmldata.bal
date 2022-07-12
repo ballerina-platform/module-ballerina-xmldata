@@ -19,6 +19,7 @@ import ballerina/jballerina.java;
 const string XMLNS_NAMESPACE_URI = "http://www.w3.org/2000/xmlns/";
 const string CONTENT = "#content";
 const string ATTRIBUTE_PREFIX = "attribute_";
+const string XMLNS = "xmlns";
 
 # Defines the new name of the name.
 #
@@ -249,7 +250,7 @@ isolated function getElement(string name, xml children, map<string> namespaces, 
             if newAttributes.hasKey(string `{${XMLNS_NAMESPACE_URI}}`) {
                 string value = newAttributes.get(string `{${XMLNS_NAMESPACE_URI}}`);
                 _ = newAttributes.remove(string `{${XMLNS_NAMESPACE_URI}}`);
-                newAttributes["xmlns"] = value;
+                newAttributes[XMLNS] = value;
             }
             element = xml:createElement(name, newAttributes, children);
         } else {
@@ -273,7 +274,7 @@ isolated function getAttributesMap(json jTree, JsonOptions options, map<string> 
                 int? index = k.indexOf(":");
                 if index is int {
                     string suffix = k.substring(index + 1);
-                    if k.startsWith(attributePrefix + "xmlns") {
+                    if k.startsWith(attributePrefix + XMLNS) {
                         attributes[string `{${XMLNS_NAMESPACE_URI}}${suffix}`] = v.toString();
                     } else {
                         int startIndex = getStartIndex(attributePrefix, k);
@@ -282,8 +283,8 @@ isolated function getAttributesMap(json jTree, JsonOptions options, map<string> 
                         attributes[string `{${namespaceUrl}}${suffix}`] = v.toString();
                     }
                 } else {
-                    if k == attributePrefix + "xmlns" {
-                        attributes[string `{${XMLNS_NAMESPACE_URI}}`] = v.toString();
+                    if k == attributePrefix + XMLNS {
+                        attributes[XMLNS] = v.toString();
                     } else {
                         int startIndex = getStartIndex(attributePrefix, k);
                         attributes[k.substring(startIndex)] = v.toString();
@@ -317,7 +318,7 @@ isolated function getNamespacesMap(json jTree, JsonOptions options, map<string> 
                 if v is map<json> || v is json[] {
                     return error Error("attribute cannot be an object or array.");
                 }
-                if k.startsWith(attributePrefix + "xmlns") {
+                if k.startsWith(attributePrefix + XMLNS) {
                     int? index = k.indexOf(":");
                     if index is int {
                         string prefix = k.substring(index + 1);
