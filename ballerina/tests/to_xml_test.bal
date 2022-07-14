@@ -907,3 +907,53 @@ isolated function testRecordWithAnnotationToXml6() returns error? {
     xml result = check toXml(data);
     test:assertEquals(result.toString(), expected, msg = "testRecordWithAnnotationToXml6 result incorrect");
 }
+
+@Namespace {
+    prefix: "ns",
+    uri: "http://sdf.com"
+}
+type Invoices1 record {
+    Items[] items;
+    int id;
+    @Attribute
+    string 'xmlns?;
+    @Attribute
+    string attr?;
+    @Attribute
+    string ns\:attr?;
+};
+
+type Items record {
+    string itemCode;
+    int count;
+};
+
+@test:Config {
+    groups: ["toXml"]
+}
+isolated function testRecordWithAnnotationToXml7() returns error? {
+    Invoices1 data = {
+        items: [
+                   {itemCode: "223345", count: 1},
+                   {itemCode: "223300", count: 7}
+               ],
+        id: 1,
+        attr: "attr-val",
+        'xmlns: "example2.com",
+        ns\:attr: "example1.com"
+    };
+    string expected =
+        "<ns:Invoices1 xmlns=\"example2.com\" xmlns:ns=\"http://sdf.com\" attr=\"attr-val\" ns:attr=\"example1.com\">" +
+            "<items>" +
+                "<itemCode>223345</itemCode>" +
+                "<count>1</count>" +
+            "</items>" +
+            "<items>" +
+                "<itemCode>223300</itemCode>" +
+                "<count>7</count>" +
+            "</items>" +
+            "<id>1</id>" +
+        "</ns:Invoices1>";
+    xml result = check toXml(data);
+    test:assertEquals(result.toString(), expected, msg = "testRecordWithAnnotationToXml6 result incorrect");
+}
