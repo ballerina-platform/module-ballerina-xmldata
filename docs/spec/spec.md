@@ -168,7 +168,31 @@ The following table shows a mapping between the different forms of XML, to a cor
 
 ## 3.4. Rules between the Map and XML Conversions
 
-The same rules of conversion between JSON and XML are used, But this doesn't consider the attributes and namespaces a special case.
+The following table shows mapping the XML to the different forms of map representation.
+
+|XML Type  | XML Sample | Map Type | Output |
+|---|---|---|---|
+|XML Element | `<key>value</key>` | `map<BALLERINA_PRIMITIVE_TYPE>` | `{key: "VALUE_IN_DEFINED_TYPE"}` |
+|XML Element | `<key>value</key>` | `map<BALLERINA_PRIMITIVE_TYPE_ARRAY>` | `{key: "VALUE_IN_DEFINED_ARRAY_TYPE"}` |
+|XML Element | `<key>value</key>` | `map<xml>` | `{#content: <key>value</key>}` |
+|XML Element | `<key>value</key>` | `map<json>` | `{key: "value"}` |
+|XML Sequence | `<keys><key>value</key></keys>` | `map<BALLERINA_PRIMITIVE_TYPE>` | ERROR |
+|XML Sequence | `<keys><key>value</key></keys>` | `map<BALLERINA_PRIMITIVE_TYPE_ARRAY>` | ERROR |
+|XML Sequence | `<keys><key>value</key></keys>` | `map<json>` | `{keys: {key: "value"}` |
+|XML Sequence | `<keys><key>value</key></keys>` | `map<xml>` | `{#content: <keys><key>value</key></keys>}` |
+|XML Sequence | `<keys><key>value</key></keys>` | `map<table<map<string>>>` | `{keys: table [key: "value"]}` |
+
+The following table shows mapping the map data to a corresponding matching XML representation.
+
+|Map Type  | Map Sample | XML |
+|---|---|---|
+|`map<BALLERINA_PRIMITIVE_TYPE>` | `{key1: value1, key2: value2}` | `<root>`<br> &emsp;&emsp;`<key1>value1</key1>`<br> &emsp;&emsp;`<key2>value2</key2>`<br>`</root>` |
+|`map<BALLERINA_PRIMITIVE_ARRAY_TYPE>`| `{key1: [v1,v2], key2: [v3,v4]}` | `<root>`<br> &emsp;&emsp;`<key1>value1</key1>`<br> &emsp;&emsp;`<key1>value2</key1>`<br> &emsp;&emsp;`<key2>value3</key2>`<br> &emsp;&emsp;`<key2>value4</key2>`<br>`</root>` |
+| `map<json>`| `{keys: {key1: value1, key2: value2}}` | `<root>`<br> &emsp;&emsp;`<keys>`<br> &emsp;&emsp;&emsp;&emsp;`<key1>value1</key1>`<br> &emsp;&emsp;&emsp;&emsp;`<key2>value2</key2>`<br> &emsp;&emsp;`</keys>`<br>`</root>` |
+|`map<xml>` | `{keys: xml <key>value</key>}` | `<root>`<br> &emsp;&emsp;`<keys>`<br> &emsp;&emsp;&emsp;&emsp;`<key>value</key>`<br> &emsp;&emsp;&emsp;&emsp;`</keys>`<br>`</root>` |
+|`map<table<map<string>>>`|`{keys: table [{key: "value"}]}`|`<root>`<br> &emsp; &emsp;`<keys>`<br> &emsp; &emsp; &emsp; &emsp;`<key>value</key>`<br> &emsp; &emsp;`</keys>`<br>`</root>`|
+|`map<json[]>`| `{keys: [{key1: value1},{key2: value2}]}` |`<root>`<br> &emsp;&emsp;`<keys>`<br> &emsp;&emsp;&emsp;&emsp;`<key1>value1</key1>`<br> &emsp;&emsp;&emsp;&emsp;`<key2>value2</key2>`<br> &emsp;&emsp;`</keys>`<br>`</root>`|
+|`map<xml[]>` | `{keys: [xml <key1>value1</key1>, xml <key2>value2</key2>]}` | `<root>`<br> &emsp;&emsp;`<keys>`<br> &emsp;&emsp;&emsp;`<key1>value1</key1>`<br> &emsp;&emsp;&emsp;`<key2>value2</key2>`<br> &emsp;&emsp;`</keys>`<br>`</root>`|
 
 ## 3.5. Rules between the Ballerina record and XML Conversions
 
