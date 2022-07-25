@@ -168,8 +168,6 @@ The following table shows a mapping between the different forms of XML, to a cor
 
 ## 3.4. Rules between the Map and XML Conversions
 
-We have followed some set of rules for every conversion to preserve the information and structure of both input and output based on OpenAPI specifications.
-
 The following table shows mapping the XML to the different forms of map representation.
 
 |XML Type  | XML Sample | Map Type | Output |
