@@ -10,4 +10,7 @@ license = ["Apache-2.0"]
 distribution = "2201.2.0"
 
 [[platform.java11.dependency]]
+groupId = "xmldata.ballerina.stdlib"
+artifactId = "xmldata-native"
+version = "@toml.version@"
 path = "../native/build/libs/xmldata-native-@project.version@.jar"
