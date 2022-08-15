@@ -166,7 +166,7 @@ The following table shows a mapping between the different forms of XML, to a cor
 |JSON object with key <br> as "#content" | `{"#content":"value1"}` | XML text | `value1` |
 |JSON object with key <br> prefix as ‘@’ | `{`<br>&emsp;&emsp;`"foo": {`<br>&emsp;&emsp;&emsp;&emsp;`"@key": "value",`<br>&emsp;&emsp;&emsp;&emsp;`"@xmlns:ns0":"<http://sample.com>"`<br>&emsp;&emsp;`}`<br>} | XML element with attribute and namespace | `<root>`<br>&emsp;&emsp;`<foo key="value"` <br> `xmlns:ns0="<http://sample.com>"/>`<br>`</root>`<br> |
 
-## 3.4. Rules between the Map and XML Conversions
+### 3.4. Rules between the Map and XML Conversions
 
 The following table shows mapping the XML to the different forms of map representation.
 
@@ -194,7 +194,7 @@ The following table shows mapping the map data to a corresponding matching XML r
 |`map<json[]>`| `{keys: [{key1: value1},{key2: value2}]}` |`<root>`<br> &emsp;&emsp;`<keys>`<br> &emsp;&emsp;&emsp;&emsp;`<key1>value1</key1>`<br> &emsp;&emsp;&emsp;&emsp;`<key2>value2</key2>`<br> &emsp;&emsp;`</keys>`<br>`</root>`|
 |`map<xml[]>` | `{keys: [xml <key1>value1</key1>, xml <key2>value2</key2>]}` | `<root>`<br> &emsp;&emsp;`<keys>`<br> &emsp;&emsp;&emsp;`<key1>value1</key1>`<br> &emsp;&emsp;&emsp;`<key2>value2</key2>`<br> &emsp;&emsp;`</keys>`<br>`</root>`|
 
-## 3.5. Rules between the Ballerina record and XML Conversions
+### 3.5. Rules between the Ballerina record and XML Conversions
 
 **Basic Conversion**
 
