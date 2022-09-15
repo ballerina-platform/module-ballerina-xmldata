@@ -1,0 +1,10 @@
+{
+  "resources":{
+  "includes":[{
+      "pattern":"\\QMETA-INF/services/javax.xml.stream.XMLOutputFactory\\E"
+    }]},
+  "bundles":[{
+      "name":"MessagesBundle",
+      "locales":[""]
+    }]
+}

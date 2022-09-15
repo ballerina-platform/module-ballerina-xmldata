@@ -19,6 +19,7 @@ plugins {
     id 'java'
     id 'checkstyle'
     id 'com.github.spotbugs'
+    id 'org.graalvm.buildtools.native'
 }
 
 description = 'Ballerina - Xmldata Java Utils'
@@ -69,5 +70,15 @@ compileJava {
                 '--module-path', classpath.asPath,
         ]
         classpath = files()
+    }
+}
+
+graalvmNative {
+    toolchainDetection = false
+
+    binaries {
+        main {
+            sharedLibrary = true
+        }
     }
 }
