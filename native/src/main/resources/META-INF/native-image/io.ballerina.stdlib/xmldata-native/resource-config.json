@@ -1,6 +1,10 @@
 {
-  "bundles":[{
-      "name":"MessagesBundle",
-      "locales":[""]
-    }]
+  "bundles": [
+    {
+      "name": "MessagesBundle",
+      "locales": [
+        ""
+      ]
+    }
+  ]
 }
