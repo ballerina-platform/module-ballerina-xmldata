@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- API docs updated
+
+## [2.3.0] - 2022-09-08
+
 ### Added
 - [Introduce `toXml` and `fromXml` APIs](https://github.com/ballerina-platform/ballerina-standard-library/issues/2819)
 
