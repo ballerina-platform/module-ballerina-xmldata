@@ -2,10 +2,11 @@ Ballerina XmlData Library
 ===================
 
   [![Build](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/build-timestamped-master.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/build-timestamped-master.yml)
-  [![Trivy](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/trivy-scan.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/trivy-scan.yml)    
+  [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata)
+  [![Trivy](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/trivy-scan.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/trivy-scan.yml)   
+  [![GraalVM Check](https://img.shields.io/github/workflow/status/ballerina-platform/module-ballerina-xmldata/Build%20with%20bal%20test%20native?label=GraalVM%20Check)](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/build-with-bal-test-native.yml)
   [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-xmldata.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/commits/master)
   [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/xmldata.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fxmldata)
-  [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerina-xmldata)
 
 This library provides APIs to perform conversions between XML and JSON/Ballerina records. It provides APIs to get natural representations of data in XML from JSON and to get JSON or Ballerina records data from natural representations of data in XML.
 
