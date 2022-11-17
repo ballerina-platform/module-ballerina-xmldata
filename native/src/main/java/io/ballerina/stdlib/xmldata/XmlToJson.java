@@ -194,11 +194,9 @@ public class XmlToJson {
         if (!attributePrefix.equals(Constants.SKIP_ATTRIBUTE)) {
             BMap<BString, Object> annotations = null;
             if (attributePrefix.equals(Constants.ADD_IF_HAS_ANNOTATION))  {
-                Type annotationType = fieldType;
+                Type annotationType = TypeUtils.getReferredType(fieldType);
                 if (fieldType.getTag() == TypeTags.ARRAY_TAG) {
                     annotationType = TypeUtils.getReferredType(((ArrayType) fieldType).getElementType());
-                } else if (fieldType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                    annotationType = TypeUtils.getReferredType(fieldType);;
                 } else if (fieldType instanceof UnionType) {
                     UnionType bUnionType = (UnionType) fieldType;
                     for (Type memberType : bUnionType.getMemberTypes()) {
