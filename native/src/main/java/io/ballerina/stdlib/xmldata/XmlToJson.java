@@ -25,7 +25,6 @@ import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
-import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
@@ -211,7 +210,7 @@ public class XmlToJson {
                 if (annotationType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                     annotations = ((RecordType) annotationType).getAnnotations();
                 } else if (annotationType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                    annotations = ((RecordType) ((ReferenceType) annotationType).getReferredType()).getAnnotations();
+                    annotations = ((RecordType) TypeUtils.getReferredType(annotationType)).getAnnotations();
                 }
             }
             processAttributes(attributeMap, attributePrefix, childrenData, fieldType,

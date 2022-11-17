@@ -23,10 +23,10 @@ import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
-import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -99,7 +99,7 @@ public class MapFromXml {
                         BTable tableValue = ValueCreator.createTableValue(tableType);
                         Type tableValueType = ((TableType) valueType).getConstrainedType();
                         if (tableValueType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                            tableValue.put(CloneWithType.convert(((ReferenceType) tableValueType).getReferredType(),
+                            tableValue.put(CloneWithType.convert(TypeUtils.getReferredType(tableValueType),
                                     entry.getValue()));
                         } else {
                             tableValue.put(entry.getValue());

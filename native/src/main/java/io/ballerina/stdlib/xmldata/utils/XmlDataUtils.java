@@ -26,7 +26,6 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.RecordType;
-import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -111,7 +110,7 @@ public class XmlDataUtils {
                 if (fieldType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                     processRecord(key, annotations, recordValue, value, fieldType);
                 } else if (fieldType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                    Type referredType = ((ReferenceType) fieldType).getReferredType();
+                    Type referredType = TypeUtils.getReferredType(fieldType);
                     BMap<BString, Object> subRecordAnnotations = ((RecordType) referredType).getAnnotations();
                     key = getElementName(subRecordAnnotations, key.getValue());
                     recordValue.put(key, addFields(((BMap<BString, Object>) value), referredType));
@@ -202,7 +201,7 @@ public class XmlDataUtils {
                 if (value.getClass().getName().toUpperCase(Locale.ROOT).contains(
                         memberType.getName().toUpperCase(Locale.ROOT))) {
                     if (memberType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                        childType = ((ReferenceType) memberType).getReferredType();
+                        childType = TypeUtils.getReferredType(memberType);
                     } else {
                         childType = memberType;
                     }
