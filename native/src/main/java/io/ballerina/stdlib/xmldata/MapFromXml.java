@@ -97,10 +97,9 @@ public class MapFromXml {
                     BMap<BString, Object> resultMap = (BMap<BString, Object>) output;
                     for (Map.Entry<BString, Object> entry : resultMap.entrySet()) {
                         BTable tableValue = ValueCreator.createTableValue(tableType);
-                        Type tableValueType = ((TableType) valueType).getConstrainedType();
-                        if (tableValueType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                            tableValue.put(CloneWithType.convert(TypeUtils.getReferredType(tableValueType),
-                                    entry.getValue()));
+                        Type tableValueType = TypeUtils.getReferredType(((TableType) valueType).getConstrainedType());
+                        if (tableValueType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                            tableValue.put(CloneWithType.convert(tableValueType, entry.getValue()));
                         } else {
                             tableValue.put(entry.getValue());
                         }

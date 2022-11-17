@@ -200,11 +200,7 @@ public class XmlDataUtils {
             for (Type memberType : bUnionType.getMemberTypes()) {
                 if (value.getClass().getName().toUpperCase(Locale.ROOT).contains(
                         memberType.getName().toUpperCase(Locale.ROOT))) {
-                    if (memberType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
                         childType = TypeUtils.getReferredType(memberType);
-                    } else {
-                        childType = memberType;
-                    }
                 }
             }
         }

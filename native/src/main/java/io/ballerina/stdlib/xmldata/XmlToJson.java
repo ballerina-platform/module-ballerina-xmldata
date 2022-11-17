@@ -202,15 +202,15 @@ public class XmlToJson {
                 } else if (fieldType instanceof UnionType) {
                     UnionType bUnionType = (UnionType) fieldType;
                     for (Type memberType : bUnionType.getMemberTypes()) {
-                        if (memberType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG)  {
+                        Type referMemberType = TypeUtils.getReferredType(memberType);
+                        if (referMemberType.getTag() == TypeTags.RECORD_TYPE_TAG)  {
                             annotationType = memberType;
                         }
                     }
                 }
-                if (annotationType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                    annotations = ((RecordType) annotationType).getAnnotations();
-                } else if (annotationType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                    annotations = ((RecordType) TypeUtils.getReferredType(annotationType)).getAnnotations();
+                Type referMemberType = TypeUtils.getReferredType(annotationType);
+                if (referMemberType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                    annotations = ((RecordType) referMemberType).getAnnotations();
                 }
             }
             processAttributes(attributeMap, attributePrefix, childrenData, fieldType,
