@@ -204,13 +204,12 @@ public class XmlToJson {
                     for (Type memberType : bUnionType.getMemberTypes()) {
                         Type referMemberType = TypeUtils.getReferredType(memberType);
                         if (referMemberType.getTag() == TypeTags.RECORD_TYPE_TAG)  {
-                            annotationType = memberType;
+                            annotationType = referMemberType;
                         }
                     }
                 }
-                Type referMemberType = TypeUtils.getReferredType(annotationType);
-                if (referMemberType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                    annotations = ((RecordType) referMemberType).getAnnotations();
+                if (annotationType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                    annotations = ((RecordType) annotationType).getAnnotations();
                 }
             }
             processAttributes(attributeMap, attributePrefix, childrenData, fieldType,
