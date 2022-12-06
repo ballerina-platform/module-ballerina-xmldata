@@ -21,9 +21,9 @@ const string CONTENT = "#content";
 const string ATTRIBUTE_PREFIX = "attribute_";
 const string XMLNS = "xmlns";
 
-# Defines the new name of the name.
+# Defines the name of the XML element.
 #
-# + value - The value of the new name
+# + value - The name of the XML element
 public type NameConfig record {|
     string value;
 |};
@@ -47,8 +47,8 @@ public annotation NamespaceConfig Namespace on type;
 public annotation Attribute on record field;
 
 # Converts a `Map` or `Record` representation to its XML representation.
-# The record has annotations to configure namespaces and attributes,
-# but others don't have these.
+# If the data is a defined record type, namespaces and attributes can be
+# defined using annotations. But other types do not have this support.
 #
 # + mapValue - The `Map` or `Record` representation source to be converted to XML
 # + return - XML representation of the given source if the source is
@@ -373,7 +373,7 @@ public isolated function toJson(xml xmlValue, XmlOptions options = {}) returns j
 # + xmlValue - The XML source to be converted to a Record
 # + preserveNamespaces - Instructs whether to preserve the namespaces of the XML when converting
 # + returnType - The `typedesc` of the record that should be returned as a result.
-# The optional value fields are not allowed in the record type.
+#                The optional value fields are not allowed in the record type.
 # + return - The Record representation of the given XML on success, else returns an `xmldata:Error`
 # # Deprecated
 # This function is going away in a future release. Use `fromXml` instead.
@@ -383,14 +383,15 @@ returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.XmlToRecord"
 } external;
 
-# Converts an XML to its `Map` or `Record` representation.
-# The namespaces and attributes will not be considered a special case.
+# Converts XML to its `map` or `Record` representation.
+# If `returnType` is not a defined record type, namespaces and attributes are omitted by this conversion.
 #
-# + xmlValue - The XML source to be converted to a given target type
-# + returnType - The `typedesc` of the `map<anydata>` that should be returned as a result
+# + xmlValue - The XML source to be converted to a given target type. If the XML elements have a prefix and
+#              `returnType` is also a defined record, the field names of the record must also have the same prefix.
+# + returnType - The `typedesc` of the `Map` or `Record` that should be returned as a result
 # + return - The given target type representation of the given XML on success,
-# else returns an `xmldata:Error`
-public isolated function fromXml(xml xmlValue, typedesc<(map<anydata>)> returnType = <>)
+#            else returns an `xmldata:Error`
+public isolated function fromXml(xml xmlValue, typedesc<map<anydata>> returnType = <>)
 returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.MapFromXml"
 } external;
