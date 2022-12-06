@@ -383,7 +383,7 @@ returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.XmlToRecord"
 } external;
 
-# Converts XML to its `map` or `Record` representation.
+# Converts an XML to its `Map` or `Record` representation.
 # If `returnType` is not a defined record type, namespaces and attributes are omitted by this conversion.
 #
 # + xmlValue - The XML source to be converted to a given target type. If the XML elements have a prefix and
