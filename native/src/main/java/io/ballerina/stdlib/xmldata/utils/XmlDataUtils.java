@@ -41,6 +41,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static io.ballerina.runtime.api.constants.RuntimeConstants.COLON;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.UNDERSCORE;
+
 /**
  * A util class for the XmlData package's native implementation.
  *
@@ -49,7 +52,6 @@ import java.util.Map;
 public class XmlDataUtils {
 
     private static final String ERROR = "Error";
-    private static final String NAME = "Name";
     private static final String ATTRIBUTE_PREFIX = "attribute_";
     private static final String VALUE = "value";
 
@@ -150,7 +152,7 @@ public class XmlDataUtils {
     private static void addPrimitiveValue(BString key, BMap<BString, Object> annotations,
                                           BMap<BString, Object> record, Object value) {
         BString annotationKey =
-                StringUtils.fromString((Constants.FIELD + key).replace(":", "\\:"));
+                StringUtils.fromString((Constants.FIELD + key).replace(COLON, "\\:"));
         if (annotations.containsKey(annotationKey)) {
             BMap<BString, Object> annotationValue = (BMap<BString, Object>) annotations.get(annotationKey);
             BString keyValue = processFieldAnnotation(annotationValue, key.getValue());
@@ -225,11 +227,11 @@ public class XmlDataUtils {
     private static BString processFieldAnnotation(BMap<BString, Object> annotation, String key) {
         for (BString value : annotation.getKeys()) {
             String stringValue = value.getValue();
-            if (stringValue.endsWith(NAME)) {
+            if (stringValue.endsWith(Constants.NAME)) {
                 BMap<BString, Object> names = (BMap<BString, Object>) annotation.get(value);
                 String name = names.get(StringUtils.fromString(VALUE)).toString();
                 if (key.contains(ATTRIBUTE_PREFIX)) {
-                    key = key.substring(0, key.indexOf("_") + 1) + name;
+                    key = key.substring(0, key.indexOf(UNDERSCORE) + 1) + name;
                 } else {
                     key = name;
                 }
@@ -242,12 +244,12 @@ public class XmlDataUtils {
     }
 
     private static BString processAnnotation(BMap<BString, Object> annotation, String key,
-                                        BMap<BString, Object> namespaces) {
+                                             BMap<BString, Object> namespaces) {
         boolean hasNamespaceAnnotation = false;
         for (BString value : annotation.getKeys()) {
             if (!value.getValue().contains(Constants.FIELD)) {
                 String stringValue = value.getValue();
-                if (stringValue.endsWith(NAME)) {
+                if (stringValue.endsWith(Constants.NAME)) {
                     key = processNameAnnotation(annotation, key, value, hasNamespaceAnnotation);
                 }
                 if (stringValue.endsWith(Constants.NAME_SPACE)) {
@@ -279,10 +281,10 @@ public class XmlDataUtils {
                 BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotation.get(value);
                 BString prefix = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.PREFIX));
                 if (prefix != null) {
-                    key = prefix.getValue().concat(":").concat(key);
+                    key = prefix.getValue().concat(COLON).concat(key);
                 }
             }
-            if (value.getValue().endsWith(NAME)) {
+            if (value.getValue().endsWith(Constants.NAME)) {
                 key = processNameAnnotation(annotation, key, value, hasNamespaceAnnotation);
             }
         }
@@ -295,7 +297,7 @@ public class XmlDataUtils {
         String nameValue = ((BMap<BString, Object>) annotation.get(value)).
                 get(StringUtils.fromString(VALUE)).toString();
         if (hasNamespaceAnnotation) {
-            return key.substring(0, key.indexOf(":") + 1) + nameValue;
+            return key.substring(0, key.indexOf(COLON) + 1) + nameValue;
         } else {
             return nameValue;
         }
@@ -311,7 +313,7 @@ public class XmlDataUtils {
             subRecord.put(StringUtils.fromString(ATTRIBUTE_PREFIX + "xmlns"), uri);
         } else {
             subRecord.put(StringUtils.fromString(ATTRIBUTE_PREFIX + "xmlns:" + prefix), uri);
-            key = prefix.getValue().concat(":").concat(key);
+            key = prefix.getValue().concat(COLON).concat(key);
         }
         return key;
     }

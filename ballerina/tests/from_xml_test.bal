@@ -748,3 +748,207 @@ isolated function testFromXmlNegative() returns error? {
         test:assertFail(msg = "testFromXmlNegative result incorrect");
     }
 }
+
+type BookStore7 record {
+    string storeName;
+    int postalCode;
+    @Name {
+        value: "isOpen"
+    }
+    boolean open;
+    Address7 address;
+    Codes7 codes;
+    @Attribute
+    string status;
+    @Attribute
+    string 'xmlns\:ns0;
+};
+
+type Address7 record {
+    string street;
+    string city;
+    string country;
+};
+
+type Codes7 record {
+    int[] item;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testRecordToXml7() returns error? {
+    xml payload = xml `<BookStore7 status="online" xmlns:ns0="http://sample.com/test">
+                            <storeName>foo</storeName>
+                            <postalCode>94</postalCode>
+                            <isOpen>true</isOpen>
+                            <address>
+                                <street>Galle Road</street>
+                                <city>Colombo</city>
+                                <country>Sri Lanka</country>
+                            </address>
+                            <codes>
+                                <item>4</item>
+                                <item>8</item>
+                                <item>9</item>
+                            </codes>
+                        </BookStore7>
+                        <!-- some comment -->
+                        <?doc document="book.doc"?>`;
+    BookStore7 expected = {
+        storeName: "foo",
+        postalCode: 94,
+        open: true,
+        address: {
+            street: "Galle Road",
+            city: "Colombo",
+            country: "Sri Lanka"
+        },
+        codes: {
+            item: [4, 8, 9]
+        },
+        'xmlns\:ns0: "http://sample.com/test",
+        status: "online"
+    };
+    BookStore7 actual = check fromXml(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
+}
+
+type BookStore8 record {
+    string storeName;
+    int postalCode;
+    boolean isOpen;
+    @Name {
+        value: "address"
+    }
+    Address8 addr;
+    @Name {
+        value: "codes"
+    }
+    Codes8 code;
+    @Attribute
+    string status;
+    @Attribute
+    string 'xmlns\:ns0;
+};
+
+type Address8 record {
+    string street;
+    string city;
+    string country;
+};
+
+type Codes8 record {
+    int[] item;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testRecordToXml8() returns error? {
+    xml payload = xml `<BookStore8 status="online" xmlns:ns0="http://sample.com/test">
+                            <storeName>foo</storeName>
+                            <postalCode>94</postalCode>
+                            <isOpen>true</isOpen>
+                            <address>
+                                <street>Galle Road</street>
+                                <city>Colombo</city>
+                                <country>Sri Lanka</country>
+                            </address>
+                            <codes>
+                                <item>4</item>
+                                <item>8</item>
+                                <item>9</item>
+                            </codes>
+                        </BookStore8>
+                        <!-- some comment -->
+                        <?doc document="book.doc"?>`;
+    BookStore8 expected = {
+        storeName: "foo",
+        postalCode: 94,
+        isOpen: true,
+        addr: {
+            street: "Galle Road",
+            city: "Colombo",
+            country: "Sri Lanka"
+        },
+        code: {
+            item: [4, 8, 9]
+        },
+        'xmlns\:ns0: "http://sample.com/test",
+        status: "online"
+    };
+    BookStore8 actual = check fromXml(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
+}
+
+@Name {
+    value: "BookStore9"
+}
+type BookStore10 record {
+    string storeName;
+    int postalCode;
+    boolean isOpen;
+    Address9 addr;
+    Codes9 code;
+    @Attribute
+    string status;
+    @Attribute
+    string 'xmlns\:ns0;
+};
+
+@Name {
+    value: "address"
+}
+type Address9 record {
+    string street;
+    string city;
+    string country;
+};
+
+@Name {
+    value: "codes"
+}
+type Codes9 record {
+    int[] item;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testRecordToXml9() returns error? {
+    xml payload = xml `<BookStore9 status="online" xmlns:ns0="http://sample.com/test">
+                            <storeName>foo</storeName>
+                            <postalCode>94</postalCode>
+                            <isOpen>true</isOpen>
+                            <address>
+                                <street>Galle Road</street>
+                                <city>Colombo</city>
+                                <country>Sri Lanka</country>
+                            </address>
+                            <codes>
+                                <item>4</item>
+                                <item>8</item>
+                                <item>9</item>
+                            </codes>
+                        </BookStore9>
+                        <!-- some comment -->
+                        <?doc document="book.doc"?>`;
+    BookStore10 expected = {
+        storeName: "foo",
+        postalCode: 94,
+        isOpen: true,
+        addr: {
+            street: "Galle Road",
+            city: "Colombo",
+            country: "Sri Lanka"
+        },
+        code: {
+            item: [4, 8, 9]
+        },
+        'xmlns\:ns0: "http://sample.com/test",
+        status: "online"
+    };
+    BookStore10 actual = check fromXml(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
+}

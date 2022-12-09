@@ -39,6 +39,7 @@ public class Constants {
     public static final ArrayType JSON_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
     public static final String FIELD = "$field$.";
     public static final String NAME_SPACE = "Namespace";
+    public static final String NAME = "Name";
     public static final String URI = "uri";
     public static final String PREFIX = "prefix";
     public static final String ATTRIBUTE = "Attribute";
