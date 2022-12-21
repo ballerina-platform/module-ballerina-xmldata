@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -96,7 +97,7 @@ public class MapFromXml {
                     BMap<BString, Object> resultMap = (BMap<BString, Object>) output;
                     for (Map.Entry<BString, Object> entry : resultMap.entrySet()) {
                         BTable tableValue = ValueCreator.createTableValue(tableType);
-                        Type tableValueType = ((TableType) valueType).getConstrainedType();
+                        Type tableValueType = TypeUtils.getReferredType(((TableType) valueType).getConstrainedType());
                         if (tableValueType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                             tableValue.put(CloneWithType.convert(tableValueType, entry.getValue()));
                         } else {
