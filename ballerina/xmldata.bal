@@ -47,7 +47,8 @@ public annotation NamespaceConfig Namespace on type;
 public annotation Attribute on record field;
 
 # Converts a `Map` or `Record` representation to its XML representation.
-# XML `namespaces` and `attributes` can only defined through record annotations are only supported for record values.
+# The record has annotations to configure namespaces and attributes,
+# but others don't have these.
 #
 # + mapValue - The `Map` or `Record` representation source to be converted to XML
 # + return - XML representation of the given source if the source is
@@ -383,11 +384,12 @@ returns returnType|Error = @java:Method {
 } external;
 
 # Converts an XML to its `Map` or `Record` representation.
-# XML `namespaces` and `attributes` can only defined through record annotations are only supported for record values.
+# The namespaces and attributes will not be considered a special case.
 #
-# + xmlValue - The XML source to be converted to a given target type. If the XML elements have a prefix,
-#              the mapping field names of the record must also have the same prefix.
-# + returnType - The `typedesc` of the returned value. This should be either `map` or `record` type.
+# + xmlValue - The XML source to be converted to a given target type
+# + returnType - The `typedesc` of the `map<anydata>` that should be returned as a result
+# + return - The given target type representation of the given XML on success,
+# else returns an `xmldata:Error`
 public isolated function fromXml(xml xmlValue, typedesc<(map<anydata>)> returnType = <>)
 returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.MapFromXml"
