@@ -179,9 +179,9 @@ public class XmlToJson {
                                            BMap<BString, BString> parentAttributeMap) throws Exception {
         BMap<BString, Object> childrenData = createMapValue(type);
         BMap<BString, BString> attributeMap = xmlItem.getAttributesMap();
-        String keyValue = getElementKey(xmlItem, preserveNamespaces);
-        Object[] fieldDetails = getFieldTypeAndName(keyValue, type);
-        keyValue = fieldDetails[0].toString();
+        String fieldName = getElementKey(xmlItem, preserveNamespaces);
+        Object[] fieldDetails = getFieldTypeAndName(fieldName, type);
+        fieldName = fieldDetails[0].toString();
         Type fieldType = (Type) fieldDetails[1];
         processAttributeWithAnnotation(xmlItem, attributePrefix, preserveNamespaces, childrenData, fieldType,
                 attributeMap, parentAttributeMap);
@@ -195,7 +195,7 @@ public class XmlToJson {
             }
             children = convertToArray(fieldType, children);
         }
-        return new Object[]{keyValue, insertDataToMap(childrenData, children, rootNode,  keyValue, fieldType)};
+        return new Object[]{fieldName, insertDataToMap(childrenData, children, rootNode,  fieldName, fieldType)};
     }
 
     private static void processAttributeWithAnnotation(BXmlItem xmlItem, String attributePrefix,

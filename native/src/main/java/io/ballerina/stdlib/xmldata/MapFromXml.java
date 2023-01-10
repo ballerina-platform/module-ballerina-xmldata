@@ -154,12 +154,10 @@ public class MapFromXml {
     public static String getXmlNameFromRecordAnnotation(RecordType record, String recordName) {
         BMap<BString, Object> annotations = record.getAnnotations();
         for (BString annotationsKey : annotations.getKeys()) {
-            if (!annotationsKey.getValue().contains(Constants.FIELD) &&
-                    annotationsKey.getValue().endsWith(Constants.NAME)) {
+            String key = annotationsKey.getValue();
+            if (!key.contains(Constants.FIELD) && key.endsWith(Constants.NAME)) {
                 BMap<BString, Object> annotationsForField = (BMap<BString, Object>) annotations.get(annotationsKey);
-                for (Map.Entry<BString, Object> entry: annotationsForField.entrySet()) {
-                    return entry.getValue().toString().trim();
-                }
+                return annotationsForField.get(annotationsForField.getKeys()[0]).toString();
             }
         }
         return recordName;
