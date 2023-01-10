@@ -494,7 +494,9 @@ When `attributePrefix` is `&` and `arrayEntryTag` is `list`, the XML representat
 
 ### 4.4. Ballerina record/Map to XML Conversion
 This conversion provides a mapping between the different forms of Ballerina record/Map, to a corresponding matching XML representation.
-The following API returns the XML data to the given Ballerina record/Map. The record has annotations to configure namespaces and attributes, but others don't have these.
+The following API returns the XML data to the given Ballerina record/Map. 
+The record has annotations to configure namespaces and attributes, 
+but other types(map<BALLERINA_PRIMITIVE_TYPE>|) don't have these.
 ```ballerina
 public isolated function toXml(map<anydata> mapValue) returns xml|Error
 ```
