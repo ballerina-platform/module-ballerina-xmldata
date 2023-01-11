@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+[Fix the mismatch error by `fromXml` API while the field has the name annotation](https://github.com/ballerina-platform/ballerina-standard-library/issues/3802)
+
+## [2.3.1] - 2022-11-29
+
 ### Changed
 - [API docs updated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3463)
 
