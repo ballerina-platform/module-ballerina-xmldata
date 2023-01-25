@@ -35,6 +35,7 @@ public class Constants {
     public static final String OPTIONS_ATTRIBUTE_PREFIX = "attributePrefix";
     public static final String OPTIONS_PRESERVE_NS = "preserveNamespaces";
     public static final String UNDERSCORE = "_";
+    public static final String COLON = ":";
     public static final MapType JSON_MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_JSON);
     public static final ArrayType JSON_ARRAY_TYPE = TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON);
     public static final String FIELD = "$field$.";

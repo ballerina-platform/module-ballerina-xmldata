@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- [Update API docs](https://github.com/ballerina-platform/ballerina-standard-library/issues/3713)
+
+### Fixed
+- [Fix the name annotation not seems to apply for toXML() issue](https://github.com/ballerina-platform/ballerina-standard-library/issues/3716)
+
+## [2.3.1] - 2022-11-29
+
+### Changed
 - [API docs updated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3463)
 
 ## [2.3.0] - 2022-09-08
