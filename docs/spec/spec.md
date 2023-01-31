@@ -3,7 +3,7 @@
 _Owners_: @daneshk @kalaiyarasiganeshalingam @MadhukaHarith92                                       
 _Reviewers_: @daneshk  
 _Created_: 2021/12/10  
-_Updated_: 2023/01/30  
+_Updated_: 2023/01/31  
 _Edition_: Swan Lake
 
 ## Introduction
@@ -370,7 +370,7 @@ The record representation of the above XML with the default configuration of thi
 }
 ```
 
-If `returnType` is configured for the above output, it must be specified in the following format.
+If `returnType` is configured for the above output, it must be specified in the following format with the open/closed record type.
 
 ```ballerina
 type BookStores record {|
@@ -419,7 +419,7 @@ When `preserveNamespaces` is `false`(without namespaces), the output of the abov
 }
 ```
 
-If `returnType` is configured for the above output(without namespaces), it must be specified in the following format.
+If `returnType` is configured for the above output(without namespaces), it must be specified in the following format with the open/closed record type.
 
 ```ballerina
 type BookStores record {|
