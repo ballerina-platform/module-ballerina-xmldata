@@ -348,7 +348,7 @@ public class XmlToJson {
                     BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotations.get(annotationsKey);
                     BString prefix = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.PREFIX));
                     BString uri = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.URI));
-                    if ((prefix == null && key.equals("xmlns")) || (prefix != null && key.equals("xmlns:" +
+                    if ((prefix == null && key.equals(XMLNS)) || (prefix != null && key.equals(XMLNS + ":" +
                             prefix.getValue()))) {
                         String uriValue = uri.getValue().trim();
                         if (!uriValue.equals(value.trim())) {
