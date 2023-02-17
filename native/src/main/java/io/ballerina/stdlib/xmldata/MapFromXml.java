@@ -157,8 +157,7 @@ public class MapFromXml {
         for (BString annotationsKey : annotations.getKeys()) {
             String key = annotationsKey.getValue();
             if (!key.contains(Constants.FIELD) && key.endsWith(Constants.NAME)) {
-                BMap<BString, Object> annotationsForField = (BMap<BString, Object>) annotations.get(annotationsKey);
-                return annotationsForField.get(annotationsForField.getKeys()[0]).toString();
+                return ((BMap<BString, Object>) annotations.get(annotationsKey)).get(Constants.VALUE).toString();
             }
         }
         return recordName;

@@ -22,6 +22,8 @@ import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BString;
 
 /**
  * Constants used in Ballerina XmlData library.
@@ -46,5 +48,6 @@ public class Constants {
     public static final String ATTRIBUTE = "Attribute";
     public static final String SKIP_ATTRIBUTE = "skip";
     public static final String ADD_IF_HAS_ANNOTATION = "add";
+    public static final BString VALUE = StringUtils.fromString("value");
     public static final int DEFAULT_TYPE_FLAG = 2049;
 }

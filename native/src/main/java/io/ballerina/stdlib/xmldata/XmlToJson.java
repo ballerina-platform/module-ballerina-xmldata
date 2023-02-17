@@ -175,7 +175,7 @@ public class XmlToJson {
         BMap<BString, Object> childrenData = createMapValue(type);
         BMap<BString, BString> attributeMap = xmlItem.getAttributesMap();
         String fieldName = getElementKey(xmlItem, preserveNamespaces);
-        processFieldTypeAndName(fieldName, type, fieldDetail);
+        processFieldDetails(fieldName, type, fieldDetail);
         fieldName = fieldDetail.getName();
         Type fieldType = fieldDetail.getType();
         processAttributeWithAnnotation(xmlItem, attributePrefix, preserveNamespaces, childrenData, fieldType,
@@ -262,7 +262,7 @@ public class XmlToJson {
         return rootNode;
     }
 
-    private static void processFieldTypeAndName(String fieldName, Type type, FieldDetails fieldDetails) {
+    private static void processFieldDetails(String fieldName, Type type, FieldDetails fieldDetails) {
         if (type != null) {
             if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 getRecordFieldTypeAndName(type, fieldName, fieldDetails);
@@ -322,32 +322,6 @@ public class XmlToJson {
         }
         if (fields.get(fieldName) != null) {
             fieldDetails.setType(fields.get(fieldName).getFieldType());
-        } else {
-            for (Map.Entry<String, Field> entry : fields.entrySet()) {
-                Field field = entry.getValue();
-                Type fieldType = field.getFieldType();
-                if (fieldType.getTag() != TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                    continue;
-                }
-                Type referredType = TypeUtils.getReferredType(fieldType);
-                if (referredType.getTag() != TypeTags.RECORD_TYPE_TAG) {
-                    continue;
-                }
-                annotations = ((RecordType) referredType).getAnnotations();
-                for (BString annotationsKey : annotations.getKeys()) {
-                    if (!(!annotationsKey.getValue().contains(Constants.FIELD) &&
-                            annotationsKey.getValue().endsWith(Constants.NAME))) {
-                        continue;
-                    }
-                    BMap<BString, Object> annotationsForField = (BMap<BString, Object>) annotations.get(annotationsKey);
-                    for (Map.Entry<BString, Object> annotationField : annotationsForField.entrySet()) {
-                        if (annotationField.getValue().toString().trim().equals(fieldName)) {
-                            setNameAndTypeIntoFieldDetails(referredType, field.getFieldName().trim(), fieldDetails);
-                            break;
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -369,7 +343,7 @@ public class XmlToJson {
                 if (!isNamespacePrefixEntry(entry) ||
                         !isBelongingToElement(parentAttributeMap, entry.getKey(), value)) {
                     String key = getAttributeKey(attributePrefix, getKey(entry, nsPrefixMap, preserveNamespaces));
-                    processFieldTypeAndName(key, type, fieldDetails);
+                    processFieldDetails(key, type, fieldDetails);
                     checkAnnotationAndAddAttributes(annotations, mapData, fieldDetails.getType(),
                             fieldDetails.getName(), value.getValue(), attributePrefix, fieldDetails);
                 }
@@ -379,7 +353,7 @@ public class XmlToJson {
                 String key = getKey(entry, nsPrefixMap, preserveNamespaces);
                 if (key != null) {
                     key = getAttributeKey(attributePrefix, key);
-                    processFieldTypeAndName(key, type, fieldDetails);
+                    processFieldDetails(key, type, fieldDetails);
                     checkAnnotationAndAddAttributes(annotations, mapData, fieldDetails.getType(),
                             fieldDetails.getName(), entry.getValue().getValue(), attributePrefix, fieldDetails);
                 }
@@ -411,7 +385,7 @@ public class XmlToJson {
                     BMap<BString, Object> annotationsForField = (BMap<BString, Object>) annotations.get(annotationsKey);
                     for (BString annotationForField : annotationsForField.getKeys()) {
                         if (annotationForField.getValue().endsWith(Constants.ATTRIBUTE)) {
-                            processFieldTypeAndName(key, type, fieldDetails);
+                            processFieldDetails(key, type, fieldDetails);
                             putAsFieldTypes(mapData, fieldDetails.getName(), value, fieldDetails.getType(),
                                     fieldDetails);
                             break;

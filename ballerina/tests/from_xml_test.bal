@@ -814,7 +814,10 @@ isolated function testRecordToXml7() returns error? {
     test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
 }
 
-type BookStore8 record {
+@Name {
+    value: "BookStore8"
+}
+type BookStore9 record {
     string storeName;
     int postalCode;
     boolean isOpen;
@@ -863,7 +866,7 @@ isolated function testRecordToXml8() returns error? {
                         </BookStore8>
                         <!-- some comment -->
                         <?doc document="book.doc"?>`;
-    BookStore8 expected = {
+    BookStore9 expected = {
         storeName: "foo",
         postalCode: 94,
         isOpen: true,
@@ -878,77 +881,6 @@ isolated function testRecordToXml8() returns error? {
         'xmlns\:ns0: "http://sample.com/test",
         status: "online"
     };
-    BookStore8 actual = check fromXml(payload);
-    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
-}
-
-@Name {
-    value: "BookStore9"
-}
-type BookStore10 record {
-    string storeName;
-    int postalCode;
-    boolean isOpen;
-    Address9 addr;
-    Codes9 code;
-    @Attribute
-    string status;
-    @Attribute
-    string 'xmlns\:ns0;
-};
-
-@Name {
-    value: "address"
-}
-type Address9 record {
-    string street;
-    string city;
-    string country;
-};
-
-@Name {
-    value: "codes"
-}
-type Codes9 record {
-    int[] item;
-};
-
-@test:Config {
-    groups: ["fromXml"]
-}
-isolated function testRecordToXml9() returns error? {
-    xml payload = xml `<BookStore9 status="online" xmlns:ns0="http://sample.com/test">
-                            <storeName>foo</storeName>
-                            <postalCode>94</postalCode>
-                            <isOpen>true</isOpen>
-                            <address>
-                                <street>Galle Road</street>
-                                <city>Colombo</city>
-                                <country>Sri Lanka</country>
-                            </address>
-                            <codes>
-                                <item>4</item>
-                                <item>8</item>
-                                <item>9</item>
-                            </codes>
-                        </BookStore9>
-                        <!-- some comment -->
-                        <?doc document="book.doc"?>`;
-    BookStore10 expected = {
-        storeName: "foo",
-        postalCode: 94,
-        isOpen: true,
-        addr: {
-            street: "Galle Road",
-            city: "Colombo",
-            country: "Sri Lanka"
-        },
-        code: {
-            item: [4, 8, 9]
-        },
-        'xmlns\:ns0: "http://sample.com/test",
-        status: "online"
-    };
-    BookStore10 actual = check fromXml(payload);
+    BookStore9 actual = check fromXml(payload);
     test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
 }
