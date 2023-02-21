@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2023-02-21
+
 ### Changed
 - [Update API docs](https://github.com/ballerina-platform/ballerina-standard-library/issues/3713)
 
