@@ -766,8 +766,8 @@ isolated function negativeTestForMismatchUri() returns error? {
     PersonDetail|error actual = fromXml(x1);
     if (actual is error) {
         string message = actual.message();
-        test:assertTrue(message.includes("The URI[\"example.com\"] of the namespace in the expected record " +
-            "definition differentiates from the XML URI[\"\"] of the namespace[\"xmlns\"]."), msg = message);
+        test:assertTrue(message.includes("The URI['example.com'] of the namespace in the expected record " +
+                "definition differs from the XML namespace's['xmlns'] URI['']"), msg = message);
     } else {
         test:assertFail(msg = "negativeTestForMismatchUri result incorrect");
     }
@@ -790,8 +790,8 @@ isolated function negativeTestForMismatchUri1() returns error? {
     StudentDetail|error actual = fromXml(x1);
     if (actual is error) {
         string message = actual.message();
-        test:assertTrue(message.includes("The URI[\"example.com\"] of the namespace in the expected record " +
-            "definition differentiates from the XML URI[\"exam.com\"] of the namespace[\"xmlns:ns\"]."),
+        test:assertTrue(message.includes("The URI['example.com'] of the namespace in the expected record " +
+                    "definition differs from the XML namespace's['xmlns:ns'] URI['exam.com']"),
             msg = message);
     } else {
         test:assertFail(msg = "negativeTestForMismatchUri1 result incorrect");

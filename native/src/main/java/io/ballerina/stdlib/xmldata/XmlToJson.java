@@ -352,9 +352,9 @@ public class XmlToJson {
                             prefix.getValue()))) {
                         String uriValue = uri.getValue().trim();
                         if (!uriValue.equals(value.trim())) {
-                            throw new Exception("The URI[\"" +  uriValue + "\"] of the namespace in the expected " +
-                                    "record definition differentiates from the XML URI[\"" +  value +
-                                    "\"] of the namespace[\"" +  key + "\"].");
+                            throw new Exception("The URI['" +  uriValue + "'] of the namespace in the expected " +
+                                    "record definition differs from the XML namespace's['" +  key + "'] URI['" +
+                                    value + "']");
                         }
                         break;
                     }
