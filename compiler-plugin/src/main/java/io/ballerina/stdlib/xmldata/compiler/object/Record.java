@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Class to store details of record.
  *
- * @since 2.4.0
+ * @since 2.4.1
  */
 public class Record {
 
