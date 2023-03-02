@@ -1,4 +1,4 @@
-Ballerina XmlData Library
+Ballerina XmlData Librar
 ===================
 
   [![Build](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/build-timestamped-master.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/actions/workflows/build-timestamped-master.yml)
