@@ -748,3 +748,56 @@ isolated function testFromXmlNegative() returns error? {
         test:assertFail(msg = "testFromXmlNegative result incorrect");
     }
 }
+
+type Catering record {
+    string statusCode?;
+    string attendees?;
+    string contractFinalized?;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithEmpty() returns error? {
+    var x1 = xml `<Catering/>`;
+    record {} output = {};
+    Catering|error actual = fromXml(x1);
+    test:assertEquals(actual, output, msg = "testFromXmlWithEmpty result incorrect");
+}
+
+type Allotment record {
+    string name?;
+    Catering Catering?;
+};
+
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithEmpty1() returns error? {
+    xml allotment = xml `<Allotment><name>some</name><Catering/></Allotment>`;
+    Allotment output = {
+        name: "some",
+        Catering:{}
+    };
+    Allotment rec = check fromXml(allotment, Allotment);
+    test:assertEquals(rec, output, msg = "testFromXmlWithEmpty result incorrect");
+}
+
+type Allotment2 record {
+    string name?;
+    Catering[] Catering?;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithEmpty2() returns error? {
+    xml allotment = xml `<Allotment2><name>some</name><Catering/></Allotment2>`;
+    Allotment2 output = {
+        name: "some",
+        Catering:[]
+    };
+    Allotment2 rec = check fromXml(allotment, Allotment2);
+    test:assertEquals(rec, output, msg = rec.toString());
+}
