@@ -770,7 +770,6 @@ type Allotment record {
     Catering Catering?;
 };
 
-
 @test:Config {
     groups: ["fromXml"]
 }
@@ -829,4 +828,26 @@ isolated function testFromXmlWithEmpty4() {
     } else {
         test:assertFail(msg = "testFromXmlWithEmpty4 result incorrect");
     }
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithEmpty5() returns error? {
+    xml allotment = xml `<Allotment><name>some</name><Catering><statusCode>LLD</statusCode></Catering></Allotment>`;
+    Allotment output = {
+        name: "some",
+        Catering:{statusCode: "LLD"}
+    };
+    Allotment rec = check fromXml(allotment, Allotment);
+    test:assertEquals(rec, output, msg = rec.toString());
+    allotment = xml `<Allotment><name>some</name><Catering/></Allotment>`;
+    output = {
+        name: "some",
+        Catering:{}
+    };
+    rec = check fromXml(allotment, Allotment);
+    test:assertEquals(rec, output, msg = rec.toString());
+    Catering catering = <Catering>rec["Catering"];
+    test:assertEquals((), catering["statusCode"]);
 }
