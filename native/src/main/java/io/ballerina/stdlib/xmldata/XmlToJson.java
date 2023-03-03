@@ -243,8 +243,7 @@ public class XmlToJson {
             if (children instanceof BMap) {
                 put(rootNode, keyValue, children);
             } else if (children == null) {
-                if (fieldType instanceof ReferenceType && TypeUtils.getReferredType(fieldType) instanceof
-                        RecordType) {
+                if (fieldType instanceof ReferenceType && TypeUtils.getReferredType(fieldType) instanceof RecordType) {
                     put(rootNode, keyValue, ValueCreator.createMapValue(Constants.JSON_MAP_TYPE));
                 } else {
                     putAsFieldTypes(rootNode, keyValue, EMPTY_STRING, fieldType);
