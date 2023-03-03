@@ -848,6 +848,5 @@ isolated function testFromXmlWithEmpty5() returns error? {
     };
     rec = check fromXml(allotment, Allotment);
     test:assertEquals(rec, output, msg = rec.toString());
-    Catering catering = <Catering>rec["Catering"];
-    test:assertEquals((), catering["statusCode"]);
+    test:assertEquals((), rec.Catering?.statusCode);
 }
