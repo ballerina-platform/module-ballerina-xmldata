@@ -801,3 +801,32 @@ isolated function testFromXmlWithEmpty2() returns error? {
     Allotment2 rec = check fromXml(allotment, Allotment2);
     test:assertEquals(rec, output, msg = rec.toString());
 }
+
+type Allotment3 record {
+    string name?;
+    Catering3 Catering?;
+};
+
+type Catering3 record {
+    string statusCode;
+    string attendees?;
+    string contractFinalized?;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithEmpty4() {
+    xml allotment = xml `<Allotment3><name>some</name><Catering/></Allotment3>`;
+    Allotment3 output = {
+        name: "some",
+        Catering:{statusCode: ""}
+    };
+    Allotment3|error actual = fromXml(allotment, Allotment3);
+    if (actual is error) {
+        test:assertTrue(actual.message().includes("missing required field 'Catering.statusCode' of type 'string' " +
+                "in record 'xmldata:Catering3"), msg = actual.message());
+    } else {
+        test:assertFail(msg = "testFromXmlWithEmpty4 result incorrect");
+    }
+}
