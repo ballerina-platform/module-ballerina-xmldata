@@ -347,7 +347,15 @@ public class XmlToJson {
                         annotationsKey.getValue().endsWith(Constants.NAME_SPACE)) {
                     BMap<BString, Object> namespaceAnnotation = (BMap<BString, Object>) annotations.get(annotationsKey);
                     BString prefix = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.PREFIX));
-                    if ((prefix == null && key.equals("xmlns")) || (prefix != null && prefix.getValue().equals(key))) {
+                    BString uri = (BString) namespaceAnnotation.get(StringUtils.fromString(Constants.URI));
+                    if ((prefix == null && key.equals(XMLNS)) || (prefix != null && key.equals(XMLNS + ":" +
+                            prefix.getValue()))) {
+                        String uriValue = uri.getValue().trim();
+                        if (!uriValue.equals(value.trim())) {
+                            throw new Exception("The URI['" +  uriValue + "'] of the namespace in the expected " +
+                                    "record definition differs from the XML namespace's['" +  key + "'] URI['" +
+                                    value + "']");
+                        }
                         break;
                     }
                 }

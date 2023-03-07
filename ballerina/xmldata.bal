@@ -29,6 +29,8 @@ public type NameConfig record {|
 |};
 
 # The annotation is used to specify the new name of the existing record name or field name according to the XML format.
+# In the XML-record conversion, this annotation can be used to override the default XML element name using the
+# `xmldata:toXML` API and validate the overridden XML element name with record field using the `xmldata:fromXml` API.
 public annotation NameConfig Name on type, record field;
 
 # Defines the namespace of the XML element
@@ -41,13 +43,18 @@ public type NamespaceConfig record {|
 |};
 
 # The annotation is used to specify the namespace's prefix and URI of the XML element.
+# In the XML-record conversion, this annotation can be used to add XML namespace using the `xmldata:toXML` API and
+# validate the the XML namespace with record in the `xmldata:fromXml` API.
 public annotation NamespaceConfig Namespace on type;
 
 # The annotation is used to denote the field that is considered an attribute.
+# In the XML-record conversion, this annotation can be used to add XML attribute using the `xmldata:toXML` API and
+# validate the XML attribute with record fields in the `xmldata:fromXml` API.
 public annotation Attribute on record field;
 
 # Converts a `Map` or `Record` representation to its XML representation.
-# XML `namespaces` and `attributes` can only defined through record annotations are only supported for record values.
+# Additionally, when converting from a record, the `xmldata:Namespace`, `xmldata:Name`, and `xmldata:Attribute`
+# annotations can be used to add `namespaces`, `name of elements', and `attributes` to XML representation.
 #
 # + mapValue - The `Map` or `Record` representation source to be converted to XML
 # + return - XML representation of the given source if the source is
@@ -383,7 +390,8 @@ returns returnType|Error = @java:Method {
 } external;
 
 # Converts an XML to its `Map` or `Record` representation.
-# XML `namespaces` and `attributes` can only defined through record annotations are only supported for record values.
+# Additionally, when converting to a record, XML `namespaces`, `name of elements` and `attributes` can be validated
+# through `xmldata:Namespace`, `xmldata:Name` and ``xmldata:Attribute` annotations.
 #
 # + xmlValue - The XML source to be converted to a given target type. If the XML elements have a prefix,
 #              the mapping field names of the record must also have the same prefix.
