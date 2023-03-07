@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
@@ -241,7 +242,11 @@ public class XmlToJson {
             if (children instanceof BMap) {
                 put(rootNode, keyValue, children);
             } else if (children == null) {
-                putAsFieldTypes(rootNode, keyValue, EMPTY_STRING, fieldType);
+                if (fieldType instanceof ReferenceType && TypeUtils.getReferredType(fieldType) instanceof RecordType) {
+                    put(rootNode, keyValue, ValueCreator.createMapValue(Constants.JSON_MAP_TYPE));
+                } else {
+                    putAsFieldTypes(rootNode, keyValue, EMPTY_STRING, fieldType);
+                }
             } else if (children instanceof BArray) {
                 put(rootNode, keyValue, children);
             } else if (children instanceof BString) {
