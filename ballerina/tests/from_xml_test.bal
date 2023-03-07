@@ -748,3 +748,52 @@ isolated function testFromXmlNegative() returns error? {
         test:assertFail(msg = "testFromXmlNegative result incorrect");
     }
 }
+
+@Namespace {
+    uri: "example.com"
+}
+type PersonDetail record {
+    string name;
+    int age;
+    string 'xmlns;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function negativeTestForMismatchUri() returns error? {
+    var x1 = xml `<PersonDetail xmlns=""><name>Supun</name><age>6</age></PersonDetail>`;
+    PersonDetail|error actual = fromXml(x1);
+    if (actual is error) {
+        string message = actual.message();
+        test:assertTrue(message.includes("The URI['example.com'] of the namespace in the expected record " +
+                "definition differs from the XML namespace's['xmlns'] URI['']"), msg = message);
+    } else {
+        test:assertFail(msg = "negativeTestForMismatchUri result incorrect");
+    }
+}
+
+@Namespace {
+    prefix: "ns",
+    uri: "example.com"
+}
+type StudentDetail record {
+    string name;
+    int age;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function negativeTestForMismatchUri1() returns error? {
+    var x1 = xml `<StudentDetail xmlns:ns="exam.com"><name>Supun</name><age>6</age></StudentDetail>`;
+    StudentDetail|error actual = fromXml(x1);
+    if (actual is error) {
+        string message = actual.message();
+        test:assertTrue(message.includes("The URI['example.com'] of the namespace in the expected record " +
+                    "definition differs from the XML namespace's['xmlns:ns'] URI['exam.com']"),
+            msg = message);
+    } else {
+        test:assertFail(msg = "negativeTestForMismatchUri1 result incorrect");
+    }
+}
