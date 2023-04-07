@@ -71,7 +71,8 @@ public class MapFromXml {
                             ((BError) output).getErrorMessage());
                 }
                 BMap<BString, Object> record = (BMap<BString, Object>) output;
-                output = describingType.getFlags() == Constants.DEFAULT_TYPE_FLAG ? output : record.get(record.getKeys()[0]);
+                output = describingType.getFlags() == Constants.DEFAULT_TYPE_FLAG ? output
+                        : record.get(record.getKeys()[0]);
                 return getOutput(type, output);
             } catch (Exception e) {
                 return XmlDataUtils.getError("Failed to convert xml to record type: " + e.getMessage());
