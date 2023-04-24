@@ -879,6 +879,8 @@ isolated function testFromXmlWithEmpty4() {
     }
 }
 
+type R record {};
+
 @test:Config {
     groups: ["fromXml"]
 }
@@ -898,4 +900,16 @@ isolated function testFromXmlWithEmpty5() returns error? {
     rec = check fromXml(allotment, Allotment);
     test:assertEquals(rec, output, msg = rec.toString());
     test:assertEquals((), rec.Catering?.statusCode);
+}
+
+
+@test:Config {
+    groups: ["jsonToJson"]
+}
+isolated function testJsonToJson() returns error? {
+    json jsonContent = {};
+
+    byte[] bytes = jsonContent.toString().toBytes();
+
+    _ = check fromJsonByteArrayWithType(bytes, R);
 }

@@ -402,3 +402,9 @@ public isolated function fromXml(xml xmlValue, typedesc<map<anydata>> returnType
 returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.MapFromXml"
 } external;
+
+# JSON projection
+public isolated function fromJsonByteArrayWithType(byte[] bytes, typedesc<record {}> typed = <>)
+        returns typed|Error|handle = @java:Method {
+    'class: "io.ballerina.stdlib.json.JsonToJson"
+} external;

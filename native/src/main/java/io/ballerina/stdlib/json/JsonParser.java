@@ -18,22 +18,33 @@
 package io.ballerina.stdlib.json;
 
 import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.types.Field;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Map;
+import java.util.Stack;
 
 import static io.ballerina.runtime.api.utils.JsonUtils.NonStringValueProcessingMode.FROM_JSON_DECIMAL_STRING;
 import static io.ballerina.runtime.api.utils.JsonUtils.NonStringValueProcessingMode.FROM_JSON_FLOAT_STRING;
 
-
+/**
+ * This class converts an JSON using projection.
+ *
+ * @since 3.0.0
+ */
 public class JsonParser {
 
     private static ThreadLocal<StateMachine> tlStateMachine = new ThreadLocal<StateMachine>() {
@@ -58,7 +69,8 @@ public class JsonParser {
      * @return JSON structure
      * @throws BError for any parsing error
      */
-    public static Object parse(Reader reader, JsonUtils.NonStringValueProcessingMode mode, BTypedesc type) throws BError {
+    public static Object parse(Reader reader, JsonUtils.NonStringValueProcessingMode mode, BTypedesc type)
+            throws BError {
         StateMachine sm = tlStateMachine.get();
         try {
             sm.setMode(mode);
@@ -161,6 +173,10 @@ public class JsonParser {
         private int column;
         private char currentQuoteChar;
 
+        Type rootType;
+        Field currentField;
+        Stack<Map<String, Field>> fieldHierarchy = new Stack<>();
+
         StateMachine() {
             reset();
         }
@@ -173,6 +189,9 @@ public class JsonParser {
             this.nodesStack = new ArrayDeque<>();
             this.fieldNames = new ArrayDeque<>();
             this.setMode(JsonUtils.NonStringValueProcessingMode.FROM_JSON_STRING);
+            this.fieldHierarchy.removeAllElements();
+            this.currentField = null;
+            this.rootType = null;
         }
 
         private void setMode(JsonUtils.NonStringValueProcessingMode mode) {
@@ -204,7 +223,14 @@ public class JsonParser {
         }
 
         public Object execute(Reader reader, BTypedesc type) throws BError {
+            this.rootType = type.getDescribingType();
+            if (this.rootType.getTag() != TypeTags.RECORD_TYPE_TAG) {
+                return XmlDataUtils.getError("Input type should be a record type");
+            }
+            RecordType recordType = (RecordType) this.rootType;
+            this.fieldHierarchy.push(recordType.getFields());
             State currentState = DOC_START_STATE;
+
             try {
                 char[] buff = new char[1024];
                 int count;
@@ -245,20 +271,12 @@ public class JsonParser {
         }
 
         private State finalizeObject() {
-//            if (this.nodesStack.isEmpty()) {
-//                return DOC_END_STATE;
-//            }
+            this.fieldHierarchy.pop();
+            if (this.nodesStack.isEmpty()) {
+                return DOC_END_STATE;
+            }
 
-//            Object parentNode = this.nodesStack.pop();
-//            if (TypeUtils.getReferredType(TypeChecker.getType(parentNode)).getTag() == TypeTags.MAP_TAG) {
-//                ((MapValueImpl<BString, Object>) parentNode).put(StringUtils.fromString(fieldNames.pop()),
-//                        currentJsonNode);
-//                currentJsonNode = parentNode;
-//                return FIELD_END_STATE;
-//            }
-//            ((ArrayValue) parentNode).append(changeForBString(currentJsonNode));
-//            currentJsonNode = parentNode;
-            return ARRAY_ELEMENT_END_STATE;
+            return FIELD_END_STATE;
         }
 
         private State initNewObject() {
@@ -500,8 +518,9 @@ public class JsonParser {
             return result;
         }
 
-        private void processFieldName() {
+        private String processFieldName() {
             this.fieldNames.push(this.value());
+            return this.value();
         }
 
         /**
@@ -517,7 +536,8 @@ public class JsonParser {
                     ch = buff[i];
                     sm.processLocation(ch);
                     if (ch == sm.currentQuoteChar) {
-                        sm.processFieldName();
+                        String jsonFieldName = sm.processFieldName();
+                        sm.currentField = sm.fieldHierarchy.peek().remove(jsonFieldName);
                         state = END_FIELD_NAME_STATE;
                     } else if (ch == REV_SOL) {
                         state = FIELD_NAME_ESC_CHAR_PROCESSING_STATE;
@@ -583,6 +603,8 @@ public class JsonParser {
                         state = STRING_FIELD_VALUE_STATE;
                         sm.currentQuoteChar = ch;
                     } else if (ch == '{') {
+                        RecordType recordType = (RecordType) sm.currentField.getFieldType();
+                        sm.fieldHierarchy.push(recordType.getFields());
                         state = sm.initNewObject();
                     } else if (ch == '[') {
                         state = sm.initNewArray();

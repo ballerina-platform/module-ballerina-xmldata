@@ -17,6 +17,7 @@
  */
 package io.ballerina.stdlib.json;
 
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BTypedesc;
 
 import java.io.ByteArrayInputStream;
@@ -29,7 +30,12 @@ import java.io.InputStreamReader;
  */
 public class JsonToJson {
 
-    public static Object fromJsonByteArrayWithType(byte[] bytes, BTypedesc type) {
-        return JsonParser.parse(new InputStreamReader(new ByteArrayInputStream(bytes)), type);
+    public static Object fromJsonByteArrayWithType(BArray byteArr, BTypedesc typed) {
+        byte[] bytes = byteArr.getBytes();
+        return JsonParser.parse(new InputStreamReader(new ByteArrayInputStream(bytes)), typed);
     }
+    
+
+    
 }
+
