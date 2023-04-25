@@ -25,7 +25,6 @@ import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
-import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
@@ -69,7 +68,7 @@ public class JsonParser {
      * @return JSON structure
      * @throws BError for any parsing error
      */
-    public static Object parse(Reader reader, JsonUtils.NonStringValueProcessingMode mode, BTypedesc type)
+    public static Object parse(Reader reader, JsonUtils.NonStringValueProcessingMode mode, Type type)
             throws BError {
         StateMachine sm = tlStateMachine.get();
         try {
@@ -86,11 +85,15 @@ public class JsonParser {
      * Parses the contents in the given {@link Reader} with projection and returns a json.
      *
      * @param reader reader which contains the JSON content
-     * @param type typedesc of the projection type
+     * @param typed typedesc of the projection type
      * @return JSON structure
      * @throws BError for any parsing error
      */
-    public static Object parse(Reader reader, BTypedesc type) throws BError {
+    public static Object parse(Reader reader, BTypedesc typed) throws BError {
+        return parse(reader, JsonUtils.NonStringValueProcessingMode.FROM_JSON_STRING, typed.getDescribingType());
+    }
+
+    public static Object parse(Reader reader, Type type) throws BError {
         return parse(reader, JsonUtils.NonStringValueProcessingMode.FROM_JSON_STRING, type);
     }
 
@@ -173,7 +176,7 @@ public class JsonParser {
         private int column;
         private char currentQuoteChar;
 
-        Type rootType;
+        RecordType rootType;
         Field currentField;
         Stack<Map<String, Field>> fieldHierarchy = new Stack<>();
 
@@ -222,12 +225,12 @@ public class JsonParser {
             }
         }
 
-        public Object execute(Reader reader, BTypedesc type) throws BError {
-            this.rootType = type.getDescribingType();
-            if (this.rootType.getTag() != TypeTags.RECORD_TYPE_TAG) {
+        public Object execute(Reader reader, Type type) throws BError {
+            if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
                 return XmlDataUtils.getError("Input type should be a record type");
             }
-            RecordType recordType = (RecordType) this.rootType;
+            RecordType recordType = (RecordType) type;
+            this.rootType = recordType;
             this.fieldHierarchy.push(recordType.getFields());
             State currentState = DOC_START_STATE;
 
@@ -279,7 +282,17 @@ public class JsonParser {
             return FIELD_END_STATE;
         }
 
+        private State initRootObject() {
+//            if (currentJsonNode != null) {
+//                this.nodesStack.push(currentJsonNode);
+//            }
+//            currentJsonNode = new MapValueImpl<>(new BMapType(definedJsonType));
+            return FIRST_FIELD_READY_STATE;
+        }
+
         private State initNewObject() {
+            RecordType recordType = (RecordType) this.currentField.getFieldType();
+            this.fieldHierarchy.push(recordType.getFields());
 //            if (currentJsonNode != null) {
 //                this.nodesStack.push(currentJsonNode);
 //            }
@@ -326,7 +339,7 @@ public class JsonParser {
                     ch = buff[i];
                     sm.processLocation(ch);
                     if (ch == '{') {
-                        state = sm.initNewObject();
+                        state = sm.initRootObject();
                     } else if (ch == '[') {
                         state = sm.initNewArray();
                     } else if (StateMachine.isWhitespace(ch)) {
@@ -519,8 +532,9 @@ public class JsonParser {
         }
 
         private String processFieldName() {
-            this.fieldNames.push(this.value());
-            return this.value();
+            String value = this.value();
+            this.fieldNames.push(value);
+            return value;
         }
 
         /**
@@ -603,8 +617,6 @@ public class JsonParser {
                         state = STRING_FIELD_VALUE_STATE;
                         sm.currentQuoteChar = ch;
                     } else if (ch == '{') {
-                        RecordType recordType = (RecordType) sm.currentField.getFieldType();
-                        sm.fieldHierarchy.push(recordType.getFields());
                         state = sm.initNewObject();
                     } else if (ch == '[') {
                         state = sm.initNewArray();
@@ -805,116 +817,9 @@ public class JsonParser {
         }
 
         private void processNonStringValue(ValueType type) throws JsonParserException {
-//            String str = value();
-//            if (str.indexOf('.') >= 0) {
-//                try {
-//                    switch (mode) {
-//                        case FROM_JSON_FLOAT_STRING:
-//                            setValueToJsonType(type, Double.parseDouble(str));
-//                            break;
-//                        case FROM_JSON_DECIMAL_STRING:
-//                            setValueToJsonType(type, new DecimalValue(str));
-//                            break;
-//                        default:
-//                            if (isNegativeZero(str)) {
-//                                setValueToJsonType(type, Double.parseDouble(str));
-//                            } else {
-//                                setValueToJsonType(type, new DecimalValue(str));
-//                            }
-//                            break;
-//                    }
-//                } catch (NumberFormatException ignore) {
-//                    throw new JsonParserException("unrecognized token '" + str + "'");
-//                }
-//            } else {
-//                char ch = str.charAt(0);
-//                if (ch == 't' && TRUE.equals(str)) {
-//                    switch (type) {
-//                        case ARRAY_ELEMENT:
-//                            ((ArrayValue) this.currentJsonNode).append(Boolean.TRUE);
-//                            break;
-//                        case FIELD:
-//                            ((MapValueImpl<BString, Object>) this.currentJsonNode).put(
-//                                    StringUtils.fromString(this.fieldNames.pop()), Boolean.TRUE);
-//                            break;
-//                        case VALUE:
-//                            currentJsonNode = Boolean.TRUE;
-//                            break;
-//                        default:
-//                            break;
-//                    }
-//                } else if (ch == 'f' && FALSE.equals(str)) {
-//                    switch (type) {
-//                        case ARRAY_ELEMENT:
-//                            ((ArrayValue) this.currentJsonNode).append(Boolean.FALSE);
-//                            break;
-//                        case FIELD:
-//                            ((MapValueImpl<BString, Object>) this.currentJsonNode).put(
-//                                    StringUtils.fromString(this.fieldNames.pop()), Boolean.FALSE);
-//                            break;
-//                        case VALUE:
-//                            currentJsonNode = Boolean.FALSE;
-//                            break;
-//                        default:
-//                            break;
-//                    }
-//                } else if (ch == 'n' && NULL.equals(str)) {
-//                    switch (type) {
-//                        case ARRAY_ELEMENT:
-//                            ((ArrayValue) this.currentJsonNode).append(null);
-//                            break;
-//                        case FIELD:
-//                            ((MapValueImpl<BString, Object>) this.currentJsonNode).put(
-//                                    StringUtils.fromString(this.fieldNames.pop()), null);
-//                            break;
-//                        case VALUE:
-//                            currentJsonNode = null;
-//                            break;
-//                        default:
-//                            break;
-//                    }
-//                } else {
-//                    try {
-//                        switch (mode) {
-//                            case FROM_JSON_FLOAT_STRING:
-//                                setValueToJsonType(type, Double.parseDouble(str));
-//                                break;
-//                            case FROM_JSON_DECIMAL_STRING:
-//                                setValueToJsonType(type, new DecimalValue(str));
-//                                break;
-//                            default:
-//                                if (isNegativeZero(str)) {
-//                                    setValueToJsonType(type, Double.parseDouble(str));
-//                                } else {
-//                                    setValueToJsonType(type, Long.parseLong(str));
-//                                }
-//                                break;
-//                        }
-//                    } catch (NumberFormatException ignore) {
-//                        throw new JsonParserException("unrecognized token '" + str + "'");
-//                    }
-//                }
-//            }
+            // TODO
         }
 
-        private void setValueToJsonType(ValueType type, Object value) {
-//            switch (type) {
-//                case ARRAY_ELEMENT:
-//                    ((ArrayValue) this.currentJsonNode).append(value);
-//                    break;
-//                case FIELD:
-//                    ((MapValueImpl<BString, Object>) this.currentJsonNode).put(
-//                            StringUtils.fromString(this.fieldNames.pop()), value);
-//                    break;
-//                default:
-//                    currentJsonNode = value;
-//                    break;
-//            }
-        }
-
-        private boolean isNegativeZero(String str) {
-            return '-' == str.charAt(0) && 0 == Double.parseDouble(str);
-        }
 
         /**
          * Represents the state during a non-string value is defined.

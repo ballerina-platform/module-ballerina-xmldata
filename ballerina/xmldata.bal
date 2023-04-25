@@ -405,6 +405,6 @@ returns returnType|Error = @java:Method {
 
 # JSON projection
 public isolated function fromJsonByteArrayWithType(byte[] bytes, typedesc<record {}> typed = <>)
-        returns typed|Error|handle = @java:Method {
+        returns typed|Error = @java:Method {
     'class: "io.ballerina.stdlib.json.JsonToJson"
 } external;

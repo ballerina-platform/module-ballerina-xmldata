@@ -20,5 +20,7 @@ module io.ballerina.stdlib.xmldata {
     requires io.ballerina.runtime;
     requires io.ballerina.lang.value;
     requires java.xml;
+    requires junit;
     exports io.ballerina.stdlib.xmldata;
+    exports io.ballerina.stdlib.json;
 }

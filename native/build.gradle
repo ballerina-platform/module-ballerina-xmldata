@@ -24,6 +24,7 @@ plugins {
 description = 'Ballerina - Xmldata Java Utils'
 
 dependencies {
+    implementation 'junit:junit:4.13.1'
     checkstyle project(':checkstyle')
     checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
 
