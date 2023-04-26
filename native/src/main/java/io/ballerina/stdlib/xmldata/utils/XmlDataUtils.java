@@ -61,6 +61,10 @@ public class XmlDataUtils {
                 null, null);
     }
 
+    public static BError getJsonError(String message) {
+        return ErrorCreator.createError(StringUtils.fromString(message));
+    }
+
     @SuppressWarnings("unchecked")
     public static Object getModifiedRecord(BMap<BString, Object> input, BTypedesc type) {
         Type describingType = type.getDescribingType();

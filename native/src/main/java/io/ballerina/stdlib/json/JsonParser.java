@@ -24,6 +24,7 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -231,7 +232,7 @@ public class JsonParser {
 
         public Object execute(Reader reader, Type type) throws BError {
             if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
-                throw XmlDataUtils.getError("Input type should be a record type");
+                throw XmlDataUtils.getJsonError("Input type should be a record type");
             }
             this.rootType = (RecordType) type;
             this.fieldHierarchy.push(rootType.getFields());
@@ -245,10 +246,6 @@ public class JsonParser {
                     while (this.index < count) {
                         currentState = currentState.transition(this, buff, this.index, count);
                     }
-                }
-                currentState = currentState.transition(this, new char[] { EOF }, 0, 1);
-                if (currentState != DOC_END_STATE) {
-                    throw ErrorCreator.createError(StringUtils.fromString("invalid JSON document"));
                 }
                 return this.currentJsonNode;
             } catch (IOException e) {
@@ -280,7 +277,7 @@ public class JsonParser {
             Map<String, Field> remainingFields = this.fieldHierarchy.pop();
             for (Field field : remainingFields.values()) {
                 if (SymbolFlags.isFlagOn(field.getFlags(), SymbolFlags.REQUIRED)) {
-                    throw XmlDataUtils.getError("Required field not present in JSON");
+                    throw XmlDataUtils.getJsonError("Required field not present in JSON");
                 }
             }
             if (this.nodesStack.isEmpty()) {
@@ -296,11 +293,15 @@ public class JsonParser {
         }
 
         private State initNewObject() {
-            if (this.currentField.getFieldType().getTag() != TypeTags.RECORD_TYPE_TAG) {
-                // TODO update error messages
-                throw XmlDataUtils.getError("Invalid field type");
+            Type currentType = this.currentField.getFieldType();
+            while (currentType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
+                currentType = ((ReferenceType) currentType).getReferredType();
             }
-            RecordType recordType = (RecordType) this.currentField.getFieldType();
+            if (currentType.getTag() != TypeTags.RECORD_TYPE_TAG) {
+                // TODO update error messages
+                throw XmlDataUtils.getJsonError("Invalid field type" + currentField.getFieldName());
+            }
+            RecordType recordType = (RecordType) currentType;
             this.fieldHierarchy.push(recordType.getFields());
             // TODO handle when tree is not balanced (eg: json type field)
             if (currentJsonNode != null) {
@@ -653,7 +654,7 @@ public class JsonParser {
             @Override
             public State transition(StateMachine sm, char[] buff, int i, int count) throws JsonParserException {
                 if (sm.currentField.getFieldType().getTag() != TypeTags.STRING_TAG) {
-                    throw XmlDataUtils.getError("unexpected field type");
+                    throw XmlDataUtils.getJsonError("unexpected field type");
                 }
                 State state = null;
                 char ch;
