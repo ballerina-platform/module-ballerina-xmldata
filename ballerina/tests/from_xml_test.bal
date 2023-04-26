@@ -748,3 +748,154 @@ isolated function testFromXmlNegative() returns error? {
         test:assertFail(msg = "testFromXmlNegative result incorrect");
     }
 }
+
+@Namespace {
+    uri: "example.com"
+}
+type PersonDetail record {
+    string name;
+    int age;
+    string 'xmlns;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function negativeTestForMismatchUri() returns error? {
+    var x1 = xml `<PersonDetail xmlns=""><name>Supun</name><age>6</age></PersonDetail>`;
+    PersonDetail|error actual = fromXml(x1);
+    if (actual is error) {
+        string message = actual.message();
+        test:assertTrue(message.includes("The URI['example.com'] of the namespace in the expected record " +
+                "definition differs from the XML namespace's['xmlns'] URI['']"), msg = message);
+    } else {
+        test:assertFail(msg = "negativeTestForMismatchUri result incorrect");
+    }
+}
+
+@Namespace {
+    prefix: "ns",
+    uri: "example.com"
+}
+type StudentDetail record {
+    string name;
+    int age;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function negativeTestForMismatchUri1() returns error? {
+    var x1 = xml `<StudentDetail xmlns:ns="exam.com"><name>Supun</name><age>6</age></StudentDetail>`;
+    StudentDetail|error actual = fromXml(x1);
+    if (actual is error) {
+        string message = actual.message();
+        test:assertTrue(message.includes("The URI['example.com'] of the namespace in the expected record " +
+                    "definition differs from the XML namespace's['xmlns:ns'] URI['exam.com']"),
+            msg = message);
+    } else {
+        test:assertFail(msg = "negativeTestForMismatchUri1 result incorrect");
+    }
+}
+
+type Catering record {
+    string statusCode?;
+    string attendees?;
+    string contractFinalized?;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithEmpty() returns error? {
+    var x1 = xml `<Catering/>`;
+    record {} output = {};
+    Catering|error actual = fromXml(x1);
+    test:assertEquals(actual, output, msg = "testFromXmlWithEmpty result incorrect");
+}
+
+type Allotment record {
+    string name?;
+    Catering Catering?;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithEmpty1() returns error? {
+    xml allotment = xml `<Allotment><name>some</name><Catering/></Allotment>`;
+    Allotment output = {
+        name: "some",
+        Catering:{}
+    };
+    Allotment rec = check fromXml(allotment, Allotment);
+    test:assertEquals(rec, output, msg = "testFromXmlWithEmpty result incorrect");
+}
+
+type Allotment2 record {
+    string name?;
+    Catering[] Catering?;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithEmpty2() returns error? {
+    xml allotment = xml `<Allotment2><name>some</name><Catering/></Allotment2>`;
+    Allotment2 output = {
+        name: "some",
+        Catering:[]
+    };
+    Allotment2 rec = check fromXml(allotment, Allotment2);
+    test:assertEquals(rec, output, msg = rec.toString());
+}
+
+type Allotment3 record {
+    string name?;
+    Catering3 Catering?;
+};
+
+type Catering3 record {
+    string statusCode;
+    string attendees?;
+    string contractFinalized?;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithEmpty4() {
+    xml allotment = xml `<Allotment3><name>some</name><Catering/></Allotment3>`;
+    Allotment3 output = {
+        name: "some",
+        Catering:{statusCode: ""}
+    };
+    Allotment3|error actual = fromXml(allotment, Allotment3);
+    if (actual is error) {
+        test:assertTrue(actual.message().includes("missing required field 'Catering.statusCode' of type 'string' " +
+                "in record 'xmldata:Catering3"), msg = actual.message());
+    } else {
+        test:assertFail(msg = "testFromXmlWithEmpty4 result incorrect");
+    }
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithEmpty5() returns error? {
+    xml allotment = xml `<Allotment><name>some</name><Catering><statusCode>LLD</statusCode></Catering></Allotment>`;
+    Allotment output = {
+        name: "some",
+        Catering:{statusCode: "LLD"}
+    };
+    Allotment rec = check fromXml(allotment, Allotment);
+    test:assertEquals(rec, output, msg = rec.toString());
+    allotment = xml `<Allotment><name>some</name><Catering/></Allotment>`;
+    output = {
+        name: "some",
+        Catering:{}
+    };
+    rec = check fromXml(allotment, Allotment);
+    test:assertEquals(rec, output, msg = rec.toString());
+    test:assertEquals((), rec.Catering?.statusCode);
+}
