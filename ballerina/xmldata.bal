@@ -403,7 +403,10 @@ returns returnType|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.MapFromXml"
 } external;
 
-# JSON projection
+# Parse a json byte array with projection
+#
+# + bytes - Byte array of json
+# + typed - Typedesc to be used for filtering in the projection
 public isolated function fromJsonByteArrayWithType(byte[] bytes, typedesc<record {}> typed = <>)
         returns typed|Error = @java:Method {
     'class: "io.ballerina.stdlib.json.JsonToJson"

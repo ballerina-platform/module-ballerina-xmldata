@@ -20,12 +20,16 @@ package io.ballerina.stdlib.json;
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
@@ -227,11 +231,10 @@ public class JsonParser {
 
         public Object execute(Reader reader, Type type) throws BError {
             if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
-                return XmlDataUtils.getError("Input type should be a record type");
+                throw XmlDataUtils.getError("Input type should be a record type");
             }
-            RecordType recordType = (RecordType) type;
-            this.rootType = recordType;
-            this.fieldHierarchy.push(recordType.getFields());
+            this.rootType = (RecordType) type;
+            this.fieldHierarchy.push(rootType.getFields());
             State currentState = DOC_START_STATE;
 
             try {
@@ -274,7 +277,12 @@ public class JsonParser {
         }
 
         private State finalizeObject() {
-            this.fieldHierarchy.pop();
+            Map<String, Field> remainingFields = this.fieldHierarchy.pop();
+            for (Field field : remainingFields.values()) {
+                if (SymbolFlags.isFlagOn(field.getFlags(), SymbolFlags.REQUIRED)) {
+                    throw XmlDataUtils.getError("Required field not present in JSON");
+                }
+            }
             if (this.nodesStack.isEmpty()) {
                 return DOC_END_STATE;
             }
@@ -283,20 +291,22 @@ public class JsonParser {
         }
 
         private State initRootObject() {
-//            if (currentJsonNode != null) {
-//                this.nodesStack.push(currentJsonNode);
-//            }
-//            currentJsonNode = new MapValueImpl<>(new BMapType(definedJsonType));
+            currentJsonNode = ValueCreator.createRecordValue(this.rootType);
             return FIRST_FIELD_READY_STATE;
         }
 
         private State initNewObject() {
+            if (this.currentField.getFieldType().getTag() != TypeTags.RECORD_TYPE_TAG) {
+                // TODO update error messages
+                throw XmlDataUtils.getError("Invalid field type");
+            }
             RecordType recordType = (RecordType) this.currentField.getFieldType();
             this.fieldHierarchy.push(recordType.getFields());
-//            if (currentJsonNode != null) {
-//                this.nodesStack.push(currentJsonNode);
-//            }
-//            currentJsonNode = new MapValueImpl<>(new BMapType(definedJsonType));
+            // TODO handle when tree is not balanced (eg: json type field)
+            if (currentJsonNode != null) {
+                this.nodesStack.push(currentJsonNode);
+            }
+            currentJsonNode = ValueCreator.createRecordValue(recordType);
             return FIRST_FIELD_READY_STATE;
         }
 
@@ -642,14 +652,17 @@ public class JsonParser {
 
             @Override
             public State transition(StateMachine sm, char[] buff, int i, int count) throws JsonParserException {
+                if (sm.currentField.getFieldType().getTag() != TypeTags.STRING_TAG) {
+                    throw XmlDataUtils.getError("unexpected field type");
+                }
                 State state = null;
                 char ch;
                 for (; i < count; i++) {
                     ch = buff[i];
                     sm.processLocation(ch);
                     if (ch == sm.currentQuoteChar) {
-//                        ((MapValueImpl<BString, Object>) sm.currentJsonNode).put(
-//                                StringUtils.fromString(sm.fieldNames.pop()), StringUtils.fromString(sm.value()));
+                        ((BMap<BString, Object>) sm.currentJsonNode).put(
+                                StringUtils.fromString(sm.fieldNames.pop()), StringUtils.fromString(sm.value()));
                         state = FIELD_END_STATE;
                     } else if (ch == REV_SOL) {
                         state = STRING_FIELD_ESC_CHAR_PROCESSING_STATE;
