@@ -28,6 +28,8 @@ import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -832,10 +834,117 @@ public class JsonParser {
         }
 
         private void processNonStringValue(ValueType type) throws JsonParserException {
-            value();
-            // TODO
+            String str = value();
+            if (str.indexOf('.') >= 0) {
+                try {
+                    double d = Double.parseDouble(str);
+                    switch (mode) {
+                        case FROM_JSON_FLOAT_STRING:
+                            setValueToJsonType(type, d);
+                            break;
+                        case FROM_JSON_DECIMAL_STRING:
+                            setValueToJsonType(type, BDecimal.valueOf(d));
+                            break;
+                        default:
+                            if (isNegativeZero(str)) {
+                                setValueToJsonType(type, d);
+                            } else {
+                                setValueToJsonType(type, BDecimal.valueOf(d));
+                            }
+                            break;
+                    }
+                } catch (NumberFormatException ignore) {
+                    throw XmlDataUtils.getJsonError("unrecognized token '" + str + "'");
+                }
+            } else {
+                char ch = str.charAt(0);
+                if (ch == 't' && TRUE.equals(str)) {
+                    switch (type) {
+                        case ARRAY_ELEMENT:
+                            ((BArray) this.currentJsonNode).append(Boolean.TRUE);
+                            break;
+                        case FIELD:
+                            ((BMap<BString, Object>) this.currentJsonNode).put(
+                                    StringUtils.fromString(this.fieldNames.pop()), Boolean.TRUE);
+                            break;
+                        case VALUE:
+                            currentJsonNode = Boolean.TRUE;
+                            break;
+                        default:
+                            break;
+                    }
+                } else if (ch == 'f' && FALSE.equals(str)) {
+                    switch (type) {
+                        case ARRAY_ELEMENT:
+                            ((BArray) this.currentJsonNode).append(Boolean.FALSE);
+                            break;
+                        case FIELD:
+                            ((BMap<BString, Object>) this.currentJsonNode).put(
+                                    StringUtils.fromString(this.fieldNames.pop()), Boolean.FALSE);
+                            break;
+                        case VALUE:
+                            currentJsonNode = Boolean.FALSE;
+                            break;
+                        default:
+                            break;
+                    }
+                } else if (ch == 'n' && NULL.equals(str)) {
+                    switch (type) {
+                        case ARRAY_ELEMENT:
+                            ((BArray) this.currentJsonNode).append(null);
+                            break;
+                        case FIELD:
+                            ((BMap<BString, Object>) this.currentJsonNode).put(
+                                    StringUtils.fromString(this.fieldNames.pop()), null);
+                            break;
+                        case VALUE:
+                            currentJsonNode = null;
+                            break;
+                        default:
+                            break;
+                    }
+                } else {
+                    try {
+                        switch (mode) {
+                            case FROM_JSON_FLOAT_STRING:
+                                setValueToJsonType(type, Double.parseDouble(str));
+                                break;
+                            case FROM_JSON_DECIMAL_STRING:
+                                setValueToJsonType(type, BDecimal.valueOf(Double.parseDouble(str)));
+                                break;
+                            default:
+                                if (isNegativeZero(str)) {
+                                    setValueToJsonType(type, Double.parseDouble(str));
+                                } else {
+                                    setValueToJsonType(type, Long.parseLong(str));
+                                }
+                                break;
+                        }
+                    } catch (NumberFormatException ignore) {
+                        throw XmlDataUtils.getJsonError("unrecognized token '" + str + "'");
+                    }
+                }
+            }
         }
 
+        private void setValueToJsonType(ValueType type, Object value) {
+            switch (type) {
+                case ARRAY_ELEMENT:
+                    ((BArray) this.currentJsonNode).append(value);
+                    break;
+                case FIELD:
+                    ((BMap<BString, Object>) this.currentJsonNode).put(
+                            StringUtils.fromString(this.fieldNames.pop()), value);
+                    break;
+                default:
+                    currentJsonNode = value;
+                    break;
+            }
+        }
+
+        private boolean isNegativeZero(String str) {
+            return '-' == str.charAt(0) && 0 == Double.parseDouble(str);
+        }
 
         /**
          * Represents the state during a non-string value is defined.

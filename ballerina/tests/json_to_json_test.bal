@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/test;
+import ballerina/io;
 
 type Address record {
     string street;
@@ -143,5 +144,6 @@ isolated function testJsonToJson4() returns error? {
 
     byte[] bytes = jsonContent.toString().toBytes();
 
-    _ = check fromJsonByteArrayWithType(bytes, School);
+    School x = check fromJsonByteArrayWithType(bytes, School);
+    io:println(x);
 }
