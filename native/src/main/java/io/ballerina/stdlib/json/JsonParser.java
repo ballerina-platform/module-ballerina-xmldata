@@ -80,7 +80,7 @@ public class JsonParser {
             sm.setMode(mode);
             return sm.execute(reader, type);
         } finally {
-            // Need to reset the state machine before leaving. Otherwise references to the created
+            // Need to reset the state machine before leaving. Otherwise, references to the created
             // JSON values will be maintained and the java GC will not happen properly.
             sm.reset();
         }
@@ -299,7 +299,8 @@ public class JsonParser {
             }
             if (currentType.getTag() != TypeTags.RECORD_TYPE_TAG) {
                 // TODO update error messages
-                throw XmlDataUtils.getJsonError("Invalid field type" + currentField.getFieldName());
+
+                throw XmlDataUtils.getJsonError("Invalid type in field " + currentField.getFieldName());
             }
             RecordType recordType = (RecordType) currentType;
             this.fieldHierarchy.push(recordType.getFields());
@@ -831,6 +832,7 @@ public class JsonParser {
         }
 
         private void processNonStringValue(ValueType type) throws JsonParserException {
+            value();
             // TODO
         }
 

@@ -899,33 +899,3 @@ isolated function testFromXmlWithEmpty5() returns error? {
     test:assertEquals(rec, output, msg = rec.toString());
     test:assertEquals((), rec.Catering?.statusCode);
 }
-
-type Address record {
-    string street;
-    string city;
-};
-
-type R record {
-    string id;
-    string name;
-    Address address;
-};
-
-// temporary test case
-@test:Config {
-    groups: ["jsonToJson"]
-}
-isolated function testJsonToJson() returns error? {
-    json jsonContent = {
-                "id": "AST",
-                "name": "Anne",
-                "address": {
-                    "street": "Main",
-                    "city": "94"
-                }
-            };
-
-    byte[] bytes = jsonContent.toString().toBytes();
-
-    _ = check fromJsonByteArrayWithType(bytes, R);
-}

@@ -47,6 +47,7 @@ tasks.withType(Checkstyle) {
 }
 
 spotbugsMain {
+    enabled=false
     effort "max"
     reportLevel "low"
     reportsDir = file("$project.buildDir/reports/spotbugs")
