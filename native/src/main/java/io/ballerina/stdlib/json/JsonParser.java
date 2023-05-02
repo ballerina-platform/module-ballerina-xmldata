@@ -28,6 +28,7 @@ import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BError;
@@ -286,7 +287,17 @@ public class JsonParser {
                 return DOC_END_STATE;
             }
 
-            return FIELD_END_STATE;
+            Object parentNode = this.nodesStack.pop();
+            if (TypeUtils.getReferredType(TypeUtils.getType(parentNode)).getTag() == TypeTags.RECORD_TYPE_TAG) {
+                ((BMap<BString, Object>) parentNode).put(StringUtils.fromString(fieldNames.pop()),
+                        currentJsonNode);
+                currentJsonNode = parentNode;
+                return FIELD_END_STATE;
+                
+            }
+            ((BArray) parentNode).append(changeForBString(currentJsonNode));
+            currentJsonNode = parentNode;
+            return ARRAY_ELEMENT_END_STATE;
         }
 
         private State initRootObject() {
