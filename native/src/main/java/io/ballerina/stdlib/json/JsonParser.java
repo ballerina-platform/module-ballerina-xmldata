@@ -656,7 +656,7 @@ public class JsonParser {
 
             @Override
             public State transition(StateMachine sm, char[] buff, int i, int count) throws JsonParserException {
-                if (sm.currentField.getFieldType().getTag() != TypeTags.STRING_TAG) {
+                if (sm.currentField != null && sm.currentField.getFieldType().getTag() != TypeTags.STRING_TAG) {
                     throw XmlDataUtils.getJsonError("unexpected field type");
                 }
                 State state = null;
@@ -665,8 +665,11 @@ public class JsonParser {
                     ch = buff[i];
                     sm.processLocation(ch);
                     if (ch == sm.currentQuoteChar) {
-                        ((BMap<BString, Object>) sm.currentJsonNode).put(
-                                StringUtils.fromString(sm.fieldNames.pop()), StringUtils.fromString(sm.value()));
+                        String s = sm.value();
+                        if (sm.currentField != null) {
+                            ((BMap<BString, Object>) sm.currentJsonNode).put(
+                                    StringUtils.fromString(sm.fieldNames.pop()), StringUtils.fromString(s));
+                        }
                         state = FIELD_END_STATE;
                     } else if (ch == REV_SOL) {
                         state = STRING_FIELD_ESC_CHAR_PROCESSING_STATE;
