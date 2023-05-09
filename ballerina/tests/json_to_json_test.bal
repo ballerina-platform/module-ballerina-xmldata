@@ -288,3 +288,73 @@ function testJsonToJson7() returns error?{
     test:assertEquals(x.intValue, 10);
     // TODO fix test:assertEquals(x.nested1.intValue, 5) running with other tests
 }
+
+type TestR record {|
+    string street;
+    string city;
+    int...;
+|};
+
+@test:Config {
+    groups: ["jsonToJson"]
+}
+isolated function testJsonToJson8() returns error? {
+    json jsonContent = {
+                "street": "Main",
+                "city": "Mahar",
+                "house": 94
+            };
+
+    byte[] bytes = jsonContent.toString().toBytes();
+
+    TestR x = check fromJsonByteArrayWithType(bytes, TestR);
+    test:assertEquals(x.street, "Main");
+    test:assertEquals(x.city, "Mahar");
+    test:assertEquals(x["house"], 94);
+}
+
+type TestArr1 record {
+    string street;
+    string city;
+    int[] houses;
+};
+
+@test:Config {
+    groups: ["jsonToJson"]
+}
+isolated function testJsonToJson9() returns error? {
+    json jsonContent = {
+        "street": "Main",
+        "city": "Mahar",
+        "houses": [94, 95, 96]
+    };
+    byte[] bytes = jsonContent.toString().toBytes();
+
+    TestArr1 x = check fromJsonByteArrayWithType(bytes, TestArr1);
+    test:assertEquals(x.street, "Main");
+    test:assertEquals(x.city, "Mahar");
+    test:assertEquals(x.houses, [94, 95, 96]);
+}
+
+type TestArr2 record {
+    string street;
+    string city;
+    [int, string] house;
+};
+
+@test:Config {
+    groups: ["jsonToJson"]
+}
+isolated function testJsonToJson10() returns error? {
+    json jsonContent = {
+        "street": "Main",
+        "city": "Mahar",
+        "house": [94, "Gedara"]
+    };
+    byte[] bytes = jsonContent.toString().toBytes();
+
+    TestArr2 x = check fromJsonByteArrayWithType(bytes, TestArr2);
+    test:assertEquals(x.street, "Main");
+    test:assertEquals(x.city, "Mahar");
+    test:assertEquals(x.house, [94, "Gedara"]);
+}

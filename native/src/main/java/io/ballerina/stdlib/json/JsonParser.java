@@ -20,11 +20,13 @@ package io.ballerina.stdlib.json;
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
+import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.RecordType;
-import io.ballerina.runtime.api.types.ReferenceType;
+import io.ballerina.runtime.api.types.TupleType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -32,10 +34,12 @@ import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BListInitialValueEntry;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -276,18 +280,26 @@ public class JsonParser {
             this.charBuff = newBuff;
         }
 
-        private State finalizeObject() {
+        private State finalizeNonArrayObject() {
             Map<String, Field> remainingFields = this.fieldHierarchy.pop();
             for (Field field : remainingFields.values()) {
                 if (SymbolFlags.isFlagOn(field.getFlags(), SymbolFlags.REQUIRED)) {
                     throw XmlDataUtils.getJsonError("Required field not present in JSON");
                 }
             }
+            return finalizeObject();
+        }
+
+        private State finalizeObject() {
             if (this.nodesStack.isEmpty()) {
                 return DOC_END_STATE;
             }
 
             Object parentNode = this.nodesStack.pop();
+            if (currentJsonNode instanceof BArray) {
+                finalizeArray();
+            }
+
             if (TypeUtils.getReferredType(TypeUtils.getType(parentNode)).getTag() == TypeTags.RECORD_TYPE_TAG) {
                 ((BMap<BString, Object>) parentNode).put(StringUtils.fromString(fieldNames.pop()),
                         currentJsonNode);
@@ -300,16 +312,30 @@ public class JsonParser {
             return ARRAY_ELEMENT_END_STATE;
         }
 
+        private void finalizeArray() {
+            Type arrType = TypeUtils.getReferredType(currentField.getFieldType());
+            BArray currArr = (BArray) currentJsonNode;
+            BListInitialValueEntry[] initialValues = new BListInitialValueEntry[currArr.size()];
+            for (int i = 0; i < currArr.size(); i++) {
+                initialValues[i] = ValueCreator.createListInitialValueEntry(currArr.get(i));
+            }
+
+            if (arrType.getTag() == TypeTags.ARRAY_TAG) {
+                currentJsonNode = ValueCreator.createArrayValue((ArrayType) arrType, initialValues);
+            } else if (arrType.getTag() == TypeTags.TUPLE_TAG) {
+                currentJsonNode = ValueCreator.createTupleValue((TupleType) arrType, initialValues);
+            } else {
+                throw XmlDataUtils.getJsonError("Invalid type in field " + currentField.getFieldName());
+            }
+        }
+
         private State initRootObject() {
             currentJsonNode = ValueCreator.createRecordValue(this.rootType);
             return FIRST_FIELD_READY_STATE;
         }
 
         private State initNewObject() {
-            Type currentType = this.currentField.getFieldType();
-            while (currentType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-                currentType = ((ReferenceType) currentType).getReferredType();
-            }
+            Type currentType = TypeUtils.getReferredType(this.currentField.getFieldType());
             if (currentType.getTag() != TypeTags.RECORD_TYPE_TAG) {
                 // TODO update error messages
 
@@ -326,10 +352,12 @@ public class JsonParser {
         }
 
         private State initNewArray() {
-//            if (currentJsonNode != null) {
-//                this.nodesStack.push(currentJsonNode);
-//            }
-//            currentJsonNode = new ArrayValueImpl(new BArrayType(definedJsonType));
+            if (currentJsonNode != null) {
+                this.nodesStack.push(currentJsonNode);
+            }
+
+            currentJsonNode = ValueCreator.createArrayValue(TypeCreator.createArrayType(definedJsonType));
+
             return FIRST_ARRAY_ELEMENT_READY_STATE;
         }
 
@@ -433,7 +461,7 @@ public class JsonParser {
                         state = this;
                         continue;
                     } else if (ch == '}') {
-                        state = sm.finalizeObject();
+                        state = sm.finalizeNonArrayObject();
                     } else {
                         StateMachine.throwExpected("\"", "}");
                     }
@@ -677,7 +705,8 @@ public class JsonParser {
                     sm.processLocation(ch);
                     if (ch == sm.currentQuoteChar) {
                         String s = sm.value();
-                        if (sm.currentField != null) {
+                        if (sm.currentField != null
+                                || sm.rootType.getRestFieldType().getTag() == TypeTags.STRING_TAG) {
                             ((BMap<BString, Object>) sm.currentJsonNode).put(
                                     StringUtils.fromString(sm.fieldNames.pop()), StringUtils.fromString(s));
                         }
@@ -712,7 +741,7 @@ public class JsonParser {
                     ch = buff[i];
                     sm.processLocation(ch);
                     if (ch == sm.currentQuoteChar) {
-//                        ((ArrayValue) sm.currentJsonNode).append(changeForBString(sm.value()));
+                        ((BArray) sm.currentJsonNode).append(changeForBString(sm.value()));
                         state = ARRAY_ELEMENT_END_STATE;
                     } else if (ch == REV_SOL) {
                         state = STRING_AE_ESC_CHAR_PROCESSING_STATE;
@@ -747,7 +776,10 @@ public class JsonParser {
                         state = sm.initNewObject();
                     } else if (ch == '[') {
                         state = sm.initNewArray();
-                    } else if (ch == '}' || ch == ']') {
+                    } else if (ch == '}') {
+                        sm.processNonStringValue(ValueType.FIELD);
+                        state = sm.finalizeNonArrayObject();
+                    } else if (ch == ']') {
                         sm.processNonStringValue(ValueType.FIELD);
                         state = sm.finalizeObject();
                     } else if (ch == ',') {
@@ -1007,7 +1039,7 @@ public class JsonParser {
                     } else if (ch == ',') {
                         state = NON_FIRST_FIELD_READY_STATE;
                     } else if (ch == '}') {
-                        state = sm.finalizeObject();
+                        state = sm.finalizeNonArrayObject();
                     } else {
                         StateMachine.throwExpected(",", "}");
                     }
@@ -1139,8 +1171,7 @@ public class JsonParser {
             }
 
             private char extractUnicodeChar(StateMachine sm) {
-//                return StringEscapeUtils.unescapeJava("\\u" + sm.hexBuilder.toString()).charAt(0);
-                return 'a';
+                return StringEscapeUtils.unescapeJava("\\u" + sm.hexBuilder.toString()).charAt(0);
             }
 
         }
