@@ -899,3 +899,140 @@ isolated function testFromXmlWithEmpty5() returns error? {
     test:assertEquals(rec, output, msg = rec.toString());
     test:assertEquals((), rec.Catering?.statusCode);
 }
+
+@Namespace {
+    prefix: "ns",
+    uri: "http://sdf.com"
+}
+type Test record {
+    Test1 xs\:id;
+};
+
+
+type Test1 record {
+
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlXXXX() returns error? {
+    xml data = xml `<ns:Test xmlns="example.com"
+                        xmlns:ns="http://sdf.com" status="paid">?
+                        <xs:id xmlns:xs="http://sdf.com">1</xs:id>
+                    </ns:Test>`;
+    Test output = {
+        xs\:id:{"#content": "1"},
+        "#content": "?"
+    };
+    Test rec = check fromXml(data);
+    test:assertEquals(rec, output, msg = rec.toString());
+}
+
+@Namespace {
+    prefix: "a",
+    uri: "http://xxxxxxx.com/"
+}
+type AddAccount record {
+    Account ns0\:Account;
+    AccountTemplate b\:AccountTemplate;
+};
+
+@Namespace {
+    prefix: "ns0",
+    uri: "http://xxxxxxx.com/"
+}
+type Account record {
+    StartDate b\:StartDate;
+    EndDate b\:EndDate;
+    Status ns0\:Status;
+};
+
+@Namespace {
+    prefix: "b",
+    uri: "http://asd.com/"
+}
+type EndDate record {};
+
+@Namespace {
+    prefix: "b",
+    uri: "http://xxxxxxx.com/"
+}
+type AccountTemplate record {};
+
+@Namespace {
+    prefix: "ns0",
+    uri: "http://asd.com/"
+}
+type Status record {};
+
+@Namespace {
+    prefix: "b",
+    uri: "http://asd.com/"
+}
+type StartDate record {};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithComplexXml() returns error? {
+    xml data = xml `<a:AddAccount xmlns:a="http://xxxxxxx.com/">
+                        <ns0:Account xmlns:ns0="http://xxxxxxx.com/">?
+                            <b:EndDate xmlns:b="http://asd.com/">?</b:EndDate>
+                            <b:StartDate xmlns:b="http://asd.com/">?</b:StartDate>
+                            <ns0:Status xmlns:ns0="http://asd.com/">?</ns0:Status>
+                        </ns0:Account>
+                        <b:AccountTemplate xmlns:b="http://xxxxxxx.com/">?</b:AccountTemplate>
+                    </a:AddAccount>`;
+    AddAccount output = {
+        ns0\:Account:{
+            "#content": "?",
+            b\:StartDate:{"#content": "?"},
+            b\:EndDate:{"#content": "?"},
+            ns0\:Status:{"#content": "?"}
+        },
+        b\:AccountTemplate:{"#content": "?"}
+    };
+    AddAccount rec = check fromXml(data);
+    test:assertEquals(rec, output, msg = rec.toString());
+}
+
+@Namespace {
+    prefix: "a",
+    uri: "http://xxxxxxx.com/"
+}
+type AddAccount1 record {
+    Account1 ns0\:Account;
+    string b\:AccountTemplate;
+};
+
+type Account1 record {
+    string b\:StartDate;
+    string b\:EndDate;
+    string ns0\:Status;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithComplexXml1() returns error? {
+    xml data = xml `<a:AddAccount1 xmlns:a="http://xxxxxxx.com/">
+                        <ns0:Account xmlns:ns0="http://xxxxxxx.com/">?
+                            <b:EndDate xmlns:b="http://asd.com/">?</b:EndDate>
+                            <b:StartDate xmlns:b="http://asd.com/">?</b:StartDate>
+                            <ns0:Status xmlns:ns0="http://asd.com/">?</ns0:Status>
+                        </ns0:Account>
+                        <b:AccountTemplate xmlns:b="http://xxxxxxx.com/">?</b:AccountTemplate>
+                    </a:AddAccount1>`;
+    AddAccount1 output = {
+        ns0\:Account:{
+            "#content": "?",
+            b\:StartDate:"?",
+            b\:EndDate: "?",
+            ns0\:Status: "?"
+        },
+        b\:AccountTemplate: "?"
+    };
+    AddAccount1 rec = check fromXml(data);
+    test:assertEquals(rec, output, msg = rec.toString());
+}
