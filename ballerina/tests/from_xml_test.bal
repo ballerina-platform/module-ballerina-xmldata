@@ -901,35 +901,6 @@ isolated function testFromXmlWithEmpty5() returns error? {
 }
 
 @Namespace {
-    prefix: "ns",
-    uri: "http://sdf.com"
-}
-type Test record {
-    Test1 xs\:id;
-};
-
-
-type Test1 record {
-
-};
-
-@test:Config {
-    groups: ["fromXml"]
-}
-isolated function testFromXmlXXXX() returns error? {
-    xml data = xml `<ns:Test xmlns="example.com"
-                        xmlns:ns="http://sdf.com" status="paid">?
-                        <xs:id xmlns:xs="http://sdf.com">1</xs:id>
-                    </ns:Test>`;
-    Test output = {
-        xs\:id:{"#content": "1"},
-        "#content": "?"
-    };
-    Test rec = check fromXml(data);
-    test:assertEquals(rec, output, msg = rec.toString());
-}
-
-@Namespace {
     prefix: "a",
     uri: "http://xxxxxxx.com/"
 }
