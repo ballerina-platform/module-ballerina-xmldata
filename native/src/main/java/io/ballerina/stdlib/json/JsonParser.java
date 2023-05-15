@@ -296,11 +296,11 @@ public class JsonParser {
             }
 
             Object parentNode = this.nodesStack.pop();
-            if (currentJsonNode instanceof BArray) {
-                finalizeArray();
-            }
 
             if (TypeUtils.getReferredType(TypeUtils.getType(parentNode)).getTag() == TypeTags.RECORD_TYPE_TAG) {
+                if (currentJsonNode instanceof BArray) {
+                    currentJsonNode = finalizeArray(currentField.getFieldType(), (BArray) currentJsonNode);
+                }
                 ((BMap<BString, Object>) parentNode).put(StringUtils.fromString(fieldNames.pop()),
                         currentJsonNode);
                 currentJsonNode = parentNode;
@@ -312,18 +312,29 @@ public class JsonParser {
             return ARRAY_ELEMENT_END_STATE;
         }
 
-        private void finalizeArray() {
-            Type arrType = TypeUtils.getReferredType(currentField.getFieldType());
-            BArray currArr = (BArray) currentJsonNode;
+        private BArray finalizeArray(Type arrType, BArray currArr) {
+            int arrTypeTag = arrType.getTag();
             BListInitialValueEntry[] initialValues = new BListInitialValueEntry[currArr.size()];
             for (int i = 0; i < currArr.size(); i++) {
-                initialValues[i] = ValueCreator.createListInitialValueEntry(currArr.get(i));
+                Object curElement = currArr.get(i);
+                Type currElmType = TypeUtils.getType(curElement);
+                if (currElmType.getTag() == TypeTags.ARRAY_TAG) {
+                    if (arrTypeTag == TypeTags.ARRAY_TAG) {
+                        curElement = finalizeArray(((ArrayType) arrType).getElementType(), (BArray) curElement);
+                    } else if (arrTypeTag == TypeTags.TUPLE_TAG) {
+                        curElement = finalizeArray(((TupleType) arrType).getTupleTypes().get(i), (BArray) curElement);
+                    } else {
+                        throw XmlDataUtils.getJsonError("Invalid type in field " + currentField.getFieldName());
+                    }
+                }
+
+                initialValues[i] = ValueCreator.createListInitialValueEntry(curElement);
             }
 
-            if (arrType.getTag() == TypeTags.ARRAY_TAG) {
-                currentJsonNode = ValueCreator.createArrayValue((ArrayType) arrType, initialValues);
-            } else if (arrType.getTag() == TypeTags.TUPLE_TAG) {
-                currentJsonNode = ValueCreator.createTupleValue((TupleType) arrType, initialValues);
+            if (arrTypeTag == TypeTags.ARRAY_TAG) {
+                return ValueCreator.createArrayValue((ArrayType) arrType, initialValues);
+            } else if (arrTypeTag == TypeTags.TUPLE_TAG) {
+                return ValueCreator.createTupleValue((TupleType) arrType, initialValues);
             } else {
                 throw XmlDataUtils.getJsonError("Invalid type in field " + currentField.getFieldName());
             }
