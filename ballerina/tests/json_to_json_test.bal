@@ -338,7 +338,7 @@ isolated function testJsonToJson9() returns error? {
 
 type TestArr2 record {
     string street;
-    string city;
+    int city;
     [int, string] house;
 };
 
@@ -348,14 +348,14 @@ type TestArr2 record {
 isolated function testJsonToJson10() returns error? {
     json jsonContent = {
         "street": "Main",
-        "city": "Mahar",
+        "city": 11,
         "house": [94, "Gedara"]
     };
     byte[] bytes = jsonContent.toString().toBytes();
 
     TestArr2 x = check fromJsonByteArrayWithType(bytes, TestArr2);
     test:assertEquals(x.street, "Main");
-    test:assertEquals(x.city, "Mahar");
+    test:assertEquals(x.city, 11);
     test:assertEquals(x.house, [94, "Gedara"]);
 }
 
@@ -380,4 +380,27 @@ isolated function testJsonToJson11() returns error? {
     test:assertEquals(x.street, "Main");
     test:assertEquals(x.city, "Mahar");
     test:assertEquals(x.house, [94, [1, 2, 3]]);
+}
+
+type TestJson record {
+    string street;
+    json city;
+};
+
+@test:Config {
+    groups: ["jsonToJson"]
+}
+isolated function testJsonToJson12() returns error? {
+    json jsonContent = {
+        "street": "Main",
+        "city": {
+            "name": "Mahar",
+            "code": 94
+        }
+    };
+    byte[] bytes = jsonContent.toString().toBytes();
+
+    TestJson x = check fromJsonByteArrayWithType(bytes, TestJson);
+    test:assertEquals(x.street, "Main");
+    test:assertEquals(x.city, {"name": "Mahar", "code": 94});
 }

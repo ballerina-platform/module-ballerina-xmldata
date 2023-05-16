@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
@@ -324,7 +325,7 @@ public class JsonParser {
                     } else if (arrTypeTag == TypeTags.TUPLE_TAG) {
                         curElement = finalizeArray(((TupleType) arrType).getTupleTypes().get(i), (BArray) curElement);
                     } else {
-                        throw XmlDataUtils.getJsonError("Invalid type in field " + currentField.getFieldName());
+                        throw XmlDataUtils.getJsonError("invalidx type in field " + currentField.getFieldName());
                     }
                 }
 
@@ -336,7 +337,7 @@ public class JsonParser {
             } else if (arrTypeTag == TypeTags.TUPLE_TAG) {
                 return ValueCreator.createTupleValue((TupleType) arrType, initialValues);
             } else {
-                throw XmlDataUtils.getJsonError("Invalid type in field " + currentField.getFieldName());
+                throw XmlDataUtils.getJsonError("invalidx type in field " + currentField.getFieldName());
             }
         }
 
@@ -347,18 +348,22 @@ public class JsonParser {
 
         private State initNewObject() {
             Type currentType = TypeUtils.getReferredType(this.currentField.getFieldType());
-            if (currentType.getTag() != TypeTags.RECORD_TYPE_TAG) {
-                // TODO update error messages
-
-                throw XmlDataUtils.getJsonError("Invalid type in field " + currentField.getFieldName());
-            }
-            RecordType recordType = (RecordType) currentType;
-            this.fieldHierarchy.push(recordType.getFields());
-            // TODO handle when tree is not balanced (eg: json type field)
             if (currentJsonNode != null) {
                 this.nodesStack.push(currentJsonNode);
             }
-            currentJsonNode = ValueCreator.createRecordValue(recordType);
+
+            if (currentType.getTag() == TypeTags.JSON_TAG) {
+                currentJsonNode = ValueCreator.createMapValue();
+                this.fieldHierarchy.push(new HashMap<>());
+            } else if (currentType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                RecordType recordType = (RecordType) currentType;
+                this.fieldHierarchy.push(recordType.getFields());
+                currentJsonNode = ValueCreator.createRecordValue(recordType);
+            } else {
+                // TODO update error messages
+                throw XmlDataUtils.getJsonError("invalidx type in field " + currentField.getFieldName());
+            }
+
             return FIRST_FIELD_READY_STATE;
         }
 
@@ -706,9 +711,6 @@ public class JsonParser {
 
             @Override
             public State transition(StateMachine sm, char[] buff, int i, int count) throws JsonParserException {
-                if (sm.currentField != null && sm.currentField.getFieldType().getTag() != TypeTags.STRING_TAG) {
-                    throw XmlDataUtils.getJsonError("unexpected field type");
-                }
                 State state = null;
                 char ch;
                 for (; i < count; i++) {
@@ -716,11 +718,8 @@ public class JsonParser {
                     sm.processLocation(ch);
                     if (ch == sm.currentQuoteChar) {
                         String s = sm.value();
-                        if (sm.currentField != null
-                                || sm.rootType.getRestFieldType().getTag() == TypeTags.STRING_TAG) {
-                            ((BMap<BString, Object>) sm.currentJsonNode).put(
-                                    StringUtils.fromString(sm.fieldNames.pop()), StringUtils.fromString(s));
-                        }
+                        ((BMap<BString, Object>) sm.currentJsonNode).put(
+                                StringUtils.fromString(sm.fieldNames.pop()), StringUtils.fromString(s));
                         state = FIELD_END_STATE;
                     } else if (ch == REV_SOL) {
                         state = STRING_FIELD_ESC_CHAR_PROCESSING_STATE;
