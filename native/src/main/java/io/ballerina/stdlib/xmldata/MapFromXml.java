@@ -27,6 +27,7 @@ import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -36,7 +37,6 @@ import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.runtime.api.values.BXmlSequence;
 import io.ballerina.stdlib.xmldata.utils.Constants;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
-import org.ballerinalang.langlib.value.CloneWithType;
 
 import java.util.List;
 import java.util.Map;
@@ -71,17 +71,9 @@ public class MapFromXml {
                             ((BError) output).getErrorMessage());
                 }
                 BMap<BString, Object> record = (BMap<BString, Object>) output;
-                if (describingType.getFlags() == Constants.DEFAULT_TYPE_FLAG) {
-                    output = CloneWithType.cloneWithType(output, type);
-                } else {
-                    output = CloneWithType.cloneWithType(record.get(record.getKeys()[0]), type);
-                }
-                if (output instanceof BError) {
-                    return XmlDataUtils.getError("XML type mismatch with record type: " +
-                            ((Map) ((BError) output).getDetails()).get(StringUtils.fromString("message")).
-                                    toString());
-                }
-                return output;
+                output = describingType.getFlags() == Constants.DEFAULT_TYPE_FLAG ? output
+                        : record.get(record.getKeys()[0]);
+                return getOutput(type, output);
             } catch (Exception e) {
                 return XmlDataUtils.getError("Failed to convert xml to record type: " + e.getMessage());
             }
@@ -99,7 +91,7 @@ public class MapFromXml {
                         BTable tableValue = ValueCreator.createTableValue(tableType);
                         Type tableValueType = TypeUtils.getReferredType(((TableType) valueType).getConstrainedType());
                         if (tableValueType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                            tableValue.put(CloneWithType.convert(tableValueType, entry.getValue()));
+                            tableValue.put(ValueUtils.convert(entry.getValue(), tableValueType));
                         } else {
                             tableValue.put(entry.getValue());
                         }
@@ -111,6 +103,16 @@ public class MapFromXml {
             } catch (Exception e) {
                 return XmlDataUtils.getError(e.getMessage());
             }
+        }
+    }
+
+    private static Object getOutput(BTypedesc type, Object output) {
+        try {
+            return ValueUtils.convert(output, type.getDescribingType());
+        } catch (BError bError) {
+            return XmlDataUtils.getError("XML type mismatch with record type: " +
+                    ((Map) bError.getDetails()).get(StringUtils.fromString("message")).
+                            toString());
         }
     }
 
