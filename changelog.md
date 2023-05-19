@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- [Fix the bug from fromXml API when xml elements have different namespaces](https://github.com/ballerina-platform/ballerina-standard-library/issues/4434)
+
+## [2.4.1] - 2023-03-08
+
+### Fixed
 - [Fix the mismatch error with fromXml when the XML element has no content](https://github.com/ballerina-platform/ballerina-standard-library/issues/4155)
 
 ## [2.4.0] - 2023-02-21
