@@ -15,7 +15,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package io.ballerina.stdlib.json;
+package io.ballerina.stdlib.xmldata.json;
 
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
@@ -38,7 +38,6 @@ import io.ballerina.runtime.api.values.BListInitialValueEntry;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
-import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.io.IOException;
@@ -46,6 +45,7 @@ import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
 
@@ -82,11 +82,13 @@ public class JsonParser {
      * @throws BError for any parsing error
      */
     public static Object parse(Reader reader, JsonUtils.NonStringValueProcessingMode mode, Type type)
-            throws BError {
+            throws BError, JsonParserException {
         StateMachine sm = tlStateMachine.get();
         try {
             sm.setMode(mode);
-            return sm.execute(reader, type);
+
+            Object out = sm.execute(reader, type);
+            return out;
         } finally {
             // Need to reset the state machine before leaving. Otherwise, references to the created
             // JSON values will be maintained and the java GC will not happen properly.
@@ -102,18 +104,19 @@ public class JsonParser {
      * @return JSON structure
      * @throws BError for any parsing error
      */
-    public static Object parse(Reader reader, BTypedesc typed) throws BError {
-        return parse(reader, JsonUtils.NonStringValueProcessingMode.FROM_JSON_STRING, typed.getDescribingType());
+    public static Object parse(Reader reader, BTypedesc typed) throws JsonParserException {
+        Object out = parse(reader, JsonUtils.NonStringValueProcessingMode.FROM_JSON_STRING, typed.getDescribingType());
+        return out;
     }
 
-    public static Object parse(Reader reader, Type type) throws BError {
+    public static Object parse(Reader reader, Type type) throws JsonParserException {
         return parse(reader, JsonUtils.NonStringValueProcessingMode.FROM_JSON_STRING, type);
     }
 
     /**
      * Represents a JSON parser related exception.
      */
-    private static class JsonParserException extends Exception {
+    public static class JsonParserException extends Exception {
 
         private static final long serialVersionUID = 6359022327525293320L;
 
@@ -174,6 +177,7 @@ public class JsonParser {
                 new StringValueUnicodeHexProcessingState();
         private JsonUtils.NonStringValueProcessingMode mode = JsonUtils.NonStringValueProcessingMode.FROM_JSON_STRING;
         private Type definedJsonType = PredefinedTypes.TYPE_JSON;
+        private ArrayType definedJsonArrayType = TypeCreator.createArrayType(definedJsonType);
 
 
         private Object currentJsonNode;
@@ -192,6 +196,8 @@ public class JsonParser {
         RecordType rootType;
         Field currentField;
         Stack<Map<String, Field>> fieldHierarchy = new Stack<>();
+
+        boolean jsonFieldMode = false;
 
         StateMachine() {
             reset();
@@ -238,9 +244,9 @@ public class JsonParser {
             }
         }
 
-        public Object execute(Reader reader, Type type) throws BError {
+        public Object execute(Reader reader, Type type) throws BError, JsonParserException {
             if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
-                throw XmlDataUtils.getJsonError("Input type should be a record type");
+                throw new JsonParserException("Input type should be a record type");
             }
             this.rootType = (RecordType) type;
             this.fieldHierarchy.push(rootType.getFields());
@@ -259,8 +265,8 @@ public class JsonParser {
             } catch (IOException e) {
                 throw ErrorCreator.createError(StringUtils.fromString("Error reading JSON: " + e.getMessage()));
             } catch (JsonParserException e) {
-                throw ErrorCreator.createError(StringUtils.fromString(e.getMessage() + " at line: " + this.line + " " +
-                        "column: " + this.column));
+                throw ErrorCreator.createError(StringUtils.fromString(e.getMessage() + " at line: " + this.line +
+                                                       " column: " + this.column));
             }
         }
 
@@ -281,17 +287,18 @@ public class JsonParser {
             this.charBuff = newBuff;
         }
 
-        private State finalizeNonArrayObject() {
+        private State finalizeNonArrayObject() throws JsonParserException {
+            this.jsonFieldMode = false;
             Map<String, Field> remainingFields = this.fieldHierarchy.pop();
             for (Field field : remainingFields.values()) {
                 if (SymbolFlags.isFlagOn(field.getFlags(), SymbolFlags.REQUIRED)) {
-                    throw XmlDataUtils.getJsonError("Required field not present in JSON");
+                    throw new JsonParserException("required field '" + field.getFieldName() + "' not present in JSON");
                 }
             }
             return finalizeObject();
         }
 
-        private State finalizeObject() {
+        private State finalizeObject() throws JsonParserException {
             if (this.nodesStack.isEmpty()) {
                 return DOC_END_STATE;
             }
@@ -306,14 +313,14 @@ public class JsonParser {
                         currentJsonNode);
                 currentJsonNode = parentNode;
                 return FIELD_END_STATE;
-                
+
             }
             ((BArray) parentNode).append(changeForBString(currentJsonNode));
             currentJsonNode = parentNode;
             return ARRAY_ELEMENT_END_STATE;
         }
 
-        private BArray finalizeArray(Type arrType, BArray currArr) {
+        private BArray finalizeArray(Type arrType, BArray currArr) throws JsonParserException {
             int arrTypeTag = arrType.getTag();
             BListInitialValueEntry[] initialValues = new BListInitialValueEntry[currArr.size()];
             for (int i = 0; i < currArr.size(); i++) {
@@ -325,7 +332,7 @@ public class JsonParser {
                     } else if (arrTypeTag == TypeTags.TUPLE_TAG) {
                         curElement = finalizeArray(((TupleType) arrType).getTupleTypes().get(i), (BArray) curElement);
                     } else {
-                        throw XmlDataUtils.getJsonError("invalidx type in field " + currentField.getFieldName());
+                        throw new JsonParserException("invalid type in field " + getCurrentFieldPath());
                     }
                 }
 
@@ -337,7 +344,7 @@ public class JsonParser {
             } else if (arrTypeTag == TypeTags.TUPLE_TAG) {
                 return ValueCreator.createTupleValue((TupleType) arrType, initialValues);
             } else {
-                throw XmlDataUtils.getJsonError("invalidx type in field " + currentField.getFieldName());
+                throw new JsonParserException("invalid type in field " + getCurrentFieldPath());
             }
         }
 
@@ -346,33 +353,38 @@ public class JsonParser {
             return FIRST_FIELD_READY_STATE;
         }
 
-        private State initNewObject() {
+        private State initRootArray() {
+            currentJsonNode = ValueCreator.createArrayValue(definedJsonArrayType);
+            return FIRST_FIELD_READY_STATE;
+        }
+
+        private State initNewObject() throws JsonParserException {
             Type currentType = TypeUtils.getReferredType(this.currentField.getFieldType());
             if (currentJsonNode != null) {
                 this.nodesStack.push(currentJsonNode);
             }
-
+            // TODO fix for unbalanced tree
             if (currentType.getTag() == TypeTags.JSON_TAG) {
                 currentJsonNode = ValueCreator.createMapValue();
                 this.fieldHierarchy.push(new HashMap<>());
+                this.jsonFieldMode = true;
             } else if (currentType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 RecordType recordType = (RecordType) currentType;
                 this.fieldHierarchy.push(recordType.getFields());
                 currentJsonNode = ValueCreator.createRecordValue(recordType);
             } else {
-                // TODO update error messages
-                throw XmlDataUtils.getJsonError("invalidx type in field " + currentField.getFieldName());
+                throw new JsonParserException("invalid type in field " + getCurrentFieldPath());
             }
-
             return FIRST_FIELD_READY_STATE;
         }
 
         private State initNewArray() {
+            // TODO add error message x.school[0].name
             if (currentJsonNode != null) {
                 this.nodesStack.push(currentJsonNode);
             }
 
-            currentJsonNode = ValueCreator.createArrayValue(TypeCreator.createArrayType(definedJsonType));
+            currentJsonNode = ValueCreator.createArrayValue(definedJsonArrayType);
 
             return FIRST_ARRAY_ELEMENT_READY_STATE;
         }
@@ -620,7 +632,9 @@ public class JsonParser {
                     sm.processLocation(ch);
                     if (ch == sm.currentQuoteChar) {
                         String jsonFieldName = sm.processFieldName();
-                        sm.currentField = sm.fieldHierarchy.peek().remove(jsonFieldName);
+                        if (!sm.jsonFieldMode) {
+                            sm.currentField = sm.fieldHierarchy.peek().remove(jsonFieldName);
+                        }
                         state = END_FIELD_NAME_STATE;
                     } else if (ch == REV_SOL) {
                         state = FIELD_NAME_ESC_CHAR_PROCESSING_STATE;
@@ -718,8 +732,11 @@ public class JsonParser {
                     sm.processLocation(ch);
                     if (ch == sm.currentQuoteChar) {
                         String s = sm.value();
-                        ((BMap<BString, Object>) sm.currentJsonNode).put(
-                                StringUtils.fromString(sm.fieldNames.pop()), StringUtils.fromString(s));
+                        if (sm.currentField != null) {
+                            ((BMap<BString, Object>) sm.currentJsonNode).put(
+                                    StringUtils.fromString(sm.fieldNames.pop()),
+                                    StringUtils.fromString((String) sm.convertJSON(s)));
+                        }
                         state = FIELD_END_STATE;
                     } else if (ch == REV_SOL) {
                         state = STRING_FIELD_ESC_CHAR_PROCESSING_STATE;
@@ -891,6 +908,9 @@ public class JsonParser {
 
         private void processNonStringValue(ValueType type) throws JsonParserException {
             String str = value();
+            if (currentField == null) {
+                return;
+            }
             if (str.indexOf('.') >= 0) {
                 try {
                     double d = Double.parseDouble(str);
@@ -910,51 +930,56 @@ public class JsonParser {
                             break;
                     }
                 } catch (NumberFormatException ignore) {
-                    throw XmlDataUtils.getJsonError("unrecognized token '" + str + "'");
+                    throw new JsonParserException("unrecognized token '" + str + "'");
                 }
             } else {
                 char ch = str.charAt(0);
                 if (ch == 't' && TRUE.equals(str)) {
+                    Object convertedVal = type.equals(ValueType.ARRAY_ELEMENT) ?
+                            Boolean.TRUE : convertJSON(Boolean.TRUE);
                     switch (type) {
                         case ARRAY_ELEMENT:
-                            ((BArray) this.currentJsonNode).append(Boolean.TRUE);
+                            ((BArray) this.currentJsonNode).append(convertedVal);
                             break;
                         case FIELD:
                             ((BMap<BString, Object>) this.currentJsonNode).put(
-                                    StringUtils.fromString(this.fieldNames.pop()), Boolean.TRUE);
+                                    StringUtils.fromString(this.fieldNames.pop()), convertedVal);
                             break;
                         case VALUE:
-                            currentJsonNode = Boolean.TRUE;
+                            currentJsonNode = convertedVal;
                             break;
                         default:
                             break;
                     }
                 } else if (ch == 'f' && FALSE.equals(str)) {
+                    Object convertedVal = type.equals(ValueType.ARRAY_ELEMENT) ?
+                            Boolean.FALSE : convertJSON(Boolean.FALSE);
                     switch (type) {
                         case ARRAY_ELEMENT:
-                            ((BArray) this.currentJsonNode).append(Boolean.FALSE);
+                            ((BArray) this.currentJsonNode).append(convertedVal);
                             break;
                         case FIELD:
                             ((BMap<BString, Object>) this.currentJsonNode).put(
-                                    StringUtils.fromString(this.fieldNames.pop()), Boolean.FALSE);
+                                    StringUtils.fromString(this.fieldNames.pop()), convertedVal);
                             break;
                         case VALUE:
-                            currentJsonNode = Boolean.FALSE;
+                            currentJsonNode = convertedVal;
                             break;
                         default:
                             break;
                     }
                 } else if (ch == 'n' && NULL.equals(str)) {
+                    Object convertedVal = type.equals(ValueType.ARRAY_ELEMENT) ? null : convertJSON(null);
                     switch (type) {
                         case ARRAY_ELEMENT:
-                            ((BArray) this.currentJsonNode).append(null);
+                            ((BArray) this.currentJsonNode).append(convertedVal);
                             break;
                         case FIELD:
                             ((BMap<BString, Object>) this.currentJsonNode).put(
-                                    StringUtils.fromString(this.fieldNames.pop()), null);
+                                    StringUtils.fromString(this.fieldNames.pop()), convertedVal);
                             break;
                         case VALUE:
-                            currentJsonNode = null;
+                            currentJsonNode = convertedVal;
                             break;
                         default:
                             break;
@@ -977,27 +1002,52 @@ public class JsonParser {
                                 break;
                         }
                     } catch (NumberFormatException ignore) {
-                        throw XmlDataUtils.getJsonError("unrecognized token '" + str + "'");
+                        throw new JsonParserException("unrecognized token '" + str + "'");
                     }
                 }
             }
         }
 
-        private void setValueToJsonType(ValueType type, Object value) {
+        private void setValueToJsonType(ValueType type, Object value) throws JsonParserException {
+            Object convertedVal;
+            try {
+                convertedVal = type.equals(ValueType.ARRAY_ELEMENT) ? value : convertJSON(value);
+            } catch (BError e) {
+                throw new JsonParserException("incompatible value '" + value + "' for type '" +
+                        this.currentField.getFieldType() + "' in field '" + getCurrentFieldPath() + "'");
+            }
             switch (type) {
                 case ARRAY_ELEMENT:
-                    ((BArray) this.currentJsonNode).append(value);
+                    ((BArray) this.currentJsonNode).append(convertedVal);
                     break;
                 case FIELD:
                     ((BMap<BString, Object>) this.currentJsonNode).put(
-                            StringUtils.fromString(this.fieldNames.pop()), value);
+                            StringUtils.fromString(this.fieldNames.pop()), convertedVal);
                     break;
                 default:
-                    currentJsonNode = value;
+                    currentJsonNode = convertedVal;
                     break;
             }
         }
 
+        private Object convertJSON(Object value) throws JsonParserException {
+            // TODO support for rest types
+            try {
+                return JsonUtils.convertJSON(value, this.currentField.getFieldType());
+            } catch (BError e) {
+                throw new JsonParserException("incompatible value '" + value + "' for type '" +
+                        this.currentField.getFieldType() + "' in field '" + getCurrentFieldPath() + "'");
+            }
+        }
+        private String getCurrentFieldPath() {
+            Iterator<String> itr = this.fieldNames.descendingIterator();
+
+            StringBuilder result = new StringBuilder(itr.hasNext() ? itr.next() : "");
+            while (itr.hasNext()) {
+                result.append(".").append(itr.next());
+            }
+            return result.toString();
+        }
         private boolean isNegativeZero(String str) {
             return '-' == str.charAt(0) && 0 == Double.parseDouble(str);
         }
@@ -1304,7 +1354,5 @@ public class JsonParser {
             }
 
         }
-
     }
-
 }

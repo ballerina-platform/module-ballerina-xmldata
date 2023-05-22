@@ -15,11 +15,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package io.ballerina.stdlib.json;
+package io.ballerina.stdlib.xmldata.json;
 
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -33,10 +34,15 @@ public class JsonToJson {
 
     public static Object fromJsonByteArrayWithType(BArray byteArr, BTypedesc typed) {
         byte[] bytes = byteArr.getBytes();
-        return JsonParser.parse(new InputStreamReader(new ByteArrayInputStream(bytes)), typed);
+        try {
+            return JsonParser.parse(new InputStreamReader(new ByteArrayInputStream(bytes)), typed);
+        } catch (Exception e) {
+            return XmlDataUtils.getJsonError(e.getMessage());
+        }
+
     }
     
-    public static Object fromJsonByteArrayWithType2(byte[] bytes, Type typed) {
+    public static Object fromJsonByteArrayWithType2(byte[] bytes, Type typed) throws JsonParser.JsonParserException {
         return JsonParser.parse(new InputStreamReader(new ByteArrayInputStream(bytes)), typed);
     }
     

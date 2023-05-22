@@ -62,7 +62,8 @@ public class XmlDataUtils {
     }
 
     public static BError getJsonError(String message) {
-        return ErrorCreator.createError(StringUtils.fromString(message));
+        return ErrorCreator.createError(ModuleUtils.getModule(), ERROR, StringUtils.fromString(message),
+                null, null);
     }
 
     @SuppressWarnings("unchecked")

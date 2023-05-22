@@ -411,5 +411,5 @@ returns returnType|Error = @java:Method {
 #            else returns an `xmldata:Error`
 public isolated function fromJsonByteArrayWithType(byte[] bytes, typedesc<record {}> typed = <>)
         returns typed|Error = @java:Method {
-    'class: "io.ballerina.stdlib.json.JsonToJson"
+    'class: "io.ballerina.stdlib.xmldata.json.JsonToJson"
 } external;
