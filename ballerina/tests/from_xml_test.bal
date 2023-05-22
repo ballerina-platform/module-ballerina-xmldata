@@ -1007,3 +1007,105 @@ isolated function testFromXmlWithComplexXml1() returns error? {
     AddAccount1 rec = check fromXml(data);
     test:assertEquals(rec, output, msg = rec.toString());
 }
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithBackSlash() returns error? {
+    xml payload = xml `<BookStore4 status="on\line" xmlns:ns0="http://sample.com/test">
+                            <storeName>fo\o</storeName>
+                            <postalCode>94</postalCode>
+                            <isOpen>true</isOpen>
+                            <address>
+                                <street>Galle \Road</street>
+                                <city>Colombo</city>
+                                <country>Sri Lanka</country>
+                            </address>
+                            <codes>
+                                <item>4</item>
+                                <item>8</item>
+                                <item>9</item>
+                            </codes>
+                        </BookStore4>
+                        <!-- some comment -->
+                        <?doc document="book.doc"?>`;
+    BookStore4 expected = {
+        storeName: "fo\\o",
+        postalCode: 94,
+        isOpen: true,
+        address: {
+            street: "Galle \\Road",
+            city: "Colombo",
+            country: "Sri Lanka"
+        },
+        codes: {
+            item: [4, 8, 9]
+        },
+        'xmlns\:ns0: "http://sample.com/test",
+        status: "on\\line"
+    };
+    BookStore4 actual = check fromXml(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
+}
+
+type Book_Store record {
+    string storeName;
+    int postalCode;
+    boolean isOpen;
+    Address_ address;
+    Codes_ codes;
+    @Attribute
+    string status;
+    @Attribute
+    string 'xmlns\:ns0;
+};
+
+type Address_ record {
+    string street;
+    string city;
+    string country;
+};
+
+type Codes_ record {
+    string[] item;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithBackSlash1() returns error? {
+    xml payload = xml `<Book_Store status="on\line" xmlns:ns0="http://sample.com/test">
+                            <storeName>fo\o</storeName>
+                            <postalCode>94</postalCode>
+                            <isOpen>true</isOpen>
+                            <address>
+                                <street>Galle \Road</street>
+                                <city>Colombo</city>
+                                <country>Sri Lanka</country>
+                            </address>
+                            <codes>
+                                <item>item\1\2</item>
+                                <item>item\1\3</item>
+                                <item>item\1\5</item>
+                            </codes>
+                        </Book_Store>
+                        <!-- some comment -->
+                        <?doc document="book.doc"?>`;
+    Book_Store expected = {
+        storeName: "fo\\o",
+        postalCode: 94,
+        isOpen: true,
+        address: {
+            street: "Galle \\Road",
+            city: "Colombo",
+            country: "Sri Lanka"
+        },
+        codes: {
+            item: ["item\\1\\2", "item\\1\\3", "item\\1\\5"]
+        },
+        'xmlns\:ns0: "http://sample.com/test",
+        status: "on\\line"
+    };
+    Book_Store actual = check fromXml(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
+}

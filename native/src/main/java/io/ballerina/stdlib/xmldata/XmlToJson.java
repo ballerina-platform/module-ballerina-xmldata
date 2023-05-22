@@ -153,8 +153,8 @@ public class XmlToJson {
                 }
             }
         }
-        return JsonUtils.parse(DOUBLE_QUOTES + xml.stringValue(null).replace(DOUBLE_QUOTES,
-                "\\\"") + DOUBLE_QUOTES);
+        String value = escapeBackSlash(xml.stringValue(null));
+        return JsonUtils.parse(DOUBLE_QUOTES + value.replace(DOUBLE_QUOTES, "\\\"") + DOUBLE_QUOTES);
     }
 
     /**
@@ -189,9 +189,9 @@ public class XmlToJson {
     }
 
     private static void processAttributeWithAnnotation(BXmlItem xmlItem, String attributePrefix,
-                                                        boolean preserveNamespaces, BMap<BString, Object> childrenData,
-                                                        Type fieldType, BMap<BString, BString> attributeMap,
-                                                        BMap<BString, BString> parentAttributeMap) throws Exception {
+                                                       boolean preserveNamespaces, BMap<BString, Object> childrenData,
+                                                       Type fieldType, BMap<BString, BString> attributeMap,
+                                                       BMap<BString, BString> parentAttributeMap) throws Exception {
         if (!attributePrefix.equals(Constants.SKIP_ATTRIBUTE)) {
             BMap<BString, Object> annotations = null;
             if (attributePrefix.equals(Constants.ADD_IF_HAS_ANNOTATION))  {
@@ -369,7 +369,7 @@ public class XmlToJson {
     }
 
     private static boolean isBelongingToElement(BMap<BString, BString> parentAttributeMap, BString key,
-                                                       BString value) {
+                                                BString value) {
         return parentAttributeMap.containsKey(key) && parentAttributeMap.get(key).getValue().equals(value.getValue());
     }
 
@@ -542,15 +542,15 @@ public class XmlToJson {
                     if (mapJson.get(fromString(CONTENT)) instanceof BString) {
                         BArray jsonList = createNewJsonList();
                         jsonList.append(mapJson.get(fromString(CONTENT)));
-                        jsonList.append(fromString(bxml.toString().trim()));
+                        jsonList.append(fromString(escapeBackSlash(bxml.toString().trim())));
                         mapJson.put(fromString(CONTENT), jsonList);
                     } else {
                         BArray jsonList = mapJson.getArrayValue(fromString(CONTENT));
-                        jsonList.append(fromString(bxml.toString().trim()));
+                        jsonList.append(fromString(escapeBackSlash(bxml.toString().trim())));
                         mapJson.put(fromString(CONTENT), jsonList);
                     }
                 } else {
-                    mapJson.put(fromString(CONTENT), fromString(bxml.toString().trim()));
+                    mapJson.put(fromString(CONTENT), fromString(escapeBackSlash(bxml.toString().trim())));
                 }
             } else {
                 BString elementName = fromString(getElementKey((BXmlItem) bxml, preserveNamespaces));
@@ -710,6 +710,10 @@ public class XmlToJson {
         }
         elementKey.append(qName.getLocalPart());
         return elementKey.toString();
+    }
+
+    private static String escapeBackSlash(String str) {
+        return str.replace("\\", "\\\\");
     }
 
     private XmlToJson() {
