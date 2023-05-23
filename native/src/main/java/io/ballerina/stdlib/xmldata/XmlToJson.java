@@ -30,7 +30,6 @@ import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.types.XmlNodeType;
-import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -153,8 +152,7 @@ public class XmlToJson {
                 }
             }
         }
-        return JsonUtils.parse(DOUBLE_QUOTES + xml.stringValue(null).replace(DOUBLE_QUOTES,
-                "\\\"") + DOUBLE_QUOTES);
+        return fromString(xml.stringValue(null));
     }
 
     /**
@@ -189,9 +187,9 @@ public class XmlToJson {
     }
 
     private static void processAttributeWithAnnotation(BXmlItem xmlItem, String attributePrefix,
-                                                        boolean preserveNamespaces, BMap<BString, Object> childrenData,
-                                                        Type fieldType, BMap<BString, BString> attributeMap,
-                                                        BMap<BString, BString> parentAttributeMap) throws Exception {
+                                                       boolean preserveNamespaces, BMap<BString, Object> childrenData,
+                                                       Type fieldType, BMap<BString, BString> attributeMap,
+                                                       BMap<BString, BString> parentAttributeMap) throws Exception {
         if (!attributePrefix.equals(Constants.SKIP_ATTRIBUTE)) {
             BMap<BString, Object> annotations = null;
             if (attributePrefix.equals(Constants.ADD_IF_HAS_ANNOTATION))  {
@@ -369,7 +367,7 @@ public class XmlToJson {
     }
 
     private static boolean isBelongingToElement(BMap<BString, BString> parentAttributeMap, BString key,
-                                                       BString value) {
+                                                BString value) {
         return parentAttributeMap.containsKey(key) && parentAttributeMap.get(key).getValue().equals(value.getValue());
     }
 

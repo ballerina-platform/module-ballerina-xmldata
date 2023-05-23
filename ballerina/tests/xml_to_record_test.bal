@@ -1251,3 +1251,93 @@ isolated function testToRecordWithSameAttribute() returns Error? {
     Root30 actual = check toRecord(x);
     test:assertEquals(actual, expected, msg = "testToRecordWithSameAttribute result incorrect");
 }
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithSingleBackSlash() returns error? {
+    xml payload = xml `
+                    <bookstore status="on\line" xmlns:ns0="http://sample.com/test">
+                        <storeName>fo\o</storeName>
+                        <postalCode>94</postalCode>
+                        <isOpen>true</isOpen>
+                        <address>
+                            <street>Galle \Road</street>
+                            <city>Colombo</city>
+                            <country>Sri Lanka</country>
+                        </address>
+                        <codes>
+                            <item>4</item>
+                            <item>8</item>
+                            <item>9</item>
+                        </codes>
+                    </bookstore>
+                    <!-- some comment -->
+                    <?doc document="book.doc"?>`;
+
+    Commercial2 expected = {
+        bookstore: {
+            storeName: "fo\\o",
+            postalCode: 94,
+            isOpen: true,
+            address: {
+                street: "Galle \\Road",
+                city: "Colombo",
+                country: "Sri Lanka"
+            },
+            codes: {
+                item: [4, 8, 9]
+            },
+            _xmlns\:ns0: "http://sample.com/test",
+            _status: "on\\line"
+        }
+    };
+
+    Commercial2 actual = check toRecord(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
+}
+
+@test:Config {
+    groups: ["toRecord"]
+}
+isolated function testToRecordWithSingleBackSlash1() returns error? {
+    xml payload = xml `
+                    <bookstore status="on\line" xmlns:ns0="http://sample.com/test">
+                        <storeName>fo\o</storeName>
+                        <postalCode>94</postalCode>
+                        <isOpen>true</isOpen>
+                        <address>
+                            <street>Galle \Road</street>
+                            <city>Colombo</city>
+                            <country>Sri Lanka</country>
+                        </address>
+                        <codes>
+                            <item>item\1</item>
+                            <item>item\2</item>
+                            <item>item\3</item>
+                        </codes>
+                    </bookstore>
+                    <!-- some comment -->
+                    <?doc document="book.doc"?>`;
+
+    record{} expected = {
+        "bookstore": {
+            "storeName": "fo\\o",
+            "postalCode": "94",
+            "isOpen": "true",
+            "address": {
+                "street": "Galle \\Road",
+                "city": "Colombo",
+                "country": "Sri Lanka"
+            },
+            codes: {
+                "item": ["item\\1", "item\\2", "item\\3"]
+            },
+            "_xmlns:ns0": "http://sample.com/test",
+            "_status": "on\\line"
+        }
+    };
+
+    record{} actual = check toRecord(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
+}
