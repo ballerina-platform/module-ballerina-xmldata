@@ -153,8 +153,7 @@ public class XmlToJson {
                 }
             }
         }
-        return JsonUtils.parse(DOUBLE_QUOTES + xml.stringValue(null).replace(DOUBLE_QUOTES,
-                "\\\"") + DOUBLE_QUOTES);
+        return fromString(xml.stringValue(null));
     }
 
     /**
