@@ -689,7 +689,7 @@ isolated function testComplexXmlWithNamespace4() returns error? {
     groups: ["toJson"]
 }
 function testToJsonComplexXmlElementWithBackSlash() returns Error? {
-    xml e = xml `<Invoice xmlns="exa\mple.com" attr="at\tr-val" xmlns:ns="ns.com" ns:attr="ns\-attr-val">
+    xml e = xml `<Invoice xmlns="exa\\\\mple.com" attr="at\tr-val" xmlns:ns="ns.com" ns:attr="ns\-attr-val">
                     <PurchesedItems>
                         <PLine><ItemCode>22\3345</ItemCode><Count>10</Count></PLine>
                         <PLine><ItemCode>22\3300</ItemCode><Count>7</Count></PLine>
@@ -723,7 +723,7 @@ function testToJsonComplexXmlElementWithBackSlash() returns Error? {
                 "@xmlns": ""
             },
             "@xmlns:ns": "ns.com",
-            "@xmlns": "exa\\mple.com",
+            "@xmlns": "exa\\\\\\\\mple.com",
             "@attr": "at\\tr-val",
             "@ns:attr": "ns\\-attr-val"
         }

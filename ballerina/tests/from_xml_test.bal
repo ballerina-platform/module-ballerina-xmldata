@@ -1074,8 +1074,8 @@ type Codes_ record {
     groups: ["fromXml"]
 }
 isolated function testFromXmlWithBackSlash1() returns error? {
-    xml payload = xml `<Book_Store status="on\line" xmlns:ns0="http://sample.com/test">
-                            <storeName>fo\o</storeName>
+    xml payload = xml `<Book_Store status="on\\\line" xmlns:ns0="http://sample.com/test">
+                            <storeName>fo\\\o</storeName>
                             <postalCode>94</postalCode>
                             <isOpen>true</isOpen>
                             <address>
@@ -1084,7 +1084,7 @@ isolated function testFromXmlWithBackSlash1() returns error? {
                                 <country>Sri Lanka</country>
                             </address>
                             <codes>
-                                <item>item\1\2</item>
+                                <item>item\1\\2</item>
                                 <item>item\1\3</item>
                                 <item>item\1\5</item>
                             </codes>
@@ -1092,7 +1092,7 @@ isolated function testFromXmlWithBackSlash1() returns error? {
                         <!-- some comment -->
                         <?doc document="book.doc"?>`;
     Book_Store expected = {
-        storeName: "fo\\o",
+        storeName: "fo\\\\\\o",
         postalCode: 94,
         isOpen: true,
         address: {
@@ -1101,10 +1101,10 @@ isolated function testFromXmlWithBackSlash1() returns error? {
             country: "Sri Lanka"
         },
         codes: {
-            item: ["item\\1\\2", "item\\1\\3", "item\\1\\5"]
+            item: ["item\\1\\\\2", "item\\1\\3", "item\\1\\5"]
         },
         'xmlns\:ns0: "http://sample.com/test",
-        status: "on\\line"
+        status: "on\\\\\\line"
     };
     Book_Store actual = check fromXml(payload);
     test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");

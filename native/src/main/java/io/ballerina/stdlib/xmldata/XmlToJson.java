@@ -30,7 +30,6 @@ import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.types.XmlNodeType;
-import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -153,8 +152,7 @@ public class XmlToJson {
                 }
             }
         }
-        String value = escapeBackSlash(xml.stringValue(null));
-        return JsonUtils.parse(DOUBLE_QUOTES + value.replace(DOUBLE_QUOTES, "\\\"") + DOUBLE_QUOTES);
+        return fromString(xml.stringValue(null));
     }
 
     /**
@@ -542,15 +540,15 @@ public class XmlToJson {
                     if (mapJson.get(fromString(CONTENT)) instanceof BString) {
                         BArray jsonList = createNewJsonList();
                         jsonList.append(mapJson.get(fromString(CONTENT)));
-                        jsonList.append(fromString(escapeBackSlash(bxml.toString().trim())));
+                        jsonList.append(fromString(bxml.toString().trim()));
                         mapJson.put(fromString(CONTENT), jsonList);
                     } else {
                         BArray jsonList = mapJson.getArrayValue(fromString(CONTENT));
-                        jsonList.append(fromString(escapeBackSlash(bxml.toString().trim())));
+                        jsonList.append(fromString(bxml.toString().trim()));
                         mapJson.put(fromString(CONTENT), jsonList);
                     }
                 } else {
-                    mapJson.put(fromString(CONTENT), fromString(escapeBackSlash(bxml.toString().trim())));
+                    mapJson.put(fromString(CONTENT), fromString(bxml.toString().trim()));
                 }
             } else {
                 BString elementName = fromString(getElementKey((BXmlItem) bxml, preserveNamespaces));
@@ -710,10 +708,6 @@ public class XmlToJson {
         }
         elementKey.append(qName.getLocalPart());
         return elementKey.toString();
-    }
-
-    private static String escapeBackSlash(String str) {
-        return str.replace("\\", "\\\\");
     }
 
     private XmlToJson() {
