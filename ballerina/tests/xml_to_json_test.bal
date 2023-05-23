@@ -684,3 +684,49 @@ isolated function testComplexXmlWithNamespace4() returns error? {
         }
     });
 }
+
+@test:Config {
+    groups: ["toJson"]
+}
+function testToJsonComplexXmlElementWithBackSlash() returns Error? {
+    xml e = xml `<Invoice xmlns="exa\\\\mple.com" attr="at\tr-val" xmlns:ns="ns.com" ns:attr="ns\-attr-val">
+                    <PurchesedItems>
+                        <PLine><ItemCode>22\3345</ItemCode><Count>10</Count></PLine>
+                        <PLine><ItemCode>22\3300</ItemCode><Count>7</Count></PLine>
+                        <PLine><ItemCode discount="2\2%">200\777</ItemCode><Count>7</Count></PLine>
+                    </PurchesedItems>
+                    <Address xmlns="">
+                        <StreetAddress>20, Palm \grove, Colombo 3</StreetAddress>
+                        <City>Col\ombo</City>
+                        <Zip>00300</Zip>
+                        <Country>LK</Country>
+                    </Address>
+                  </Invoice>`;
+    json j = check toJson(e);
+    json expectedOutput = {
+        Invoice: {
+            PurchesedItems: {
+                PLine: [
+                    {ItemCode: "22\\3345", Count: "10"},
+                    {ItemCode: "22\\3300", Count: "7"},
+                    {
+                        ItemCode: {"@discount": "2\\2%", "#content": "200\\777"},
+                        Count: "7"
+                    }
+                ]
+            },
+            Address: {
+                StreetAddress: "20, Palm \\grove, Colombo 3",
+                City: "Col\\ombo",
+                Zip: "00300",
+                Country: "LK",
+                "@xmlns": ""
+            },
+            "@xmlns:ns": "ns.com",
+            "@xmlns": "exa\\\\\\\\mple.com",
+            "@attr": "at\\tr-val",
+            "@ns:attr": "ns\\-attr-val"
+        }
+    };
+    test:assertEquals(j, expectedOutput, msg = "testToJsonComplexXmlElement result incorrect");
+}
