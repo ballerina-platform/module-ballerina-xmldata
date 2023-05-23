@@ -19,6 +19,7 @@ package io.ballerina.stdlib.xmldata.json;
 
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BStream;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.xmldata.utils.XmlDataUtils;
 
@@ -41,7 +42,11 @@ public class JsonToJson {
         }
 
     }
-    
+
+    public static Object fromJsonByteArrayStreamWithType(BStream byteStream, BTypedesc typed) {
+        return null;
+    }
+
     public static Object fromJsonByteArrayWithType2(byte[] bytes, Type typed) throws JsonParser.JsonParserException {
         return JsonParser.parse(new InputStreamReader(new ByteArrayInputStream(bytes)), typed);
     }
