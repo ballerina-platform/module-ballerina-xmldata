@@ -189,7 +189,7 @@ type TestRecord record {
 @test:Config {
     groups: ["jsonToJson"]
 }
-function testJsonToJson5() returns error?{
+function testJsonToJson5() returns error? {
     json jsonContent = {
         "intValue": 10,
         "floatValue": 10.5,
@@ -276,9 +276,9 @@ type TestRecord2 record {
 };
 
 @test:Config {
-    groups: ["jsonToJson"]
+    groups: ["jsonToJsont"]
 }
-function testJsonToJson7() returns error?{
+function testJsonToJson7() returns error? {
     json nestedJson = {
         "intValue": 5,
         "floatValue": 2.5,
@@ -540,7 +540,7 @@ isolated function testJsonToJson18() returns error? {
 type tup [int, string, [int, float]];
 
 @test:Config {
-    groups: ["jsonToJsonx"]
+    groups: ["jsonToJson"]
 }
 isolated function testJsonToJson19() returns error? {
     json jsonContent = [1, "abc", [3, 4.0]];
@@ -552,6 +552,7 @@ isolated function testJsonToJson19() returns error? {
 
 type DebugType record {|
     int id;
+    readonly color;
     int...;
 |};
 
@@ -559,12 +560,13 @@ type DebugType record {|
     groups: ["debugFunction"]
 }
 isolated function debugFunction() returns error? {
-    json jsonContent = "{\"id\": 12, \"name\": \"Anne\", \"address\": 34}";
+    json jsonContent = "{\"id\": 12, \"color\":true, \"name\": \"Anne\", \"address\": 34}";
     byte[] bytes = jsonContent.toString().toBytes();
     
     DebugType x = check fromJsonByteArrayWithType(bytes, DebugType);
     test:assertEquals(x.id, 12);
     test:assertEquals(x["address"], 34);
     test:assertEquals(x["name"], null);
+    test:assertEquals(x.color, true);
 
 }

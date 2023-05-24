@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
@@ -204,9 +205,9 @@ public class JsonParser {
             this.nodesStack = new ArrayDeque<>();
             this.fieldNames = new ArrayDeque<>();
             this.setMode(JsonUtils.NonStringValueProcessingMode.FROM_JSON_STRING);
-            this.fieldHierarchy.removeAllElements();
+            this.fieldHierarchy.clear();
             this.currentField = null;
-            this.restType.removeAllElements();
+            this.restType.clear();
             this.jsonFieldMode = false;
             this.rootRecord = null;
             this.rootArray = null;
@@ -243,7 +244,7 @@ public class JsonParser {
         public Object execute(Reader reader, Type type) throws BError, JsonParserException {
             if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 rootRecord = (RecordType) type;
-                this.fieldHierarchy.push(rootRecord.getFields());
+                this.fieldHierarchy.push(new HashMap<>(rootRecord.getFields()));
                 this.restType.push(rootRecord.getRestFieldType());
             } else if (type.getTag() == TypeTags.ARRAY_TAG || type.getTag() == TypeTags.TUPLE_TAG) {
                 rootArray = type;
