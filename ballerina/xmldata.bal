@@ -409,7 +409,7 @@ returns returnType|Error = @java:Method {
 # + typed - Typedesc to be used for filtering in the projection
 # + return - The given target type representation of the given JSON byte array on success,
 #            else returns an `xmldata:Error`
-public isolated function fromJsonByteArrayWithType(byte[] bytes, typedesc<record {}> typed = <>)
+public isolated function fromJsonByteArrayWithType(byte[] bytes, typedesc<any> typed = <>)
         returns typed|Error = @java:Method {
     'class: "io.ballerina.stdlib.xmldata.json.JsonToJson"
 } external;

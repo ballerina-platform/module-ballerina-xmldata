@@ -82,7 +82,7 @@ public class JsonParser {
         try {
             sm.setMode(mode);
 
-            Object out = sm.execute(reader, type);
+            Object out = sm.execute(reader, TypeUtils.getReferredType(type));
             return out;
         } finally {
             // Need to reset the state machine before leaving. Otherwise, references to the created
@@ -112,9 +112,6 @@ public class JsonParser {
      * Represents a JSON parser related exception.
      */
     public static class JsonParserException extends Exception {
-
-        private static final long serialVersionUID = 6359022327525293320L;
-
         public JsonParserException(String msg) {
             super(msg);
         }
@@ -171,7 +168,7 @@ public class JsonParser {
         private static final State STRING_VALUE_UNICODE_HEX_PROCESSING_STATE =
                 new StringValueUnicodeHexProcessingState();
         private JsonUtils.NonStringValueProcessingMode mode = JsonUtils.NonStringValueProcessingMode.FROM_JSON_STRING;
-        private Type definedJsonType = PredefinedTypes.TYPE_JSON;
+        Type definedJsonType = PredefinedTypes.TYPE_JSON;
         ArrayType definedJsonArrayType = TypeCreator.createArrayType(definedJsonType);
 
 
@@ -187,10 +184,11 @@ public class JsonParser {
         private int line;
         private int column;
         private char currentQuoteChar;
-
-        RecordType rootType;
         Field currentField;
         Stack<Map<String, Field>> fieldHierarchy = new Stack<>();
+        Stack<Type> restType = new Stack<>();
+        RecordType rootRecord;
+        Type rootArray;
 
         boolean jsonFieldMode = false;
 
@@ -208,7 +206,10 @@ public class JsonParser {
             this.setMode(JsonUtils.NonStringValueProcessingMode.FROM_JSON_STRING);
             this.fieldHierarchy.removeAllElements();
             this.currentField = null;
-            this.rootType = null;
+            this.restType.removeAllElements();
+            this.jsonFieldMode = false;
+            this.rootRecord = null;
+            this.rootArray = null;
         }
 
         private void setMode(JsonUtils.NonStringValueProcessingMode mode) {
@@ -240,14 +241,17 @@ public class JsonParser {
         }
 
         public Object execute(Reader reader, Type type) throws BError, JsonParserException {
-            if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
-                throw new JsonParserException("Input type should be a record type");
+            if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                rootRecord = (RecordType) type;
+                this.fieldHierarchy.push(rootRecord.getFields());
+                this.restType.push(rootRecord.getRestFieldType());
+            } else if (type.getTag() == TypeTags.ARRAY_TAG || type.getTag() == TypeTags.TUPLE_TAG) {
+                rootArray = type;
+            } else {
+                throw ErrorCreator.createError(StringUtils.fromString("incompatible type for json: " + type));
             }
 
-            this.rootType = (RecordType) type;
-            this.fieldHierarchy.push(rootType.getFields());
             State currentState = DOC_START_STATE;
-
             try {
                 char[] buff = new char[1024];
                 int count;
@@ -286,6 +290,7 @@ public class JsonParser {
         private State finalizeNonArrayObject() throws JsonParserException {
             this.jsonFieldMode = false;
             Map<String, Field> remainingFields = this.fieldHierarchy.pop();
+            this.restType.pop();
             for (Field field : remainingFields.values()) {
                 if (SymbolFlags.isFlagOn(field.getFlags(), SymbolFlags.REQUIRED)) {
                     throw new JsonParserException("required field '" + field.getFieldName() + "' not present in JSON");
@@ -296,6 +301,10 @@ public class JsonParser {
 
         private State finalizeObject() throws JsonParserException {
             if (this.nodesStack.isEmpty()) {
+                if (currentJsonNode instanceof BArray) {
+                    currentJsonNode =
+                            JsonCreator.finalizeArray(this, rootArray, (BArray) currentJsonNode);
+                }
                 return DOC_END_STATE;
             }
 
@@ -303,7 +312,8 @@ public class JsonParser {
 
             if (TypeUtils.getReferredType(TypeUtils.getType(parentNode)).getTag() == TypeTags.RECORD_TYPE_TAG) {
                 if (currentJsonNode instanceof BArray) {
-                    currentJsonNode = JsonCreator.finalizeArray(this, currentField.getFieldType(), (BArray) currentJsonNode);
+                    currentJsonNode =
+                            JsonCreator.finalizeArray(this, currentField.getFieldType(), (BArray) currentJsonNode);
                 }
                 ((BMap<BString, Object>) parentNode).put(StringUtils.fromString(fieldNames.pop()),
                         currentJsonNode);
@@ -351,7 +361,7 @@ public class JsonParser {
                     if (ch == '{') {
                         state = JsonCreator.initRootObject(sm);
                     } else if (ch == '[') {
-                        state = JsonCreator.initNewArray(sm);
+                        state = JsonCreator.initRootArray(sm);
                     } else if (StateMachine.isWhitespace(ch)) {
                         state = this;
                         continue;
@@ -664,7 +674,16 @@ public class JsonParser {
                         if (sm.currentField != null) {
                             ((BMap<BString, Object>) sm.currentJsonNode).put(
                                     StringUtils.fromString(sm.fieldNames.pop()),
-                                    StringUtils.fromString((String) JsonCreator.convertJSON(sm, s)));
+                                    StringUtils.fromString((String) JsonCreator.convertJSON(sm, s,
+                                            sm.currentField.getFieldType())));
+                        } else if (sm.restType.peek() != null && sm.restType.peek().getTag() != TypeTags.ANYDATA_TAG) {
+                            try {
+                                ((BMap<BString, Object>) sm.currentJsonNode).put(
+                                        StringUtils.fromString(sm.fieldNames.pop()),
+                                        StringUtils.fromString((String) JsonCreator.convertJSON(sm, s,
+                                                sm.restType.peek())));
+                            // this element will be ignored in projection
+                            } catch (JsonParserException ignored) { }
                         }
                         state = FIELD_END_STATE;
                     } else if (ch == REV_SOL) {
@@ -837,24 +856,34 @@ public class JsonParser {
 
         private void processNonStringValue(ValueType type) throws JsonParserException {
             String str = value();
-            if (currentField == null) {
-                return;
+            Type currentType = null;
+            // no need to convert since arrays are handled as json[]
+            if (!type.equals(ValueType.ARRAY_ELEMENT)) {
+                if (currentField != null) {
+                    currentType = this.currentField.getFieldType();
+                // do not allow adding fields to open records without explicit rest type
+                } else if (this.restType.peek() != null && this.restType.peek().getTag() != TypeTags.ANYDATA_TAG) {
+                    currentType = this.restType.peek();
+                } else {
+                    return;
+                }
             }
+
             if (str.indexOf('.') >= 0) {
                 try {
                     double d = Double.parseDouble(str);
                     switch (mode) {
                         case FROM_JSON_FLOAT_STRING:
-                            JsonCreator.setValueToJsonType(this, type, d);
+                            JsonCreator.setValueToJsonType(this, type, d, currentType);
                             break;
                         case FROM_JSON_DECIMAL_STRING:
-                            JsonCreator.setValueToJsonType(this, type, BDecimal.valueOf(d));
+                            JsonCreator.setValueToJsonType(this, type, BDecimal.valueOf(d), currentType);
                             break;
                         default:
                             if (JsonCreator.isNegativeZero(str)) {
-                                JsonCreator.setValueToJsonType(this, type, d);
+                                JsonCreator.setValueToJsonType(this, type, d, currentType);
                             } else {
-                                JsonCreator.setValueToJsonType(this, type, BDecimal.valueOf(d));
+                                JsonCreator.setValueToJsonType(this, type, BDecimal.valueOf(d), currentType);
                             }
                             break;
                     }
@@ -865,7 +894,8 @@ public class JsonParser {
                 char ch = str.charAt(0);
                 if (ch == 't' && TRUE.equals(str)) {
                     Object convertedVal = type.equals(ValueType.ARRAY_ELEMENT) ?
-                            Boolean.TRUE : JsonCreator.convertJSON(this, Boolean.TRUE);
+                            Boolean.TRUE
+                            : JsonCreator.convertJSON(this, Boolean.TRUE, currentType);
                     switch (type) {
                         case ARRAY_ELEMENT:
                             ((BArray) this.currentJsonNode).append(convertedVal);
@@ -882,7 +912,8 @@ public class JsonParser {
                     }
                 } else if (ch == 'f' && FALSE.equals(str)) {
                     Object convertedVal = type.equals(ValueType.ARRAY_ELEMENT) ?
-                            Boolean.FALSE : JsonCreator.convertJSON(this, Boolean.FALSE);
+                            Boolean.FALSE
+                            : JsonCreator.convertJSON(this, Boolean.FALSE, currentType);
                     switch (type) {
                         case ARRAY_ELEMENT:
                             ((BArray) this.currentJsonNode).append(convertedVal);
@@ -899,7 +930,7 @@ public class JsonParser {
                     }
                 } else if (ch == 'n' && NULL.equals(str)) {
                     Object convertedVal = type.equals(ValueType.ARRAY_ELEMENT) ?
-                            null : JsonCreator.convertJSON(this, null);
+                            null : JsonCreator.convertJSON(this, null, currentType);
                     switch (type) {
                         case ARRAY_ELEMENT:
                             ((BArray) this.currentJsonNode).append(convertedVal);
@@ -918,16 +949,18 @@ public class JsonParser {
                     try {
                         switch (mode) {
                             case FROM_JSON_FLOAT_STRING:
-                                JsonCreator.setValueToJsonType(this, type, Double.parseDouble(str));
+                                JsonCreator.setValueToJsonType(this, type, Double.parseDouble(str), currentType);
                                 break;
                             case FROM_JSON_DECIMAL_STRING:
-                                JsonCreator.setValueToJsonType(this, type, BDecimal.valueOf(Double.parseDouble(str)));
+                                JsonCreator.setValueToJsonType(this, type,
+                                        BDecimal.valueOf(Double.parseDouble(str)), currentType);
                                 break;
                             default:
                                 if (JsonCreator.isNegativeZero(str)) {
-                                    JsonCreator.setValueToJsonType(this, type, Double.parseDouble(str));
+                                    JsonCreator.setValueToJsonType(this, type, Double.parseDouble(str),
+                                            currentType);
                                 } else {
-                                    JsonCreator.setValueToJsonType(this, type, Long.parseLong(str));
+                                    JsonCreator.setValueToJsonType(this, type, Long.parseLong(str), currentType);
                                 }
                                 break;
                         }

@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/test;
-// import ballerina/io;
 
 type Address record {
     string street;
@@ -95,23 +94,25 @@ isolated function testJsonToJson2() returns error? {
     test:assertEquals(x.address.coordinates.longitude, -74.0060);
 }
 
-type Author record {
+type Author record {|
     string name;
     string birthdate;
     string hometown;
-};
+    boolean...;
+|};
 
-type Publisher record {
+type Publisher record {|
     string name;
     int year;
-    string location;
-};
+    string...;
+|};
 
-type Book record {
+type Book record {|
     string title;
     Author author;
     Publisher publisher;
-};
+    float...;
+|};
 
 @test:Config {
     groups: ["jsonToJson"]
@@ -122,12 +123,15 @@ isolated function testJsonToJson3() returns error? {
                 "author": {
                     "name": "Harper Lee",
                     "birthdate": "1926-04-28",
-                    "hometown": "Monroeville, Alabama"
+                    "hometown": "Monroeville, Alabama",
+                    "local": false
                 },
+                "price": 10.5,
                 "publisher": {
                     "name": "J. B. Lippincott & Co.",
                     "year": 1960,
-                    "location": "Philadelphia"
+                    "location": "Philadelphia",
+                    "tp": 12345
                 }
             };
 
@@ -140,15 +144,17 @@ isolated function testJsonToJson3() returns error? {
     test:assertEquals(x.author.hometown, "Monroeville, Alabama");
     test:assertEquals(x.publisher.name, "J. B. Lippincott & Co.");
     test:assertEquals(x.publisher.year, 1960);
-    test:assertEquals(x.publisher.location, "Philadelphia");
+    test:assertEquals(x.publisher["location"], "Philadelphia");
+    test:assertEquals(x["price"], 10.5);
+    test:assertEquals(x.author["local"], false);
 }
 
-type School record {
+type School record {|
     string name;
     int number;
-    string optfield?;
     boolean flag;
-};
+    int...;
+|};
 
 @test:Config {
     groups: ["jsonToJson"]
@@ -156,9 +162,11 @@ type School record {
 isolated function testJsonToJson4() returns error? {
                     json jsonContent = {
                     "name": "School Twelve",
-                    "city": "Anytown",
+                    "city": 23,
                     "number": 12,
-                    "flag": true
+                    "section": 2,
+                    "flag": true,
+                    "tp": 12345
                 };
 
     byte[] bytes = jsonContent.toString().toBytes();
@@ -166,8 +174,9 @@ isolated function testJsonToJson4() returns error? {
     School x = check fromJsonByteArrayWithType(bytes, School);
     test:assertEquals(x.name, "School Twelve");
     test:assertEquals(x.number, 12);
-    test:assertEquals(x.optfield, ());
     test:assertEquals(x.flag, true);
+    test:assertEquals(x["section"], 2);
+    test:assertEquals(x["tp"], 12345);
 }
 
 type TestRecord record {
@@ -364,7 +373,7 @@ type TestArr3 record {
 };
 
 @test:Config {
-    groups: ["jsonToJson"]
+    groups: ["jsonToJsonl"]
 }
 isolated function testJsonToJson11() returns error? {
     json jsonContent = {
@@ -512,6 +521,50 @@ isolated function testJsonToJson17() returns error? {
 
     RN|Error x = fromJsonByteArrayWithType(bytes, RN);
     test:assertTrue(x is error);
-    test:assertEquals((<error>x).message(), "required field 'address.street' not present in JSON at line: 1 column: 56");
+    test:assertEquals((<error>x).message(), "required field 'street' not present in JSON at line: 1 column: 56");
 }
 
+type intArr int[];
+
+@test:Config {
+    groups: ["jsonToJson"]
+}
+isolated function testJsonToJson18() returns error? {
+    json jsonContent = [1, 2, 3];
+    byte[] bytes = jsonContent.toString().toBytes();
+
+    intArr x = check fromJsonByteArrayWithType(bytes, intArr);
+    test:assertEquals(x, [1, 2, 3]);
+}
+
+type tup [int, string, [int, float]];
+
+@test:Config {
+    groups: ["jsonToJsonx"]
+}
+isolated function testJsonToJson19() returns error? {
+    json jsonContent = [1, "abc", [3, 4.0]];
+    byte[] bytes = jsonContent.toString().toBytes();
+
+    tup|Error x = check fromJsonByteArrayWithType(bytes, tup);
+    test:assertEquals(x, [1, "abc", [3, 4.0]]);
+}
+
+type DebugType record {|
+    int id;
+    int...;
+|};
+
+@test:Config {
+    groups: ["debugFunction"]
+}
+isolated function debugFunction() returns error? {
+    json jsonContent = "{\"id\": 12, \"name\": \"Anne\", \"address\": 34}";
+    byte[] bytes = jsonContent.toString().toBytes();
+    
+    DebugType x = check fromJsonByteArrayWithType(bytes, DebugType);
+    test:assertEquals(x.id, 12);
+    test:assertEquals(x["address"], 34);
+    test:assertEquals(x["name"], null);
+
+}

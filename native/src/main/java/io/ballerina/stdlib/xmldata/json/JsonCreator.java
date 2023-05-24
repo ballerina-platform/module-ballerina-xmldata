@@ -44,6 +44,8 @@ import static io.ballerina.stdlib.xmldata.json.JsonParser.StateMachine.FIRST_FIE
  * @since 3.0.0
  */
 public class JsonCreator {
+
+    // convert json[] to output array
     static BArray finalizeArray(JsonParser.StateMachine sm, Type arrType, BArray currArr)
             throws JsonParser.JsonParserException {
         int arrTypeTag = arrType.getTag();
@@ -56,6 +58,14 @@ public class JsonCreator {
                     curElement = finalizeArray(sm, ((ArrayType) arrType).getElementType(), (BArray) curElement);
                 } else if (arrTypeTag == TypeTags.TUPLE_TAG) {
                     curElement = finalizeArray(sm, ((TupleType) arrType).getTupleTypes().get(i), (BArray) curElement);
+                } else {
+                    throw new JsonParser.JsonParserException("invalid type in field " + getCurrentFieldPath(sm));
+                }
+            } else {
+                if (arrTypeTag == TypeTags.ARRAY_TAG) {
+                    curElement = JsonCreator.convertJSON(sm, curElement, ((ArrayType) arrType).getElementType());
+                } else if (arrTypeTag == TypeTags.TUPLE_TAG) {
+                    curElement = JsonCreator.convertJSON(sm, curElement, ((TupleType) arrType).getTupleTypes().get(i));
                 } else {
                     throw new JsonParser.JsonParserException("invalid type in field " + getCurrentFieldPath(sm));
                 }
@@ -73,14 +83,22 @@ public class JsonCreator {
         }
     }
 
-    static JsonParser.StateMachine.State initRootObject(JsonParser.StateMachine sm) {
-        sm.currentJsonNode = ValueCreator.createRecordValue(sm.rootType);
+    static JsonParser.StateMachine.State initRootObject(JsonParser.StateMachine sm)
+            throws JsonParser.JsonParserException {
+        if (sm.rootRecord == null) {
+            throw new JsonParser.JsonParserException("expected record type for input type");
+        }
+        sm.currentJsonNode = ValueCreator.createRecordValue(sm.rootRecord);
         return FIRST_FIELD_READY_STATE;
     }
 
-    private JsonParser.StateMachine.State initRootArray(JsonParser.StateMachine sm) {
+    static JsonParser.StateMachine.State initRootArray(JsonParser.StateMachine sm)
+            throws JsonParser.JsonParserException {
+        if (sm.rootArray == null) {
+            throw new JsonParser.JsonParserException("expected array type for input type");
+        }
         sm.currentJsonNode = ValueCreator.createArrayValue(sm.definedJsonArrayType);
-        return FIRST_FIELD_READY_STATE;
+        return FIRST_ARRAY_ELEMENT_READY_STATE;
     }
 
     static JsonParser.StateMachine.State initNewObject(JsonParser.StateMachine sm)
@@ -92,10 +110,12 @@ public class JsonCreator {
         if (currentType.getTag() == TypeTags.JSON_TAG) {
             sm.currentJsonNode = ValueCreator.createMapValue();
             sm.fieldHierarchy.push(new HashMap<>());
+            sm.restType.push(sm.definedJsonType);
             sm.jsonFieldMode = true;
         } else if (currentType.getTag() == TypeTags.RECORD_TYPE_TAG) {
             RecordType recordType = (RecordType) currentType;
             sm.fieldHierarchy.push(recordType.getFields());
+            sm.restType.push(recordType.getRestFieldType());
             sm.currentJsonNode = ValueCreator.createRecordValue(recordType);
         } else {
             throw new JsonParser.JsonParserException("invalid type in field " + getCurrentFieldPath(sm));
@@ -104,7 +124,6 @@ public class JsonCreator {
     }
 
     static JsonParser.StateMachine.State initNewArray(JsonParser.StateMachine sm) {
-        // TODO add error message x.school[0].name
         if (sm.currentJsonNode != null) {
             sm.nodesStack.push(sm.currentJsonNode);
         }
@@ -114,15 +133,19 @@ public class JsonCreator {
         return FIRST_ARRAY_ELEMENT_READY_STATE;
     }
 
-    static void setValueToJsonType(JsonParser.StateMachine sm, JsonParser.StateMachine.ValueType type, Object value)
-            throws JsonParser.JsonParserException {
+    static void setValueToJsonType(JsonParser.StateMachine sm, JsonParser.StateMachine.ValueType type, Object value,
+                                   Type currentType) throws JsonParser.JsonParserException {
         Object convertedVal;
         try {
             convertedVal = type.equals(JsonParser.StateMachine.ValueType.ARRAY_ELEMENT) ?
-                    value : convertJSON(sm, value);
+                    value : convertJSON(sm, value, currentType);
         } catch (BError e) {
-            throw new JsonParser.JsonParserException("incompatible value '" + value + "' for type '" +
-                    sm.currentField.getFieldType() + "' in field '" + getCurrentFieldPath(sm) + "'");
+            if (sm.currentField != null) {
+                throw new JsonParser.JsonParserException("incompatible value '" + value + "' for type '" +
+                        sm.currentField.getFieldType() + "' in field '" + getCurrentFieldPath(sm) + "'");
+            }
+            // ignore this element in projection
+            return;
         }
         switch (type) {
             case ARRAY_ELEMENT:
@@ -138,15 +161,20 @@ public class JsonCreator {
         }
     }
 
-    static Object convertJSON(JsonParser.StateMachine sm, Object value) throws JsonParser.JsonParserException {
-        // TODO support for rest types
+    static Object convertJSON(JsonParser.StateMachine sm, Object value, Type type)
+            throws JsonParser.JsonParserException {
+        // all types are currently allowed for readonly type fields
+        if (type.getTag() == TypeTags.READONLY_TAG) {
+            return value;
+        }
         try {
-            return JsonUtils.convertJSON(value, sm.currentField.getFieldType());
-        } catch (BError e) {
+            return JsonUtils.convertJSON(value, type);
+        } catch (Exception e) {
             throw new JsonParser.JsonParserException("incompatible value '" + value + "' for type '" +
-                    sm.currentField.getFieldType() + "' in field '" + getCurrentFieldPath(sm) + "'");
+                    type + "' in field '" + getCurrentFieldPath(sm) + "'");
         }
     }
+
     private static String getCurrentFieldPath(JsonParser.StateMachine sm) {
         Iterator<String> itr = sm.fieldNames.descendingIterator();
 
