@@ -231,6 +231,7 @@ type Class record {
     string name;
     Student1 student;
     Teacher teacher;
+    Student1? monitor;
 };
 
 @test:Config {
@@ -254,7 +255,8 @@ function testJsonToJson6() returns error? {
         "teacher": {
             "id": 3,
             "name": "Jane Smith"
-        }
+        },
+        "monitor": null
     };
     byte[] bytes = jsonContent.toString().toBytes();
 
@@ -268,6 +270,7 @@ function testJsonToJson6() returns error? {
     test:assertEquals(x.student.school.address.city, "New York");
     test:assertEquals(x.teacher.id, 3);
     test:assertEquals(x.teacher.name, "Jane Smith");
+    test:assertEquals(x.monitor, null);
 }
 
 type TestRecord2 record {
@@ -276,7 +279,7 @@ type TestRecord2 record {
 };
 
 @test:Config {
-    groups: ["jsonToJsont"]
+    groups: ["jsonToJson"]
 }
 function testJsonToJson7() returns error? {
     json nestedJson = {
@@ -373,7 +376,7 @@ type TestArr3 record {
 };
 
 @test:Config {
-    groups: ["jsonToJsonl"]
+    groups: ["jsonToJson"]
 }
 isolated function testJsonToJson11() returns error? {
     json jsonContent = {
@@ -396,7 +399,7 @@ type TestJson record {
 };
 
 @test:Config {
-    groups: ["jsonToJsonj"]
+    groups: ["jsonToJson"]
 }
 isolated function testJsonToJson12() returns error? {
     json jsonContent = {
