@@ -899,3 +899,213 @@ isolated function testFromXmlWithEmpty5() returns error? {
     test:assertEquals(rec, output, msg = rec.toString());
     test:assertEquals((), rec.Catering?.statusCode);
 }
+
+@Namespace {
+    prefix: "a",
+    uri: "http://xxxxxxx.com/"
+}
+type AddAccount record {
+    Account ns0\:Account;
+    AccountTemplate b\:AccountTemplate;
+};
+
+@Namespace {
+    prefix: "ns0",
+    uri: "http://xxxxxxx.com/"
+}
+type Account record {
+    StartDate b\:StartDate;
+    EndDate b\:EndDate;
+    Status ns0\:Status;
+};
+
+@Namespace {
+    prefix: "b",
+    uri: "http://asd.com/"
+}
+type EndDate record {};
+
+@Namespace {
+    prefix: "b",
+    uri: "http://xxxxxxx.com/"
+}
+type AccountTemplate record {};
+
+@Namespace {
+    prefix: "ns0",
+    uri: "http://asd.com/"
+}
+type Status record {};
+
+@Namespace {
+    prefix: "b",
+    uri: "http://asd.com/"
+}
+type StartDate record {};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithComplexXml() returns error? {
+    xml data = xml `<a:AddAccount xmlns:a="http://xxxxxxx.com/">
+                        <ns0:Account xmlns:ns0="http://xxxxxxx.com/">?
+                            <b:EndDate xmlns:b="http://asd.com/">?</b:EndDate>
+                            <b:StartDate xmlns:b="http://asd.com/">?</b:StartDate>
+                            <ns0:Status xmlns:ns0="http://asd.com/">?</ns0:Status>
+                        </ns0:Account>
+                        <b:AccountTemplate xmlns:b="http://xxxxxxx.com/">?</b:AccountTemplate>
+                    </a:AddAccount>`;
+    AddAccount output = {
+        ns0\:Account:{
+            "#content": "?",
+            b\:StartDate:{"#content": "?"},
+            b\:EndDate:{"#content": "?"},
+            ns0\:Status:{"#content": "?"}
+        },
+        b\:AccountTemplate:{"#content": "?"}
+    };
+    AddAccount rec = check fromXml(data);
+    test:assertEquals(rec, output, msg = rec.toString());
+}
+
+@Namespace {
+    prefix: "a",
+    uri: "http://xxxxxxx.com/"
+}
+type AddAccount1 record {
+    Account1 ns0\:Account;
+    string b\:AccountTemplate;
+};
+
+type Account1 record {
+    string b\:StartDate;
+    string b\:EndDate;
+    string ns0\:Status;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithComplexXml1() returns error? {
+    xml data = xml `<a:AddAccount1 xmlns:a="http://xxxxxxx.com/">
+                        <ns0:Account xmlns:ns0="http://xxxxxxx.com/">?
+                            <b:EndDate xmlns:b="http://asd.com/">?</b:EndDate>
+                            <b:StartDate xmlns:b="http://asd.com/">?</b:StartDate>
+                            <ns0:Status xmlns:ns0="http://asd.com/">?</ns0:Status>
+                        </ns0:Account>
+                        <b:AccountTemplate xmlns:b="http://xxxxxxx.com/">?</b:AccountTemplate>
+                    </a:AddAccount1>`;
+    AddAccount1 output = {
+        ns0\:Account:{
+            "#content": "?",
+            b\:StartDate:"?",
+            b\:EndDate: "?",
+            ns0\:Status: "?"
+        },
+        b\:AccountTemplate: "?"
+    };
+    AddAccount1 rec = check fromXml(data);
+    test:assertEquals(rec, output, msg = rec.toString());
+}
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithBackSlash() returns error? {
+    xml payload = xml `<BookStore4 status="on\line" xmlns:ns0="http://sample.com/test">
+                            <storeName>fo\o</storeName>
+                            <postalCode>94</postalCode>
+                            <isOpen>true</isOpen>
+                            <address>
+                                <street>Galle \Road</street>
+                                <city>Colombo</city>
+                                <country>Sri Lanka</country>
+                            </address>
+                            <codes>
+                                <item>4</item>
+                                <item>8</item>
+                                <item>9</item>
+                            </codes>
+                        </BookStore4>
+                        <!-- some comment -->
+                        <?doc document="book.doc"?>`;
+    BookStore4 expected = {
+        storeName: "fo\\o",
+        postalCode: 94,
+        isOpen: true,
+        address: {
+            street: "Galle \\Road",
+            city: "Colombo",
+            country: "Sri Lanka"
+        },
+        codes: {
+            item: [4, 8, 9]
+        },
+        'xmlns\:ns0: "http://sample.com/test",
+        status: "on\\line"
+    };
+    BookStore4 actual = check fromXml(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
+}
+
+type Book_Store record {
+    string storeName;
+    int postalCode;
+    boolean isOpen;
+    Address_ address;
+    Codes_ codes;
+    @Attribute
+    string status;
+    @Attribute
+    string 'xmlns\:ns0;
+};
+
+type Address_ record {
+    string street;
+    string city;
+    string country;
+};
+
+type Codes_ record {
+    string[] item;
+};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+isolated function testFromXmlWithBackSlash1() returns error? {
+    xml payload = xml `<Book_Store status="on\\\line" xmlns:ns0="http://sample.com/test">
+                            <storeName>fo\\\o</storeName>
+                            <postalCode>94</postalCode>
+                            <isOpen>true</isOpen>
+                            <address>
+                                <street>Galle \Road</street>
+                                <city>Colombo</city>
+                                <country>Sri Lanka</country>
+                            </address>
+                            <codes>
+                                <item>item\1\\2</item>
+                                <item>item\1\3</item>
+                                <item>item\1\5</item>
+                            </codes>
+                        </Book_Store>
+                        <!-- some comment -->
+                        <?doc document="book.doc"?>`;
+    Book_Store expected = {
+        storeName: "fo\\\\\\o",
+        postalCode: 94,
+        isOpen: true,
+        address: {
+            street: "Galle \\Road",
+            city: "Colombo",
+            country: "Sri Lanka"
+        },
+        codes: {
+            item: ["item\\1\\\\2", "item\\1\\3", "item\\1\\5"]
+        },
+        'xmlns\:ns0: "http://sample.com/test",
+        status: "on\\\\\\line"
+    };
+    Book_Store actual = check fromXml(payload);
+    test:assertEquals(actual, expected, msg = "testToRecordWithNamespaces result incorrect");
+}

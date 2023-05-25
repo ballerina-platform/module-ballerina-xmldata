@@ -30,7 +30,6 @@ import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.types.XmlNodeType;
-import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -153,8 +152,7 @@ public class XmlToJson {
                 }
             }
         }
-        return JsonUtils.parse(DOUBLE_QUOTES + xml.stringValue(null).replace(DOUBLE_QUOTES,
-                "\\\"") + DOUBLE_QUOTES);
+        return fromString(xml.stringValue(null));
     }
 
     /**
@@ -335,7 +333,7 @@ public class XmlToJson {
                                                         String value, String attributePrefix) throws Exception {
         if (!attributePrefix.equals(Constants.ADD_IF_HAS_ANNOTATION)) {
             putAsFieldTypes(mapData, key, value, type);
-        } else if (annotations.size() > 0) {
+        } else if (annotations != null && annotations.size() > 0) {
             BString annotationKey = StringUtils.fromString((Constants.FIELD + key).replace(":",
                     "\\:"));
             for (BString annotationsKey : annotations.getKeys()) {
@@ -530,7 +528,7 @@ public class XmlToJson {
     private static Object convertHeterogeneousSequence(String attributePrefix, boolean preserveNamespaces,
                                                        List<BXml> sequence, Type type,
                                                        BMap<BString, BString> parentAttributeMap) throws Exception {
-        if (sequence.size() == 1) {
+        if (sequence.size() == 1 && !(type != null && type.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG)) {
             return convertToJSON(sequence.get(0), attributePrefix, preserveNamespaces, type, parentAttributeMap);
         }
         BMap<BString, Object> mapJson = createMapValue(type);
