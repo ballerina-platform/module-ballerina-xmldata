@@ -111,7 +111,7 @@ public class JsonCreator {
             sm.currentJsonNode = ValueCreator.createMapValue();
             sm.fieldHierarchy.push(new HashMap<>());
             sm.restType.push(sm.definedJsonType);
-            sm.jsonFieldMode = true;
+            sm.jsonFieldDepth++;
         } else if (currentType.getTag() == TypeTags.RECORD_TYPE_TAG) {
             RecordType recordType = (RecordType) currentType;
             sm.fieldHierarchy.push(new HashMap<>(recordType.getFields()));

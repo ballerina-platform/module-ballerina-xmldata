@@ -389,28 +389,30 @@ isolated function testJsonToJson11() returns error? {
     test:assertEquals(x.house, [94, [1, 2, 3]]);
 }
 
-// type TestJson record {
-//     string street;
-//     json city;
-// };
+type TestJson record {
+    string street;
+    json city;
+    boolean flag;
+};
 
-// @test:Config {
-//     groups: ["jsonToJsond"]
-// }
-// isolated function testJsonToJson12() returns error? {
-//     json jsonContent = {
-//         "street": "Main",
-//         "city": {
-//             "name": "Mahar",
-//             "code": 94
-//         }
-//     };
-//     byte[] bytes = jsonContent.toString().toBytes();
+@test:Config {
+    groups: ["jsonToJsonj"]
+}
+isolated function testJsonToJson12() returns error? {
+    json jsonContent = {
+        "street": "Main",
+        "city": {
+            "name": "Mahar",
+            "code": 94
+        },
+        "flag": true
+    };
+    byte[] bytes = jsonContent.toString().toBytes();
 
-//     TestJson x = check fromJsonByteArrayWithType(bytes, TestJson);
-//     test:assertEquals(x.street, "Main");
-//     test:assertEquals(x.city, {"name": "Mahar", "code": 94});
-// }
+    TestJson x = check fromJsonByteArrayWithType(bytes, TestJson);
+    test:assertEquals(x.street, "Main");
+    test:assertEquals(x.city, {"name": "Mahar", "code": 94});
+}
 
 
 type AddressN record {
@@ -550,8 +552,31 @@ isolated function testJsonToJson19() returns error? {
     test:assertEquals(x, [1, "abc", [3, 4.0]]);
 }
 
+@test:Config {
+    groups: ["jsonToJsonj2"]
+}
+isolated function testJsonToJson20() returns error? {
+    json jsonContent = {
+        "street": "Main",
+        "city": {
+            "name": "Mahar",
+            "code": 94,
+            "internal": {
+                "id": 12,
+                "agent": "Anne"
+            }
+        },
+        "flag": true
+    };
+    byte[] bytes = jsonContent.toString().toBytes();
+
+    TestJson x = check fromJsonByteArrayWithType(bytes, TestJson);
+    test:assertEquals(x.street, "Main");
+    test:assertEquals(x.city,{"name": "Mahar", "code": 94, "internal": {"id": 12, "agent": "Anne"}});
+}
+
 type DebugType record {|
-    int id;
+    json id;
     readonly color;
     int...;
 |};

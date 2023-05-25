@@ -191,7 +191,7 @@ public class JsonParser {
         RecordType rootRecord;
         Type rootArray;
 
-        boolean jsonFieldMode = false;
+        int jsonFieldDepth = 0;
 
         StateMachine() {
             reset();
@@ -208,7 +208,7 @@ public class JsonParser {
             this.fieldHierarchy.clear();
             this.currentField = null;
             this.restType.clear();
-            this.jsonFieldMode = false;
+            this.jsonFieldDepth = 0;
             this.rootRecord = null;
             this.rootArray = null;
         }
@@ -289,7 +289,9 @@ public class JsonParser {
         }
 
         private State finalizeNonArrayObject() throws JsonParserException {
-            this.jsonFieldMode = false;
+            if (jsonFieldDepth > 0) {
+                this.jsonFieldDepth--;
+            }
             Map<String, Field> remainingFields = this.fieldHierarchy.pop();
             this.restType.pop();
             for (Field field : remainingFields.values()) {
@@ -311,7 +313,8 @@ public class JsonParser {
 
             Object parentNode = this.nodesStack.pop();
 
-            if (TypeUtils.getReferredType(TypeUtils.getType(parentNode)).getTag() == TypeTags.RECORD_TYPE_TAG) {
+            if (TypeUtils.getReferredType(TypeUtils.getType(parentNode)).getTag() == TypeTags.RECORD_TYPE_TAG ||
+                TypeUtils.getReferredType(TypeUtils.getType(parentNode)).getTag() == TypeTags.MAP_TAG) {
                 if (currentJsonNode instanceof BArray) {
                     currentJsonNode =
                             JsonCreator.finalizeArray(this, currentField.getFieldType(), (BArray) currentJsonNode);
@@ -572,7 +575,7 @@ public class JsonParser {
                     sm.processLocation(ch);
                     if (ch == sm.currentQuoteChar) {
                         String jsonFieldName = sm.processFieldName();
-                        if (!sm.jsonFieldMode) {
+                        if (sm.jsonFieldDepth == 0) {
                             sm.currentField = sm.fieldHierarchy.peek().remove(jsonFieldName);
                         }
                         state = END_FIELD_NAME_STATE;
@@ -672,7 +675,10 @@ public class JsonParser {
                     sm.processLocation(ch);
                     if (ch == sm.currentQuoteChar) {
                         String s = sm.value();
-                        if (sm.currentField != null) {
+                        if (sm.jsonFieldDepth > 0) {
+                            ((BMap<BString, Object>) sm.currentJsonNode).put(
+                                    StringUtils.fromString(sm.fieldNames.pop()), StringUtils.fromString(s));
+                        } else if (sm.currentField != null) {
                             ((BMap<BString, Object>) sm.currentJsonNode).put(
                                     StringUtils.fromString(sm.fieldNames.pop()),
                                     StringUtils.fromString((String) JsonCreator.convertJSON(sm, s,
