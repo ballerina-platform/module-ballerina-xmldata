@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.TableType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -55,7 +56,8 @@ public class MapFromXml {
             Object output;
             try {
                 if (describingType.getFlags() != Constants.DEFAULT_TYPE_FLAG) {
-                    String recordName = describingType.getName();
+                    String recordName = getXmlNameFromRecordAnnotation((RecordType) describingType,
+                            describingType.getName());
                     String elementName = getKey(xml);
                     if (!recordName.equals(elementName)) {
                         return XmlDataUtils.getError("The record type name: " + recordName +
@@ -149,5 +151,17 @@ public class MapFromXml {
     private static boolean isNotValidXml(List<BXml> sequence) {
         // Valid XML format: <KEY>VALUE</KEY>
         return (sequence.size() == 1 && !sequence.get(0).elements().children().isEmpty()) || sequence.size() > 1;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static String getXmlNameFromRecordAnnotation(RecordType record, String recordName) {
+        BMap<BString, Object> annotations = record.getAnnotations();
+        for (BString annotationsKey : annotations.getKeys()) {
+            String key = annotationsKey.getValue();
+            if (!key.contains(Constants.FIELD) && key.endsWith(Constants.NAME)) {
+                return ((BMap<BString, Object>) annotations.get(annotationsKey)).get(Constants.VALUE).toString();
+            }
+        }
+        return recordName;
     }
 }

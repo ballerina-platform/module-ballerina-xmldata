@@ -29,8 +29,9 @@ public enum DiagnosticsCodes {
     XMLDATA_101("XMLDATA_101",
             "invalid field type: the record field does not support the optional value type", ERROR),
     XMLDATA_102("XMLDATA_102",
-            "invalid union type: union type does not support multiple non-primitive record types", ERROR);
-
+            "invalid union type: union type does not support multiple non-primitive record types", ERROR),
+    XMLDATA_103("XMLDATA_103",
+            "invalid annotation attachment: child record does not allow name annotation", ERROR);
     private final String code;
     private final String message;
     private final DiagnosticSeverity severity;
