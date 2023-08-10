@@ -16,16 +16,23 @@
 
 import ballerina/xmldata;
 
+type Test record {
+    Bar|Bar1 foo;
+};
+
 type Foo record {
-    Bar? foo;
+    Bar|Bar1[]|string|int foo;
 };
 
 type Bar record {
-    int? bar = 2;
-    string car;
+    int? bar;
+    string|Bar|map<string> car;
 };
 
-public function main() returns error? {
-    xml x = xml `<foo><bar>2</bar><car></car></foo>`;
-    Foo actual = check xmldata:toRecord(x);
-}
+type Bar1 record {
+    int bar;
+    string|int|float car;
+};
+
+xml x1 = xml `<foo><bar>2</bar><car></car></foo>`;
+Foo actual = check xmldata:fromXml(x1);

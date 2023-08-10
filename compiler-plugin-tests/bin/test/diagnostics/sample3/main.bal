@@ -21,11 +21,26 @@ type Foo record {
 };
 
 type Bar record {
-    int? bar = 2;
+    int? bar;
     string car;
 };
 
 public function main() returns error? {
     xml x = xml `<foo><bar>2</bar><car></car></foo>`;
+    _ = check getValue(x);
+}
+
+type Foo1 record {
+    string|Bar1? foo;
+};
+
+type Bar1 record {
+    int? bar;
+    Foo1|string car;
+};
+
+function getValue(xml x) returns Foo|error {
     Foo actual = check xmldata:toRecord(x);
+    Foo1 actual1 = check xmldata:toRecord(x);
+    return actual;
 }

@@ -1,6 +1,6 @@
-// Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
 //
-// WSO2 Inc. licenses this file to you under the Apache License,
+// WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
 // in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,16 +16,35 @@
 
 import ballerina/xmldata;
 
+@xmldata:Name{
+    value: "Foo1"
+}
 type Foo record {
-    Bar? foo;
+    Bar foo;
 };
 
+@xmldata:Name{
+    value: "Bar1"
+}
 type Bar record {
-    int? bar = 2;
+    int bar;
+    Bar2 bar2;
+};
+
+@xmldata:Name{
+    value: "Bar4"
+}
+@xmldata:Namespace {
+    prefix: "ns",
+    uri: "http://sdf.com"
+}
+type Bar2 record {
+    int bar;
     string car;
 };
 
 public function main() returns error? {
-    xml x = xml `<foo><bar>2</bar><car></car></foo>`;
-    Foo actual = check xmldata:toRecord(x);
+    xml x1 = xml `<foo><bar>2</bar><car></car></foo>`;
+    Foo actual = check xmldata:fromXml(x1);
+    Bar result = check xmldata:fromXml(x1);
 }
