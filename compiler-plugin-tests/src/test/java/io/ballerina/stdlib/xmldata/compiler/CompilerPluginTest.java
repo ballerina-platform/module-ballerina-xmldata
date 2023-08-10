@@ -169,4 +169,15 @@ public class CompilerPluginTest {
         Assert.assertEquals(errorDiagnosticsList.get(0).diagnosticInfo().messageFormat(),
                 "invalid annotation attachment: child record does not allow name annotation");
     }
+
+    @Test
+    public void testInvalidChildAnnotation1() {
+        DiagnosticResult diagnosticResult = loadPackage("sample12").getCompilation().diagnosticResult();
+        List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .collect(Collectors.toList());
+        Assert.assertEquals(errorDiagnosticsList.size(), 1);
+        Assert.assertEquals(errorDiagnosticsList.get(0).diagnosticInfo().messageFormat(),
+                "invalid annotation attachment: child record does not allow name annotation");
+    }
 }
