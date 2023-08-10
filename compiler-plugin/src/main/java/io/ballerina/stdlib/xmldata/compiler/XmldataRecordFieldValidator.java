@@ -17,39 +17,54 @@
  */
 package io.ballerina.stdlib.xmldata.compiler;
 
-import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
-import io.ballerina.compiler.api.symbols.NilTypeSymbol;
-import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
-import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
-import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ChildNodeList;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
+import io.ballerina.compiler.syntax.tree.NilTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.OptionalTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldNode;
-import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
+import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
+import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
+import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.projects.plugins.AnalysisTask;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
+import io.ballerina.stdlib.xmldata.compiler.object.Record;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import io.ballerina.tools.diagnostics.Location;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
  * Xmldata record field analyzer.
  */
 public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnalysisContext> {
-
-    private final List<SyntaxNodeAnalysisContext> nodes = new ArrayList<>();
-    private final List<SyntaxNodeAnalysisContext> validatedNodes = new ArrayList<>();
+    private final Map<String, Record> records = new HashMap<>();
+    private final List<String> recordNamesUsedInFunction = new ArrayList<>();
+    private final List<String> validatedRecords = new ArrayList<>();
     private static final String TO_RECORD = "xmldata:toRecord";
     private static final String FROM_XML = "xmldata:fromXml";
+    private static final String NAME_ANNOTATION = "xmldata:Name";
 
     @Override
     public void perform(SyntaxNodeAnalysisContext ctx) {
@@ -60,107 +75,168 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
             }
         }
 
-        Node node = ctx.node();
-        if (node instanceof RecordFieldNode) {
-            this.nodes.add(ctx);
-        }
-
-        if (node instanceof VariableDeclarationNode) {
-            VariableDeclarationNode variableDeclarationNode = (VariableDeclarationNode) node;
-            Optional<ExpressionNode> initializer = variableDeclarationNode.initializer();
-            if (!initializer.isEmpty()) {
-                ExpressionNode expressionNode = initializer.get();
-                String functionName = expressionNode.toString();
-                if (functionName.contains(TO_RECORD) || functionName.contains(FROM_XML)) {
-                    TypedBindingPatternNode typedBindingPatternNode = variableDeclarationNode.typedBindingPattern();
-                    checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx, functionName);
-                }
+        ModulePartNode rootNode = (ModulePartNode) ctx.node();
+        for (ModuleMemberDeclarationNode member : rootNode.members()) {
+            if (member instanceof FunctionDefinitionNode) {
+                processFunctionDefinitionNode((FunctionDefinitionNode) member);
+            } else if (member instanceof ModuleVariableDeclarationNode) {
+                processModuleVariableDeclarationNode((ModuleVariableDeclarationNode) member);
+            } else if (member instanceof TypeDefinitionNode) {
+                processTypeDefinitionNode((TypeDefinitionNode) member);
             }
         }
-        if (node instanceof ModuleVariableDeclarationNode) {
-            ModuleVariableDeclarationNode moduleVariableDeclarationNode = (ModuleVariableDeclarationNode) node;
-            Optional<ExpressionNode> initializer = moduleVariableDeclarationNode.initializer();
-            if (!initializer.isEmpty()) {
-                ExpressionNode expressionNode = initializer.get();
-                String functionName = expressionNode.toString();
-                if (functionName.contains(TO_RECORD) || functionName.contains(FROM_XML)) {
-                    TypedBindingPatternNode typedBindingPatternNode =
-                            moduleVariableDeclarationNode.typedBindingPattern();
-                    checkRecordField(typedBindingPatternNode.typeDescriptor().toString(), ctx, functionName);
-                }
+        for (String recordName : this.recordNamesUsedInFunction) {
+            if (this.records.containsKey(recordName)) {
+                validateRecord(ctx, this.records.get(recordName));
             }
         }
     }
 
-    private void checkRecordField(String recordName, SyntaxNodeAnalysisContext ctx, String functionName) {
-        for (SyntaxNodeAnalysisContext syntaxNodeAnalysisContext: this.nodes) {
-            if (!this.validatedNodes.contains(syntaxNodeAnalysisContext)) {
-                RecordFieldNode recordFieldNode = ((RecordFieldNode) syntaxNodeAnalysisContext.node());
-                String recordNameOfField = recordFieldNode.parent().parent().children().get(1).toString().trim();
-                if (recordNameOfField.equals(recordName.trim())) {
-                    this.validatedNodes.add(syntaxNodeAnalysisContext);
-                    Optional<Symbol> varSymOptional = syntaxNodeAnalysisContext.semanticModel().
-                            symbol(syntaxNodeAnalysisContext.node());
-                    if (varSymOptional.isPresent()) {
-                        TypeSymbol typeSymbol = ((RecordFieldSymbol) varSymOptional.get()).typeDescriptor();
-                        if (typeSymbol instanceof UnionTypeSymbol) {
-                            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
-                            for (TypeSymbol symbol : typeSymbols) {
-                                validateType(ctx, recordFieldNode, symbol, functionName);
-                            }
-                            if (functionName.contains(FROM_XML))  {
-                                validateUnionType(ctx, typeSymbols, recordFieldNode, functionName);
-                            }
-                        } else {
-                            validateType(ctx, recordFieldNode, typeSymbol, functionName);
-                        }
+    private void processFunctionDefinitionNode(FunctionDefinitionNode functionDefinitionNode) {
+        ChildNodeList childNodeList = functionDefinitionNode.functionBody().children();
+        for (Node node : childNodeList) {
+            if (node instanceof VariableDeclarationNode) {
+                VariableDeclarationNode variableDeclarationNode = (VariableDeclarationNode) node;
+                Optional<ExpressionNode> initializer = variableDeclarationNode.initializer();
+                if (initializer.isPresent()) {
+                    if (isValidFunctionName(initializer.get())) {
+                        addRecordName(variableDeclarationNode.typedBindingPattern().typeDescriptor());
                     }
                 }
             }
         }
     }
 
-    private void validateType(SyntaxNodeAnalysisContext ctx, RecordFieldNode recordFieldNode, TypeSymbol typeSymbol,
-                              String functionName) {
-        if (typeSymbol instanceof NilTypeSymbol) {
-            reportDiagnosticInfo(ctx, recordFieldNode);
-        } else if (typeSymbol instanceof TypeReferenceTypeSymbol) {
-            checkRecordField(typeSymbol.getName().get(), ctx, functionName);
-        } else if (typeSymbol instanceof ArrayTypeSymbol) {
-            TypeSymbol arrayTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
-            if (arrayTypeSymbol instanceof TypeReferenceTypeSymbol) {
-                checkRecordField(arrayTypeSymbol.getName().get(), ctx, functionName);
+    private void processModuleVariableDeclarationNode(ModuleVariableDeclarationNode moduleVariableDeclarationNode) {
+        Optional<ExpressionNode> initializer = moduleVariableDeclarationNode.initializer();
+        if (initializer.isPresent()) {
+            if (isValidFunctionName(initializer.get())) {
+                addRecordName(moduleVariableDeclarationNode.typedBindingPattern().typeDescriptor());
             }
         }
     }
 
-    private void validateUnionType(SyntaxNodeAnalysisContext ctx, List<TypeSymbol> typeSymbols,
-                                   RecordFieldNode recordFieldNode, String functionName) {
-        int noOfNonPrimitiveType = 0;
-        for (TypeSymbol typeSymbol : typeSymbols) {
-            if (typeSymbol instanceof TypeReferenceTypeSymbol) {
-                noOfNonPrimitiveType += 1;
-                checkRecordField(typeSymbol.getName().get(), ctx, functionName);
-            } else if (typeSymbol instanceof ArrayTypeSymbol) {
-                TypeSymbol arrayTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
-                if (arrayTypeSymbol instanceof TypeReferenceTypeSymbol) {
-                    noOfNonPrimitiveType += 1;
-                    checkRecordField(arrayTypeSymbol.getName().get(), ctx, functionName);
+    private boolean isValidFunctionName(ExpressionNode expressionNode) {
+        if (expressionNode instanceof CheckExpressionNode) {
+            expressionNode = ((CheckExpressionNode) expressionNode).expression();
+        }
+        if (expressionNode instanceof FunctionCallExpressionNode) {
+            FunctionCallExpressionNode functionCallExpressionNode =
+                    (FunctionCallExpressionNode) expressionNode;
+            String functionName = functionCallExpressionNode.functionName().toSourceCode().trim();
+            return functionName.equals(TO_RECORD) || functionName.equals(FROM_XML);
+        }
+        return false;
+    }
+
+    private void addRecordName(TypeDescriptorNode typeDescriptor) {
+        if (typeDescriptor.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
+            String returnTypeName = ((SimpleNameReferenceNode) typeDescriptor).name().text().trim();
+            if (!this.recordNamesUsedInFunction.contains(returnTypeName)) {
+                this.recordNamesUsedInFunction.add(returnTypeName);
+            }
+        }
+    }
+
+    private void processTypeDefinitionNode(TypeDefinitionNode typeDefinitionNode) {
+        Node typeDescriptor = typeDefinitionNode.typeDescriptor();
+        if (typeDescriptor instanceof RecordTypeDescriptorNode) {
+            RecordTypeDescriptorNode recordTypeDescriptorNode = (RecordTypeDescriptorNode) typeDescriptor;
+            Record record = new Record(typeDefinitionNode.typeName().text().trim(), typeDefinitionNode.location());
+            typeDefinitionNode.metadata().ifPresent(metadataNode -> {
+                NodeList<AnnotationNode> annotations = metadataNode.annotations();
+                for (AnnotationNode annotationNode : annotations) {
+                    if (annotationNode.annotReference().toSourceCode().trim().equals(NAME_ANNOTATION)) {
+                        record.setNameAnnotation();
+                    }
+                }
+            });
+            for (Node field : recordTypeDescriptorNode.fields()) {
+                Node type;
+                if (field instanceof RecordFieldNode) {
+                    RecordFieldNode recordFieldNode = (RecordFieldNode) field;
+                    type = recordFieldNode.typeName();
+                    processFieldType(type, record);
+                } else if (field instanceof RecordFieldWithDefaultValueNode) {
+                    RecordFieldWithDefaultValueNode recordFieldNode = (RecordFieldWithDefaultValueNode) field;
+                    type = recordFieldNode.typeName();
+                    processFieldType(type, record);
+                }
+            }
+            this.records.put(record.getName().trim(), record);
+        }
+    }
+
+    private void processFieldType(Node type, Record record) {
+        if (type instanceof OptionalTypeDescriptorNode) {
+            record.addOptionalFieldLocations(type.location());
+            type = ((OptionalTypeDescriptorNode) type).typeDescriptor();
+        }
+        if (type instanceof NilTypeDescriptorNode) {
+            record.addOptionalFieldLocations(type.location());
+        }
+        if (type instanceof UnionTypeDescriptorNode) {
+            processUnionType((UnionTypeDescriptorNode) type, 0, record, type);
+        }
+        if (type instanceof ArrayTypeDescriptorNode) {
+            type = ((ArrayTypeDescriptorNode) type).memberTypeDesc();
+        }
+        if (type instanceof SimpleNameReferenceNode) {
+            SimpleNameReferenceNode simpleNameReferenceNode = (SimpleNameReferenceNode) type;
+            record.addChildRecordNames(simpleNameReferenceNode.name().text().trim());
+        }
+    }
+
+    private void processUnionType(UnionTypeDescriptorNode unionTypeDescriptorNode, int noOfSimpleNamesType,
+                                  Record record, Node type) {
+        for (Node unionType : unionTypeDescriptorNode.children()) {
+            if (unionType instanceof UnionTypeDescriptorNode) {
+                processUnionType((UnionTypeDescriptorNode) unionType, noOfSimpleNamesType, record, type);
+            }
+            if (unionType instanceof OptionalTypeDescriptorNode) {
+                record.addOptionalFieldLocations(unionType.location());
+                unionType = ((OptionalTypeDescriptorNode) unionType).typeDescriptor();
+            }
+            if (unionType instanceof NilTypeDescriptorNode) {
+                record.addOptionalFieldLocations(unionType.location());
+            }
+            if (unionType instanceof ArrayTypeDescriptorNode) {
+                unionType = ((ArrayTypeDescriptorNode) unionType).memberTypeDesc();
+            }
+            if (unionType instanceof SimpleNameReferenceNode) {
+                noOfSimpleNamesType++;
+                SimpleNameReferenceNode simpleNameReferenceNode = (SimpleNameReferenceNode) unionType;
+                record.addChildRecordNames(simpleNameReferenceNode.name().text().trim());
+            }
+        }
+        if (noOfSimpleNamesType > 1) {
+            record.addMultipleNonPrimitiveTypeLocations(type.location());
+        }
+    }
+
+    private void validateRecord(SyntaxNodeAnalysisContext ctx, Record record) {
+        this.validatedRecords.add(record.getName());
+        for (Location location : record.getMultipleNonPrimitiveTypeLocations()) {
+            reportDiagnosticInfo(ctx, location, DiagnosticsCodes.XMLDATA_102);
+        }
+        for (Location location : record.getOptionalFieldLocations()) {
+            reportDiagnosticInfo(ctx, location, DiagnosticsCodes.XMLDATA_101);
+        }
+        for (String childRecordName : record.getChildRecordNames()) {
+            if (!this.validatedRecords.contains(childRecordName)) {
+                Record childRecord =  this.records.get(childRecordName);
+                validateRecord(ctx, childRecord);
+                if (childRecord.hasNameAnnotation() && !recordNamesUsedInFunction.contains(childRecordName.trim())) {
+                    reportDiagnosticInfo(ctx, childRecord.getLocation(), DiagnosticsCodes.XMLDATA_103);
                 }
             }
         }
-        if (noOfNonPrimitiveType > 1)  {
-            DiagnosticInfo diagnosticInfo = new DiagnosticInfo(DiagnosticsCodes.XMLDATA_102.getCode(),
-                    DiagnosticsCodes.XMLDATA_102.getMessage(), DiagnosticsCodes.XMLDATA_102.getSeverity());
-            ctx.reportDiagnostic(
-                    DiagnosticFactory.createDiagnostic(diagnosticInfo, recordFieldNode.location()));
-        }
     }
 
-    private void reportDiagnosticInfo(SyntaxNodeAnalysisContext ctx, RecordFieldNode recordFieldNode) {
-        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(DiagnosticsCodes.XMLDATA_101.getCode(),
-                DiagnosticsCodes.XMLDATA_101.getMessage(), DiagnosticsCodes.XMLDATA_101.getSeverity());
-        ctx.reportDiagnostic(
-                DiagnosticFactory.createDiagnostic(diagnosticInfo, recordFieldNode.location()));
+    private void reportDiagnosticInfo(SyntaxNodeAnalysisContext ctx, Location location,
+                                      DiagnosticsCodes diagnosticsCodes) {
+        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(diagnosticsCodes.getCode(),
+                diagnosticsCodes.getMessage(), diagnosticsCodes.getSeverity());
+        ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
     }
 }
