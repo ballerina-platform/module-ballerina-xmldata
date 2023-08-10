@@ -40,6 +40,7 @@ public function main() returns error? {
     map<json> result2 = check xmldata:fromXml(xmlPayload);
     io:println(result2);
 
+    // Sample
     Appointments result3 = check xmldata:fromXml(xmlPayload);
     io:println(result3);
 }
