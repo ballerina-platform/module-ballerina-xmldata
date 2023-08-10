@@ -19,8 +19,10 @@ package io.ballerina.stdlib.xmldata.compiler;
 
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ChildNodeList;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -95,17 +97,8 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
                 VariableDeclarationNode variableDeclarationNode = (VariableDeclarationNode) node;
                 Optional<ExpressionNode> initializer = variableDeclarationNode.initializer();
                 if (initializer.isPresent()) {
-                    ExpressionNode expressionNode = initializer.get();
-                    String functionName = expressionNode.toString();
-                    if (functionName.contains(TO_RECORD) || functionName.contains(FROM_XML)) {
-                        TypeDescriptorNode typeDescriptor = variableDeclarationNode.typedBindingPattern().
-                                typeDescriptor();
-                        if (typeDescriptor.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
-                            String returnTypeName = typeDescriptor.toString().trim();
-                            if (!this.recordNamesUsedInFunction.contains(returnTypeName)) {
-                                this.recordNamesUsedInFunction.add(returnTypeName);
-                            }
-                        }
+                    if (isValidFunctionName(initializer.get())) {
+                        addRecordName(variableDeclarationNode.typedBindingPattern().typeDescriptor());
                     }
                 }
             }
@@ -115,17 +108,30 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
     private void processModuleVariableDeclarationNode(ModuleVariableDeclarationNode moduleVariableDeclarationNode) {
         Optional<ExpressionNode> initializer = moduleVariableDeclarationNode.initializer();
         if (initializer.isPresent()) {
-            ExpressionNode expressionNode = initializer.get();
-            String functionName = expressionNode.toString();
-            if (functionName.contains(TO_RECORD) || functionName.contains(FROM_XML)) {
-                TypeDescriptorNode typeDescriptor = moduleVariableDeclarationNode.typedBindingPattern().
-                        typeDescriptor();
-                if (typeDescriptor.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
-                    String returnTypeName = typeDescriptor.toString().trim();
-                    if (!this.recordNamesUsedInFunction.contains(returnTypeName)) {
-                        this.recordNamesUsedInFunction.add(returnTypeName);
-                    }
-                }
+            if (isValidFunctionName(initializer.get())) {
+                addRecordName(moduleVariableDeclarationNode.typedBindingPattern().typeDescriptor());
+            }
+        }
+    }
+
+    private boolean isValidFunctionName(ExpressionNode expressionNode) {
+        if (expressionNode instanceof CheckExpressionNode) {
+            expressionNode = ((CheckExpressionNode) expressionNode).expression();
+        }
+        if (expressionNode instanceof FunctionCallExpressionNode) {
+            FunctionCallExpressionNode functionCallExpressionNode =
+                    (FunctionCallExpressionNode) expressionNode;
+            String functionName = functionCallExpressionNode.functionName().toSourceCode().trim();
+            return functionName.equals(TO_RECORD) || functionName.equals(FROM_XML);
+        }
+        return false;
+    }
+
+    private void addRecordName(TypeDescriptorNode typeDescriptor) {
+        if (typeDescriptor.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
+            String returnTypeName = typeDescriptor.toString().trim();
+            if (!this.recordNamesUsedInFunction.contains(returnTypeName)) {
+                this.recordNamesUsedInFunction.add(returnTypeName);
             }
         }
     }
@@ -138,7 +144,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
             typeDefinitionNode.metadata().ifPresent(metadataNode -> {
                 NodeList<AnnotationNode> annotations = metadataNode.annotations();
                 for (AnnotationNode annotationNode : annotations) {
-                    if (annotationNode.annotReference().toString().equals(NAME_ANNOTATION)) {
+                    if (annotationNode.annotReference().toSourceCode().trim().equals(NAME_ANNOTATION)) {
                         record.setNameAnnotation();
                     }
                 }
@@ -160,11 +166,11 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
 
     private void processFieldType(Node type, Record record) {
         if (type instanceof OptionalTypeDescriptorNode) {
-            record.addLocationOfOptionalsFields(type.location());
+            record.addOptionalFieldLocations(type.location());
             type = ((OptionalTypeDescriptorNode) type).typeDescriptor();
         }
         if (type instanceof NilTypeDescriptorNode) {
-            record.addLocationOfOptionalsFields(type.location());
+            record.addOptionalFieldLocations(type.location());
         }
         if (type instanceof UnionTypeDescriptorNode) {
             processUnionType((UnionTypeDescriptorNode) type, 0, record, type);
@@ -185,11 +191,11 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
                 processUnionType((UnionTypeDescriptorNode) unionType, noOfSimpleNamesType, record, type);
             }
             if (unionType instanceof OptionalTypeDescriptorNode) {
-                record.addLocationOfOptionalsFields(unionType.location());
+                record.addOptionalFieldLocations(unionType.location());
                 unionType = ((OptionalTypeDescriptorNode) unionType).typeDescriptor();
             }
             if (unionType instanceof NilTypeDescriptorNode) {
-                record.addLocationOfOptionalsFields(unionType.location());
+                record.addOptionalFieldLocations(unionType.location());
             }
             if (unionType instanceof ArrayTypeDescriptorNode) {
                 unionType = ((ArrayTypeDescriptorNode) unionType).memberTypeDesc();
@@ -201,16 +207,16 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
             }
         }
         if (noOfSimpleNamesType > 1) {
-            record.addLocationOfMultipleNonPrimitiveTypes(type.location());
+            record.addMultipleNonPrimitiveTypeLocations(type.location());
         }
     }
 
     private void validateRecord(SyntaxNodeAnalysisContext ctx, Record record) {
         this.validatedRecords.add(record.getName());
-        for (Location location : record.getLocationOfMultipleNonPrimitiveTypes()) {
+        for (Location location : record.getMultipleNonPrimitiveTypeLocations()) {
             reportDiagnosticInfo(ctx, location, DiagnosticsCodes.XMLDATA_102);
         }
-        for (Location location : record.getLocationOfOptionalsFields()) {
+        for (Location location : record.getOptionalFieldLocations()) {
             reportDiagnosticInfo(ctx, location, DiagnosticsCodes.XMLDATA_101);
         }
         for (String childRecordName : record.getChildRecordNames()) {

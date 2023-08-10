@@ -33,9 +33,9 @@ public class Record {
     private final String name;
     private final Location location;
     private Boolean nameAnnotation = false;
-    private final List<NodeLocation> locationOfOptionalsFields = new ArrayList<>();
+    private final List<NodeLocation> optionalFieldLocations = new ArrayList<>();
     private final List<String> childRecordNames = new ArrayList<>();
-    private final List<NodeLocation> locationOfMultipleNonPrimitiveTypes = new ArrayList<>();
+    private final List<NodeLocation> multipleNonPrimitiveTypeLocations = new ArrayList<>();
 
     public Record(String name, Location location) {
         this.name = name;
@@ -46,20 +46,20 @@ public class Record {
         return name;
     }
 
-    public void addLocationOfOptionalsFields(NodeLocation optionalsField) {
-        locationOfOptionalsFields.add(optionalsField);
+    public void addOptionalFieldLocations(NodeLocation optionalsField) {
+        optionalFieldLocations.add(optionalsField);
     }
 
-    public List<NodeLocation> getLocationOfOptionalsFields() {
-        return locationOfOptionalsFields;
+    public List<NodeLocation> getOptionalFieldLocations() {
+        return optionalFieldLocations;
     }
 
-    public void addLocationOfMultipleNonPrimitiveTypes(NodeLocation optionalsField) {
-        locationOfMultipleNonPrimitiveTypes.add(optionalsField);
+    public void addMultipleNonPrimitiveTypeLocations(NodeLocation optionalsField) {
+        multipleNonPrimitiveTypeLocations.add(optionalsField);
     }
 
-    public List<NodeLocation> getLocationOfMultipleNonPrimitiveTypes() {
-        return locationOfMultipleNonPrimitiveTypes;
+    public List<NodeLocation> getMultipleNonPrimitiveTypeLocations() {
+        return multipleNonPrimitiveTypeLocations;
     }
 
     public void addChildRecordNames(String name) {
