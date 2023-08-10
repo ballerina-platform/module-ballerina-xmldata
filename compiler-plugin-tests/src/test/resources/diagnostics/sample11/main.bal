@@ -16,14 +16,14 @@
 
 import ballerina/xmldata;
 
-@xmldata:Name{
+@xmldata:Name {
     value: "Foo1"
 }
 type Foo record {
     Bar foo;
 };
 
-@xmldata:Name{
+@xmldata:Name {
     value: "Bar1"
 }
 type Bar record {
@@ -31,7 +31,7 @@ type Bar record {
     Bar2 bar2;
 };
 
-@xmldata:Name{
+@xmldata:Name {
     value: "Bar4"
 }
 @xmldata:Namespace {
