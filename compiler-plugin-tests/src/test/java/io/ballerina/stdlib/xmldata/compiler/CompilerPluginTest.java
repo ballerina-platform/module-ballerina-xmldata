@@ -107,7 +107,7 @@ public class CompilerPluginTest {
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
-        Assert.assertEquals(errorDiagnosticsList.size(), 5);
+        Assert.assertEquals(errorDiagnosticsList.size(), 6);
     }
 
     @Test
@@ -116,7 +116,7 @@ public class CompilerPluginTest {
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
-        Assert.assertEquals(errorDiagnosticsList.size(), 3);
+        Assert.assertEquals(errorDiagnosticsList.size(), 4);
     }
 
     @Test
@@ -125,7 +125,7 @@ public class CompilerPluginTest {
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
-        Assert.assertEquals(errorDiagnosticsList.size(), 2);
+        Assert.assertEquals(errorDiagnosticsList.size(), 3);
     }
 
     @Test
@@ -134,7 +134,7 @@ public class CompilerPluginTest {
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
-        Assert.assertEquals(errorDiagnosticsList.size(), 4);
+        Assert.assertEquals(errorDiagnosticsList.size(), 5);
     }
 
     @Test
@@ -153,9 +153,30 @@ public class CompilerPluginTest {
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
                 .collect(Collectors.toList());
         Assert.assertEquals(errorDiagnosticsList.size(), 2);
-        Assert.assertEquals(errorDiagnosticsList.get(0).diagnosticInfo().messageFormat(),
-                "invalid field type: the record field does not support the optional value type");
         Assert.assertEquals(errorDiagnosticsList.get(1).diagnosticInfo().messageFormat(),
+                "invalid field type: the record field does not support the optional value type");
+        Assert.assertEquals(errorDiagnosticsList.get(0).diagnosticInfo().messageFormat(),
                 "invalid union type: union type does not support multiple non-primitive record types");
+    }
+    @Test
+    public void testInvalidChildAnnotation() {
+        DiagnosticResult diagnosticResult = loadPackage("sample11").getCompilation().diagnosticResult();
+        List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .collect(Collectors.toList());
+        Assert.assertEquals(errorDiagnosticsList.size(), 1);
+        Assert.assertEquals(errorDiagnosticsList.get(0).diagnosticInfo().messageFormat(),
+                "invalid annotation attachment: child record does not allow name annotation");
+    }
+
+    @Test
+    public void testInvalidChildAnnotation1() {
+        DiagnosticResult diagnosticResult = loadPackage("sample12").getCompilation().diagnosticResult();
+        List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .collect(Collectors.toList());
+        Assert.assertEquals(errorDiagnosticsList.size(), 1);
+        Assert.assertEquals(errorDiagnosticsList.get(0).diagnosticInfo().messageFormat(),
+                "invalid annotation attachment: child record does not allow name annotation");
     }
 }

@@ -32,6 +32,6 @@ public class XmldataCodeAnalyzer extends CodeAnalyzer {
     @Override
     public void init(CodeAnalysisContext codeAnalysisContext) {
         codeAnalysisContext.addSyntaxNodeAnalysisTask(new XmldataRecordFieldValidator(),
-                List.of(SyntaxKind.LOCAL_VAR_DECL, SyntaxKind.MODULE_VAR_DECL, SyntaxKind.RECORD_FIELD));
+                List.of(SyntaxKind.MODULE_PART));
     }
 }
