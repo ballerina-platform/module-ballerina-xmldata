@@ -20,6 +20,7 @@ package io.ballerina.stdlib.xmldata.compiler;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
+import static io.ballerina.tools.diagnostics.DiagnosticSeverity.WARNING;
 
 /**
  * Enum class to hold xmldata module diagnostic codes.
@@ -31,7 +32,7 @@ public enum DiagnosticsCodes {
     XMLDATA_102("XMLDATA_102",
             "invalid union type: union type does not support multiple non-primitive record types", ERROR),
     XMLDATA_103("XMLDATA_103",
-            "invalid annotation attachment: child record does not allow name annotation", ERROR);
+            "invalid annotation attachment: child record does not allow name annotation", WARNING);
     private final String code;
     private final String message;
     private final DiagnosticSeverity severity;

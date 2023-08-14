@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/xmldata;
+import ballerina/io;
 
 @xmldata:Name {
     value: "Foo1"
@@ -47,4 +48,6 @@ public function main() returns error? {
     xml x1 = xml `<foo><bar>2</bar><car></car></foo>`;
     Foo actual = check xmldata:fromXml(x1);
     Bar result = check xmldata:fromXml(x1);
+    io:println(actual);
+    io:println(result);
 }
