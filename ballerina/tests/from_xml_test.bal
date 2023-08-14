@@ -866,10 +866,6 @@ type Catering3 record {
 }
 isolated function testFromXmlWithEmpty4() {
     xml allotment = xml `<Allotment3><name>some</name><Catering/></Allotment3>`;
-    Allotment3 output = {
-        name: "some",
-        Catering:{statusCode: ""}
-    };
     Allotment3|error actual = fromXml(allotment, Allotment3);
     if (actual is error) {
         test:assertTrue(actual.message().includes("missing required field 'Catering.statusCode' of type 'string' " +
