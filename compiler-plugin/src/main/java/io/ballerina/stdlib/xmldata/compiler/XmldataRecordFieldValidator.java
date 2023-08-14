@@ -60,7 +60,7 @@ import java.util.Optional;
  */
 public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private final Map<String, Record> records = new HashMap<>();
-    private final List<String> recordNamesUsedInFunction = new ArrayList<>();
+    private final Map<String, Location> recordNamesUsedInFunction = new HashMap<>();
     private final List<String> validatedRecords = new ArrayList<>();
     private static final String TO_RECORD = "xmldata:toRecord";
     private static final String FROM_XML = "xmldata:fromXml";
@@ -85,9 +85,9 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
                 processTypeDefinitionNode((TypeDefinitionNode) member);
             }
         }
-        for (String recordName : this.recordNamesUsedInFunction) {
-            if (this.records.containsKey(recordName)) {
-                validateRecord(ctx, this.records.get(recordName));
+        for (Map.Entry<String, Location> entry : this.recordNamesUsedInFunction.entrySet()) {
+            if (this.records.containsKey(entry.getKey())) {
+                validateRecord(ctx, this.records.get(entry.getKey()), entry.getValue());
             }
         }
     }
@@ -132,8 +132,8 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
     private void addRecordName(TypeDescriptorNode typeDescriptor) {
         if (typeDescriptor.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
             String returnTypeName = ((SimpleNameReferenceNode) typeDescriptor).name().text().trim();
-            if (!this.recordNamesUsedInFunction.contains(returnTypeName)) {
-                this.recordNamesUsedInFunction.add(returnTypeName);
+            if (!this.recordNamesUsedInFunction.containsKey(returnTypeName)) {
+                this.recordNamesUsedInFunction.put(returnTypeName, typeDescriptor.location());
             }
         }
     }
@@ -214,7 +214,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
         }
     }
 
-    private void validateRecord(SyntaxNodeAnalysisContext ctx, Record record) {
+    private void validateRecord(SyntaxNodeAnalysisContext ctx, Record record, Location declarationLocation) {
         this.validatedRecords.add(record.getName());
         for (Location location : record.getMultipleNonPrimitiveTypeLocations()) {
             reportDiagnosticInfo(ctx, location, DiagnosticsCodes.XMLDATA_102);
@@ -225,9 +225,9 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
         for (String childRecordName : record.getChildRecordNames()) {
             if (!this.validatedRecords.contains(childRecordName)) {
                 Record childRecord =  this.records.get(childRecordName);
-                validateRecord(ctx, childRecord);
-                if (childRecord.hasNameAnnotation() && !recordNamesUsedInFunction.contains(childRecordName.trim())) {
-                    reportDiagnosticInfo(ctx, childRecord.getLocation(), DiagnosticsCodes.XMLDATA_103);
+                validateRecord(ctx, childRecord, declarationLocation);
+                if (childRecord.hasNameAnnotation() && !recordNamesUsedInFunction.containsKey(childRecordName.trim())) {
+                    reportDiagnosticInfo(ctx, declarationLocation, DiagnosticsCodes.XMLDATA_103);
                 }
             }
         }
