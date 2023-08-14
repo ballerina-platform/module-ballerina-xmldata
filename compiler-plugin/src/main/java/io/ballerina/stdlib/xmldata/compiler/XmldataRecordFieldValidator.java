@@ -142,7 +142,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
         Node typeDescriptor = typeDefinitionNode.typeDescriptor();
         if (typeDescriptor instanceof RecordTypeDescriptorNode) {
             RecordTypeDescriptorNode recordTypeDescriptorNode = (RecordTypeDescriptorNode) typeDescriptor;
-            Record record = new Record(typeDefinitionNode.typeName().text(), typeDefinitionNode.location());
+            Record record = new Record(typeDefinitionNode.typeName().text().trim(), typeDefinitionNode.location());
             typeDefinitionNode.metadata().ifPresent(metadataNode -> {
                 NodeList<AnnotationNode> annotations = metadataNode.annotations();
                 for (AnnotationNode annotationNode : annotations) {
