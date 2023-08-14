@@ -54,7 +54,7 @@ public annotation Attribute on record field;
 
 # Converts a `Map` or `Record` representation to its XML representation.
 # Additionally, when converting from a record, the `xmldata:Namespace`, `xmldata:Name`, and `xmldata:Attribute`
-# annotations can be used to add `namespaces`, `name of elements', and `attributes` to XML representation.
+# annotations can be used to add `namespaces`, `name of elements`, and `attributes` to XML representation.
 #
 # + mapValue - The `Map` or `Record` representation source to be converted to XML
 # + return - XML representation of the given source if the source is
@@ -391,11 +391,11 @@ returns returnType|Error = @java:Method {
 
 # Converts an XML to its `Map` or `Record` representation.
 # Additionally, when converting to a record, XML `namespaces`, `name of elements` and `attributes` can be validated
-# through `xmldata:Namespace`, `xmldata:Name` and ``xmldata:Attribute` annotations.
+# through `xmldata:Namespace`, `xmldata:Name` and `xmldata:Attribute` annotations.
 #
 # + xmlValue - The XML source to be converted to a given target type. If the XML elements have a prefix,
 #              the mapping field names of the record must also have the same prefix.
-# + returnType - The `typedesc` of the returned value. this should be either `map` or `record` type.
+# + returnType - The `typedesc` of the returned value. this should be either `map` or `record` type
 # + return - The given target type representation of the given XML on success,
 #            else returns an `xmldata:Error`
 public isolated function fromXml(xml xmlValue, typedesc<map<anydata>> returnType = <>)

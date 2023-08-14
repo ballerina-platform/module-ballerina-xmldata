@@ -150,7 +150,7 @@ public class CompilerPluginTest {
     public void testInvalidUnionType1() {
         DiagnosticResult diagnosticResult = loadPackage("sample10").getCompilation().diagnosticResult();
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
-                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.WARNING))
                 .collect(Collectors.toList());
         Assert.assertEquals(errorDiagnosticsList.size(), 2);
         Assert.assertEquals(errorDiagnosticsList.get(1).diagnosticInfo().messageFormat(),
@@ -163,7 +163,7 @@ public class CompilerPluginTest {
     public void testInvalidChildAnnotation() {
         DiagnosticResult diagnosticResult = loadPackage("sample11").getCompilation().diagnosticResult();
         List<Diagnostic> errorDiagnosticsList = diagnosticResult.diagnostics().stream()
-                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR))
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.WARNING))
                 .collect(Collectors.toList());
         Assert.assertEquals(errorDiagnosticsList.size(), 1);
         Assert.assertEquals(errorDiagnosticsList.get(0).diagnosticInfo().messageFormat(),

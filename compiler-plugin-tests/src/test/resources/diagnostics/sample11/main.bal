@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/io;
 import ballerina/xmldata;
 
 @xmldata:Name {
@@ -47,4 +48,6 @@ public function main() returns error? {
     xml x1 = xml `<foo><bar>2</bar><car></car></foo>`;
     Foo actual = check xmldata:fromXml(x1);
     Bar result = check xmldata:fromXml(x1);
+    io:println(actual);
+    io:println(result);
 }
