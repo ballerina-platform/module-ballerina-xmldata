@@ -131,7 +131,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
 
     private void addRecordName(TypeDescriptorNode typeDescriptor) {
         if (typeDescriptor.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
-            String returnTypeName = typeDescriptor.toString().trim();
+            String returnTypeName = ((SimpleNameReferenceNode) typeDescriptor).name().text().trim();
             if (!this.recordNamesUsedInFunction.containsKey(returnTypeName)) {
                 this.recordNamesUsedInFunction.put(returnTypeName, typeDescriptor.location());
             }
@@ -156,13 +156,14 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
                 if (field instanceof RecordFieldNode) {
                     RecordFieldNode recordFieldNode = (RecordFieldNode) field;
                     type = recordFieldNode.typeName();
-                } else {
+                    processFieldType(type, record);
+                } else if (field instanceof RecordFieldWithDefaultValueNode) {
                     RecordFieldWithDefaultValueNode recordFieldNode = (RecordFieldWithDefaultValueNode) field;
                     type = recordFieldNode.typeName();
+                    processFieldType(type, record);
                 }
-                processFieldType(type, record);
             }
-            this.records.put(record.getName(), record);
+            this.records.put(record.getName().trim(), record);
         }
     }
 
@@ -213,7 +214,7 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
         }
     }
 
-    private void validateRecord(SyntaxNodeAnalysisContext ctx, Record record, Location variableDeclarationLocation) {
+    private void validateRecord(SyntaxNodeAnalysisContext ctx, Record record, Location declarationLocation) {
         this.validatedRecords.add(record.getName());
         for (Location location : record.getMultipleNonPrimitiveTypeLocations()) {
             reportDiagnosticInfo(ctx, location, DiagnosticsCodes.XMLDATA_102);
@@ -224,9 +225,9 @@ public class XmldataRecordFieldValidator implements AnalysisTask<SyntaxNodeAnaly
         for (String childRecordName : record.getChildRecordNames()) {
             if (!this.validatedRecords.contains(childRecordName)) {
                 Record childRecord =  this.records.get(childRecordName);
-                validateRecord(ctx, childRecord, variableDeclarationLocation);
-                if (childRecord.hasNameAnnotation() && !recordNamesUsedInFunction.containsKey(childRecordName)) {
-                    reportDiagnosticInfo(ctx, childRecord.getLocation(), DiagnosticsCodes.XMLDATA_103);
+                validateRecord(ctx, childRecord, declarationLocation);
+                if (childRecord.hasNameAnnotation() && !recordNamesUsedInFunction.containsKey(childRecordName.trim())) {
+                    reportDiagnosticInfo(ctx, declarationLocation, DiagnosticsCodes.XMLDATA_103);
                 }
             }
         }
