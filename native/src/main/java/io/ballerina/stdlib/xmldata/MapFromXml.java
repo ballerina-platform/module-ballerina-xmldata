@@ -47,7 +47,9 @@ import java.util.Map;
  *
  * @since 2.3.0
  */
-public class MapFromXml {
+public final class MapFromXml {
+
+    private MapFromXml() {}
 
     @SuppressWarnings("unchecked")
     public static Object fromXml(BXml xml, BTypedesc type) {
