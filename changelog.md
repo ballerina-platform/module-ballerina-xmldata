@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 [Fix the mismatch error by `fromXml` API while the field has the name annotation](https://github.com/ballerina-platform/ballerina-standard-library/issues/3802)
+[Make some of the Java classes proper utility classes](https://github.com/ballerina-platform/ballerina-standard-library/issues/4902)
 
 ## [2.4.3] - 2023-05-12
 

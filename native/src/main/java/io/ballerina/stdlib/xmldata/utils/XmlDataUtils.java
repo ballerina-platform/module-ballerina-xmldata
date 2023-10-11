@@ -46,7 +46,9 @@ import java.util.Map;
  *
  * @since 1.1.0
  */
-public class XmlDataUtils {
+public final class XmlDataUtils {
+
+    private XmlDataUtils() {}
 
     private static final String ERROR = "Error";
     private static final String ATTRIBUTE_PREFIX = "attribute_";
