@@ -39,7 +39,9 @@ import static io.ballerina.stdlib.xmldata.XmlToJson.toJson;
  *
  * @since 2.0.2
  */
-public class XmlToRecord {
+public final class XmlToRecord {
+
+    private XmlToRecord() {}
 
     public static Object toRecord(BXml xml, boolean preserveNamespaces, BTypedesc type) {
         return toRecord(xml, preserveNamespaces, Constants.UNDERSCORE, type);
