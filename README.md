@@ -8,6 +8,8 @@ Ballerina XmlData Library
   [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-xmldata.svg)](https://github.com/ballerina-platform/module-ballerina-xmldata/commits/master)
   [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/xmldata.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fxmldata)
 
+>**Deprecation Notice:** This library is deprecated and will no longer be maintained or updated. Instead, it is recommended to use the [`ballerina/data.xmldata`](https://central.ballerina.io/ballerina/data.xmldata/latest) library for continued support and updates. For more information, see the new [XML to Record conversion example](https://ballerina.io/learn/by-example/xml-to-record/) and [XML to record conversion with projection example](https://ballerina.io/learn/by-example/xml-to-record-with-projection/).
+
 This library provides APIs to perform conversions between XML and JSON/Ballerina records. It provides APIs to get natural representations of data in XML from JSON and to get JSON or Ballerina records data from natural representations of data in XML.
 
 ## Issues and projects 
