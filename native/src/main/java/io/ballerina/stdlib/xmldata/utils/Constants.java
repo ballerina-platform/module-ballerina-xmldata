@@ -18,10 +18,10 @@
 
 package io.ballerina.stdlib.xmldata.utils;
 
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
+import io.ballerina.runtime.api.types.PredefinedTypes;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
 
