@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BTypedesc;
@@ -71,7 +72,7 @@ public final class XmlToRecord {
 
     public static Object convertToJson(BXml xml, boolean preserveNamespaces, String attributePrefix, BTypedesc type)
             throws Exception {
-        Type describingType = type.getDescribingType();
+        Type describingType = TypeUtils.getImpliedType(type.getDescribingType());
         validateRecordType(describingType);
         return toJson(xml, preserveNamespaces, attributePrefix, describingType);
     }

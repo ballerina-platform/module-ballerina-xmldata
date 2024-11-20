@@ -112,7 +112,7 @@ public class XmlToJson {
                                        BMap<BString, BString> parentAttributeMap,
                                        FieldDetails fieldDetails) throws Exception {
         if (type instanceof MapType mapType) {
-            if (mapType.getConstrainedType().getTag() == TypeTags.XML_TAG) {
+            if (TypeUtils.getImpliedType(mapType.getConstrainedType()).getTag() == TypeTags.XML_TAG) {
                 BMap<BString, Object> map = createMapValue(type);
                 map.put(fromString(CONTENT), xml);
                 return map;
@@ -140,10 +140,11 @@ public class XmlToJson {
 
     private static Object convertValue(BXml xml, Type type) throws Exception {
         if (type != null) {
+            type = TypeUtils.getImpliedType(type);
             if (type.getTag() == TypeTags.ARRAY_TAG) {
                 return convertToArray(type, xml);
             } else if (type.getTag() == TypeTags.MAP_TAG) {
-                switch (((MapType) type).getConstrainedType().getTag()) {
+                switch (TypeUtils.getImpliedType(((MapType) type).getConstrainedType()).getTag()) {
                     case TypeTags.INT_TAG:
                         return Long.parseLong(xml.toString());
                     case TypeTags.BOOLEAN_TAG:
@@ -202,7 +203,7 @@ public class XmlToJson {
             BMap<BString, Object> annotations = null;
             if (attributePrefix.equals(Constants.ADD_IF_HAS_ANNOTATION))  {
                 Type annotationType = TypeUtils.getReferredType(fieldType);
-                if (fieldType.getTag() == TypeTags.ARRAY_TAG) {
+                if (annotationType.getTag() == TypeTags.ARRAY_TAG) {
                     annotationType = TypeUtils.getReferredType(((ArrayType) fieldType).getElementType());
                 } else if (fieldType instanceof UnionType bUnionType) {
                     for (Type memberType : bUnionType.getMemberTypes()) {
@@ -459,6 +460,7 @@ public class XmlToJson {
     private static void convertToRecordType(BMap<BString, Object> map, Type valueType, String key, String value)
             throws Exception {
         try {
+            valueType = TypeUtils.getImpliedType(valueType);
             switch (valueType.getTag()) {
                 case TypeTags.INT_TAG:
                     map.put(fromString(key), Long.parseLong(value));
@@ -563,7 +565,7 @@ public class XmlToJson {
         if (newSequence.isEmpty()) {
             return null;
         }
-        if (type != null && type.getTag() == TypeTags.XML_TAG) {
+        if (type != null && TypeUtils.getImpliedType(type).getTag() == TypeTags.XML_TAG) {
             if (newSequence.size() == 1) {
                 return newSequence.get(0);
             }
@@ -663,6 +665,7 @@ public class XmlToJson {
 
     private static BMap<BString, Object> createMapValue(Type type) {
         if (type != null) {
+            type = TypeUtils.getImpliedType(type);
             if (type.getTag() == TypeTags.MAP_TAG) {
                 return ValueCreator.createMapValue((MapType) type);
             }

@@ -61,11 +61,11 @@ public final class XmlDataUtils {
 
     @SuppressWarnings("unchecked")
     public static Object getModifiedRecord(BMap<BString, Object> input, BTypedesc type) {
-        Type describingType = type.getDescribingType();
+        Type describingType = TypeUtils.getImpliedType(type.getDescribingType());
         Object value = input.get(input.getKeys()[0]);
         if (describingType.getTag() == TypeTags.MAP_TAG && value instanceof BArray) {
             BArray objectArray = (BArray) value;
-            Type elementType = TypeUtils.getReferredType(((ArrayType) objectArray.getType()).getElementType());
+            Type elementType = TypeUtils.getImpliedType(((ArrayType) objectArray.getType()).getElementType());
             if (elementType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                 BMap<BString, Object> jsonMap = ValueCreator.createMapValue(Constants.JSON_MAP_TYPE);
                 for (Map.Entry<BString, Object> entry : input.entrySet()) {
@@ -87,8 +87,8 @@ public final class XmlDataUtils {
         if (describingType.getTag() == TypeTags.RECORD_TYPE_TAG &&
                 describingType.getFlags() != Constants.DEFAULT_TYPE_FLAG) {
             BArray jsonArray = ValueCreator.createArrayValue(PredefinedTypes.TYPE_JSON_ARRAY);
-            BMap<BString, Object> recordField =  addFields(input, type.getDescribingType());
-            BMap<BString, Object> processedRecord = processParentAnnotation(type.getDescribingType(), recordField);
+            BMap<BString, Object> recordField =  addFields(input, describingType);
+            BMap<BString, Object> processedRecord = processParentAnnotation(describingType, recordField);
             BString rootTagName = processedRecord.getKeys()[0];
             jsonArray.append(processedRecord.get(rootTagName));
             jsonArray.append(rootTagName);

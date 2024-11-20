@@ -53,7 +53,7 @@ public final class MapFromXml {
 
     @SuppressWarnings("unchecked")
     public static Object fromXml(BXml xml, BTypedesc type) {
-        Type describingType = type.getDescribingType();
+        Type describingType = TypeUtils.getImpliedType(type.getDescribingType());
         if (describingType.getTag() == TypeTags.RECORD_TYPE_TAG) {
             Object output;
             try {
@@ -83,17 +83,17 @@ public final class MapFromXml {
             }
         } else {
             try {
-                Type valueType = ((MapType) describingType).getConstrainedType();
+                Type valueType = TypeUtils.getImpliedType(((MapType) describingType).getConstrainedType());
                 isValidXmlWithOutputType(xml, valueType);
                 Object output = XmlToJson.toJson(xml, false, Constants.SKIP_ATTRIBUTE,
-                        type.getDescribingType());
+                        describingType);
                 if (valueType.getTag() == TypeTags.TABLE_TAG) {
                     TableType tableType = (TableType) valueType;
                     BMap<BString, Object> tableMap = ValueCreator.createMapValue(TypeCreator.createMapType(tableType));
                     BMap<BString, Object> resultMap = (BMap<BString, Object>) output;
                     for (Map.Entry<BString, Object> entry : resultMap.entrySet()) {
                         BTable tableValue = ValueCreator.createTableValue(tableType);
-                        Type tableValueType = TypeUtils.getReferredType(((TableType) valueType).getConstrainedType());
+                        Type tableValueType = TypeUtils.getImpliedType(((TableType) valueType).getConstrainedType());
                         if (tableValueType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                             tableValue.put(ValueUtils.convert(entry.getValue(), tableValueType));
                         } else {
@@ -132,7 +132,7 @@ public final class MapFromXml {
     private static void isValidXmlWithOutputType(BXml xml, Type type) throws Exception {
         int typeTag = type.getTag();
         if (typeTag == TypeTags.ARRAY_TAG) {
-            typeTag = ((ArrayType) type).getElementType().getTag();
+            typeTag = TypeUtils.getImpliedType(((ArrayType) type).getElementType()).getTag();
         }
         if (isPrimitiveType(typeTag)) {
             BXml elements = xml.elements().children();
