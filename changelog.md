@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- [Add support for xsi:nil Attribute in xml to json/record conversion](https://github.com/ballerina-platform/ballerina-library/issues/7462)
+
+## [2.6.2] - 2023-08-17
+
+### Fixed
 [Fix the mismatch error by `fromXml` API while the field has the name annotation](https://github.com/ballerina-platform/ballerina-standard-library/issues/3802)
 [Make some of the Java classes proper utility classes](https://github.com/ballerina-platform/ballerina-standard-library/issues/4902)
 
