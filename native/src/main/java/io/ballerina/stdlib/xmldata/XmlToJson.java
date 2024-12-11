@@ -71,6 +71,8 @@ public class XmlToJson {
     private static final String EMPTY_STRING = "";
     public static final int NS_PREFIX_BEGIN_INDEX = BXmlItem.XMLNS_NS_URI_PREFIX.length();
     private static final String COLON = ":";
+    public static final String XMLSCHEMA_INSTANCE_NIL = "{http://www.w3.org/2001/XMLSchema-instance}nil";
+    public static final BString BSTRING_XMLSCHEMA_INSTANCE_NIL = fromString(XMLSCHEMA_INSTANCE_NIL);
 
     /**
      * Converts an XML to the corresponding JSON representation.
@@ -190,7 +192,13 @@ public class XmlToJson {
             children = convertToArray(fieldType, children);
         }
         fieldDetail.setParentArrayName(fieldName);
-        return insertDataToMap(childrenData, children, rootNode,  fieldName, fieldType, fieldDetail);
+        boolean nilValue = false;
+        // If the children is null and has `{http://www.w3.org/2001/XMLSchema-instance}nil` attribute set to true,
+        // then it is a nil value
+        if (children == null && attributeMap.containsKey(BSTRING_XMLSCHEMA_INSTANCE_NIL)) {
+            nilValue = Boolean.parseBoolean(attributeMap.get(BSTRING_XMLSCHEMA_INSTANCE_NIL).getValue());
+        }
+        return insertDataToMap(childrenData, children, rootNode,  fieldName, fieldType, fieldDetail, nilValue);
     }
 
     private static void processAttributeWithAnnotation(BXmlItem xmlItem, String attributePrefix,
@@ -224,7 +232,7 @@ public class XmlToJson {
     @SuppressWarnings("unchecked")
     private static BMap<BString, Object> insertDataToMap(BMap<BString, Object> childrenData, Object children,
                                                          BMap<BString, Object> rootNode, String keyValue,
-                                                         Type fieldType, FieldDetails fieldDetails) throws Exception {
+                                                         Type fieldType, FieldDetails fieldDetails, boolean nilValue) throws Exception {
         if (childrenData.size() > 0) {
             if (children instanceof BMap) {
                 BMap<BString, Object> data = (BMap<BString, Object>) children;
@@ -248,9 +256,9 @@ public class XmlToJson {
                 put(rootNode, keyValue, children);
             } else if (children == null) {
                 if (fieldType instanceof ReferenceType && TypeUtils.getReferredType(fieldType) instanceof RecordType) {
-                    put(rootNode, keyValue, ValueCreator.createMapValue(Constants.JSON_MAP_TYPE));
+                    put(rootNode, keyValue, nilValue ? null : ValueCreator.createMapValue(Constants.JSON_MAP_TYPE));
                 } else {
-                    putAsFieldTypes(rootNode, keyValue, EMPTY_STRING, fieldType, fieldDetails);
+                    putAsFieldTypes(rootNode, keyValue, nilValue ? null : EMPTY_STRING, fieldType, fieldDetails);
                 }
             } else if (children instanceof BArray) {
                 put(rootNode, keyValue, children);
