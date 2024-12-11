@@ -740,6 +740,20 @@ function testToJsonWithNilElementAndWithoutPreserveNS() returns Error? {
                     <author xsi:nil="true"/>
                     <language>English</language>
                   </details>`;
-    json j = check toJson(x, {preserveNamespaces: false});
+    json j = check toJson(x1, {preserveNamespaces: false});
     test:assertEquals(j, {"name":"Sherlock Holmes", "details":{"author":null, "language":"English"}}, msg = "testToJsonWithNilElement result incorrect");
+}
+
+@test:Config {
+    groups: ["toJson"]
+}
+function testToJsonWithNilElementAndPreserveNS() returns Error? {
+    xml x1 = xml `<name>Sherlock Holmes</name>
+                  <details xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                    <author xsi:nil="true"/>
+                    <language>English</language>
+                  </details>`;
+    json j = check toJson(x1, {preserveNamespaces: true});
+    test:assertEquals(j, {"name":"Sherlock Holmes","details":{"author":{"@xsi:nil":"true"},"language":"English",
+    "@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}}, msg = "testToJsonWithNilElement result incorrect");
 }

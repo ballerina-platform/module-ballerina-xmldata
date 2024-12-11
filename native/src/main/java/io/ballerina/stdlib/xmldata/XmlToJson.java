@@ -232,7 +232,8 @@ public class XmlToJson {
     @SuppressWarnings("unchecked")
     private static BMap<BString, Object> insertDataToMap(BMap<BString, Object> childrenData, Object children,
                                                          BMap<BString, Object> rootNode, String keyValue,
-                                                         Type fieldType, FieldDetails fieldDetails, boolean nilValue) throws Exception {
+                                                         Type fieldType, FieldDetails fieldDetails, boolean nilValue)
+            throws Exception {
         if (childrenData.size() > 0) {
             if (children instanceof BMap) {
                 BMap<BString, Object> data = (BMap<BString, Object>) children;
@@ -653,7 +654,7 @@ public class XmlToJson {
         Object validateResult;
         if (result == null) {
             validateResult = fromString(EMPTY_STRING);
-        } else if (result instanceof BMap && ((BMap<?, ?>) result).get(elementName) != null) {
+        } else if (result instanceof BMap && ((BMap<?, ?>) result).containsKey(elementName)) {
             validateResult = ((BMap<?, ?>) result).get(elementName);
         } else {
             validateResult = result;

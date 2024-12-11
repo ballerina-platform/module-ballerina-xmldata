@@ -1294,3 +1294,65 @@ isolated function testFromXmlWithNameAnnotation() returns error? {
     Appointments result = check fromXml(xmlPayload);
     test:assertEquals(result, expected, msg = "testFromXmlWithNameAnnotation result incorrect");
 }
+
+@Name {
+    value: "book"
+}
+type Book record {|
+    string name;
+    BookDetails details;
+|};
+
+type BookDetails record {|
+    string? author;
+    string language;
+|};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+function testFromXmlWithNilElementAndWithoutPreserveNS() returns Error? {
+    xml x1 = xml `<book><name>Sherlock Holmes</name>
+                  <details xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                    <author xsi:nil="true"/>
+                    <language>English</language>
+                  </details></book>`;
+    Book expected = {
+        name: "Sherlock Holmes",
+        details: {
+            author: (),
+            language: "English"
+        }
+    };
+    Book result = check fromXml(x1);
+    test:assertEquals(result, expected, msg = "testFromXmlWithNilElement result incorrect");
+}
+
+@Name {
+    value: "book"
+}
+type Book1 record {|
+    string name;
+    BookDetails1 details;
+|};
+
+type BookDetails1 record {|
+    string author;
+    string language;
+|};
+
+@test:Config {
+    groups: ["fromXml"]
+}
+function testFromXmlWithNilElementAndWithoutNillableField() returns Error? {
+    xml x1 = xml `<book><name>Sherlock Holmes</name>
+                  <details xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                    <author xsi:nil="true"/>
+                    <language>English</language>
+                  </details></book>`;
+    Book1|Error result = fromXml(x1);
+    test:assertTrue(result is error, msg = "testFromXmlWithNilElementAndWithoutNillableField result incorrect");
+    if (result is error) {
+        test:assertTrue(result.message().includes("field 'details.author' in record 'xmldata:BookDetails1' should be of type 'string', found '()'"));
+    }
+}
