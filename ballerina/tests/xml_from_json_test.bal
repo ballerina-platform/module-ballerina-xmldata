@@ -1096,3 +1096,13 @@ isolated function testWithRootTagConfig() {
         test:assertFail("failed to convert json to xml");
     }
 }
+
+@test:Config {
+    groups: ["fromJson"]
+}
+function testFromJsonWithNull() returns error? {
+    json data = null;
+    xml? result = check fromJson({"name":"Sherlock Holmes", "details":{"author":null, "language":"English"}}, {rootTag: "book"});
+    xml expected = xml `<book><name>Sherlock Holmes</name><details><author/><language>English</language></details></book>`;
+    test:assertEquals(result, expected, msg = "testFromJsonWithNull result incorrect");
+}
