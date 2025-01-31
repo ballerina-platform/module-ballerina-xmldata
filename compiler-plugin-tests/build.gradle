@@ -26,7 +26,7 @@ description = 'Ballerina - Xmldata Compiler Plugin Tests'
 
 dependencies {
     checkstyle project(':checkstyle')
-    checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
+    checkstyle "com.puppycrawl.tools:checkstyle:${checkstylePluginVersion}"
 
     implementation project(':xmldata-compiler-plugin')
 
@@ -101,7 +101,7 @@ tasks.withType(Checkstyle) {
 }
 
 checkstyle {
-    toolVersion "${project.puppycrawlCheckstyleVersion}"
+    toolVersion "${project.checkstylePluginVersion}"
     configFile rootProject.file("build-config/checkstyle/build/checkstyle.xml")
     configProperties = ["suppressionFile": file("${rootDir}/build-config/checkstyle/build/suppressions.xml")]
 }
