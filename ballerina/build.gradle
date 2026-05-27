@@ -145,6 +145,7 @@ publishing {
 updateTomlFiles.dependsOn unpackJballerinaTools
 
 build.dependsOn patchBallerinaScripts
+test.dependsOn patchBallerinaScripts
 build.dependsOn "generatePomFileForMavenPublication"
 build.dependsOn ":${packageName}-native:build"
 build.dependsOn ":${packageName}-compiler-plugin:build"
