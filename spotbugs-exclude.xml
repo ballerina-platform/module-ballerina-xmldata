@@ -27,15 +27,19 @@
 
     <!-- Pre-existing issues surfaced by SpotBugs 4.9.x (bundled in plugin >= 6.2.0) -->
     <Match>
+        <Package name="~io\.ballerina\.stdlib\.xmldata.*"/>
         <BugCode name="THROWS"/>
     </Match>
     <Match>
+        <Package name="~io\.ballerina\.stdlib\.xmldata.*"/>
         <BugCode name="AT"/>
     </Match>
     <Match>
+        <Package name="~io\.ballerina\.stdlib\.xmldata.*"/>
         <BugCode name="USELESS_STRING"/>
     </Match>
     <Match>
+        <Package name="~io\.ballerina\.stdlib\.xmldata.*"/>
         <BugCode name="DM"/>
     </Match>
 </FindBugsFilter>
