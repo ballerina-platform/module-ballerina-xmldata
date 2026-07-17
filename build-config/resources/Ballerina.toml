@@ -7,12 +7,12 @@ keywords = ["xml", "json"]
 repository = "https://github.com/ballerina-platform/module-ballerina-xmldata"
 icon = "icon.png"
 license = ["Apache-2.0"]
-distribution = "2201.14.0"
+distribution = "2201.11.0"
 
-[platform.java25]
+[platform.java21]
 graalvmCompatible = true
 
-[[platform.java25.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "xmldata-native"
 version = "@toml.version@"
